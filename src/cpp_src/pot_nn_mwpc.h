@@ -1,10 +1,18 @@
 /*
-pot_nn_mwpc.h
+   pot_nn_mwpc.h
+   This file is part of the nn_mwpc project.
 
-This file is part of the nn_mwpc project.
+   The potential class is creats nucleon-nucleon potential objects in a specific
+   partial wave. The potential object is flexible in the sense that you can
+   choose to create potentials that includes hand-picked contributions.
+   By precomputing matrices the function call to compute the potential matrix
+   for a given set of LECs should be quite efficient.
 
-Oliver Thim 2021-09 --
-Department of Physics, Chalmers
+   The class ha functionality to be able to compute and return specific matrix
+   elements.
+
+   Oliver Thim 2021-09 --
+   Department of Physics, Chalmers
 */
 #include <vector>
 
@@ -20,13 +28,23 @@ private:
    std::vector<double> phys_constants;
 private:
 
+   /*
+      opep_get_el
+      V(...) returns a list of length 6
+      The elements are on the form [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
+      where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
+   */
+   double* opep_get_el(double qi,double qo, int coupled, int J);
 public:
+   // Constructor
    Potential_mwpc();
 
-   // Returns a list of potential elements given the lecs. In some terms the LECs
-   // do not enter like \alpha_i W_i and therefor the matrix element depends on
-   // the vales of the lecs. For OPE and the LO contact terms this is not the
-   // case.
+   /*
+      Returns a list of potential elements given the lecs. In some terms the LECs
+      do not enter like \alpha_i W_i and therefor the matrix element depends on
+      the vales of the lecs. For OPE and the LO contact terms this is not the
+      case.
+   */
    std::vector<double> get_mtx_el(Term dia, double pp, double p, Channel chn);
 
    /*
@@ -34,12 +52,14 @@ public:
       one neq 0 lec at the time. This means that the full potential mastrix can
       be obtained by a lecs * W.
    */
-   int populate();
+   int populate(bool include_rel_fac, bool include_cutoff);
 
    /*
       This function geives the whole potential matrix for a geven set of lecs.
       This function call will be fast if the W's are precomputed and saved in
       memory during runtime.
+
    */
+
    double** get_mtx(LECs lecs);
 };
