@@ -5,4 +5,5 @@
 Potential_mwpc::Potential_mwpc()
 {
    // Init everything
+
 }
