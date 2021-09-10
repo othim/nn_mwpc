@@ -15,7 +15,11 @@
    Department of Physics, Chalmers
 */
 #include <vector>
-
+#include "gsl_sf_legendre.h" // Legendre polynomials
+#include "gsl_integration.h" // GL integration
+#include "Constants.h"
+#include <iostream>
+#include <cmath>
 
 class Potential_mwpc
 {
@@ -26,7 +30,10 @@ private:
    //double* p_grid;
    //double* w_grid;
    //std::vector<double> phys_constants;
-private:
+
+   static const int N_GLI_PWA = 96;
+   gsl_integration_fixed_workspace* int_ang;
+public:
 
    /*
       opep_get_el
@@ -34,11 +41,11 @@ private:
       The elements are on the form [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
       where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
    */
-   void opep_get_el(double qi,double qo, bool coupled, int J, double* output);
+   void opep_get_el(double qi,double qo, bool coupled, int J,double* output);
 public:
    // Constructor
    Potential_mwpc();
-   
+
    // Destructor 
    ~Potential_mwpc();
    /*
