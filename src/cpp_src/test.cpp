@@ -9,5 +9,8 @@ int main(int argc, char** argv)
    std::cout << "Running test.cpp" << std::endl;
 
    Potential_mwpc* V = new Potential_mwpc();
+
+   delete V;
+
    return 0;
 }
