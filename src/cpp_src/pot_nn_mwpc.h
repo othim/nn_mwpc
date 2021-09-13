@@ -48,6 +48,10 @@ public:
 
    // Destructor 
    ~Potential_mwpc();
+
+   // get_my_units()
+   // get_my_LECs()
+   // get_memory_usage_if_stored()
    /*
       Returns a list of potential elements given the lecs. In some terms the LECs
       do not enter like \alpha_i W_i and therefor the matrix element depends on

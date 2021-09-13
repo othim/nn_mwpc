@@ -10,11 +10,11 @@ Potential_mwpc::Potential_mwpc()
    const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
    int_ang = gsl_integration_fixed_alloc(T, N_GLI_PWA, -1.0, 1.0, 0, 0);
    
-   double* d = gsl_integration_fixed_nodes(int_ang);
-   for (int i = 0; i < 96; i++)
-   {
-      std::cout << d[i] << " ";
-   }
+   //double* d = gsl_integration_fixed_nodes(int_ang);
+   //for (int i = 0; i < 96; i++)
+   //{
+   //   std::cout << d[i] << " ";
+   //}
    std::cout << "V object created" << std::endl;
 }
 
@@ -30,7 +30,6 @@ Potential_mwpc::~Potential_mwpc()
    ** Some helper functions to opep_get_el **
    ******************************************
 */
-
 
 /*
    V_\alpha from Erkelenz without the isospin factor
@@ -84,6 +83,9 @@ int isoFac(int L,int S)
    return -3*(1-T) + T; // Return factor from \tau_i \cdot \tau_2 in terms of T
 }
 
+/* 
+   ******************************************
+*/
 
 void Potential_mwpc::opep_get_el(double qi,double qo, bool coupled, int J,double* output)
 {
@@ -99,10 +101,10 @@ void Potential_mwpc::opep_get_el(double qi,double qo, bool coupled, int J,double
     // Define some variables
    double V_uncoupled_S0 = 0;
 	double V_uncoupled_S1 = 0;
-	double V_coupled_mm   = 0;
-	double V_coupled_pm   = 0;
-	double V_coupled_mp   = 0;
-	double V_coupled_pp   = 0;
+	double V_coupled_mm = 0;
+	double V_coupled_pm = 0;
+	double V_coupled_mp = 0;
+	double V_coupled_pp = 0;
 
    // Check which elements that are non-zero by checking if the Channel is
    // coupled or not
@@ -130,6 +132,6 @@ void Potential_mwpc::opep_get_el(double qi,double qo, bool coupled, int J,double
    output[1] = V_uncoupled_S1;
    output[2] = V_coupled_pp;
    output[3] = V_coupled_mm;
-   output[4] = V_coupled_pm;
-   output[5] = V_coupled_mp;
+   output[4] = V_coupled_pm; // -?
+   output[5] = V_coupled_mp; // -?
 }
