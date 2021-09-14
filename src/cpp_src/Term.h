@@ -1,4 +1,8 @@
 #include <string>
+#include <vector>
+#include <unordered_map>
+
+struct LS_term {int J; int Li; int Lo; int S;};
 
 class Term
 {
@@ -13,17 +17,19 @@ private:
     std::string term_name_; // eg. OPEP, C1S0
     
     // Which LECs are associated to the terms (independent of channel)
-    std::vector<string> lecs_in_term_; // Will be filled in by the constructor
+    std::vector<std::string> lecs_in_term_; // Will be filled in by the constructor
 
     // Boolean for knowing if the term is isovector or isoscalar
     bool isovector_; // \tau_1 \cdot \tau_2 factor if isovector
 
     // Function pointer
-    double (*my_v_alpha)(double qi, double qo, double z,std::unordered_map<string,double> LECs);
+    double (*my_v_alpha)(double qi, double qo, double z,std::unordered_map<std::string,double> LECs);
+
+    double (*my_LEC_term)(double qi, double qo,std::unordered_map<std::string,double> LECs);
 
     // Boolean to indicate if the term is a lec-term
     bool is_lec_;
-    struct LS_term {int J; int L; int S} LS_term_lec_;
+    LS_term LS_term_lec_;
 
 public:
 
@@ -32,5 +38,16 @@ public:
 
     // Destructor
     ~Term();
+    bool is_lec();
+    std::string get_term_name();
+    std::string get_spin_structure();
+    bool get_isovector();
+    LS_term get_LS_term();
+    std::vector<std::string> get_lecs_in_term();
+    double get_v_alpha(double qi, double qo, double z,std::unordered_map<std::string,double> LECs);
+    double get_LEC_element(double qi, double qo,std::unordered_map<std::string,double> LECs);
 
+    static double v_alpha_OPEP(double qi, double qo, double z,std::unordered_map<std::string,double> LECs);
+    static double mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs);
+    
 };

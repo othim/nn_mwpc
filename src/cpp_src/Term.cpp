@@ -5,21 +5,22 @@
 
 Term::Term(std::string name)
 {
-    if (name == 'OPEP')
+    if (name == "OPEP")
     {
-        term_name = name;
-        spin_structure = 'tensor';
-        is_lec = false;
+        term_name_ = name;
+        spin_structure_ = "tensor";
+        is_lec_ = false;
         my_v_alpha = &Term::v_alpha_OPEP; // Make my_v_alpha point to the correct function for OPEP
-    } else if (name == 'C1S0')
+    } else if (name == "C1S0")
     {
-        term_name = name;
-        spin_structure = 'none';
-        is_lec = true;
-        LS_term_lec.J = 0;
-        LS_term_lec.L = 0;
-        LS_term_lec.S = 1;
-        my_v_alpha= &Term::mom_C1S0;
+        term_name_ = name;
+        spin_structure_ = "none";
+        is_lec_ = true;
+        LS_term_lec_.J = 0;
+        LS_term_lec_.Li = 0;
+        LS_term_lec_.Lo = 0; 
+        LS_term_lec_.S = 1;
+        my_LEC_term= &Term::mom_C1S0;
     } else
     {
         std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;
@@ -33,25 +34,45 @@ Term::~Term()
 
 /* Some getters */
 
+bool Term::is_lec()
+{
+    return is_lec_;
+}
+
 std::string Term::get_term_name()
 {
-    return term_name;
+    return term_name_;
 }
 
-std:string Term::get_spin_structure()
+std::string Term::get_spin_structure()
 {
-    return spin_structure;
+    return spin_structure_;
 }
 
-std::vector<string> Term::get_lecs_in_term()
+bool Term::get_isovector()
 {
-    return lecs_in_term;
+    return isovector_;
+}
+
+LS_term Term::get_LS_term()
+{
+    return LS_term_lec_;
+}
+
+std::vector<std::string> Term::get_lecs_in_term()
+{
+    return lecs_in_term_;
 }
 
 
-double get_v_alpha(double qi, double qo, double z,std::unordered_map<string,double> LECs)
+double Term::get_v_alpha(double qi, double qo, double z,std::unordered_map<std::string,double> LECs)
 {
     return my_v_alpha(qi,qo,z,LECs);
+}
+
+double Term::get_LEC_element(double qi, double qo,std::unordered_map<std::string,double> LECs)
+{
+    return my_LEC_term(qi,qo,LECs);
 }
 
 /*
@@ -66,14 +87,14 @@ double get_v_alpha(double qi, double qo, double z,std::unordered_map<string,doub
 */
 
 // OPEP
-static double Term::v_alpha_OPEP(double qi, double qo, double z,std::unordered_map<string,double> LECs)
+double Term::v_alpha_OPEP(double qi, double qo, double z,std::unordered_map<std::string,double> LECs)
 {
     double q2 = qi*qi + qo*qo - 2*qi*qo*z;
-	return -(gA*gA/(4.0*fpi*fpi))*(1.0/(q2+mpi*mpi));
+	return -(constants::gA*constants::gA/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi));
 }
 
 // C1S0
-static double Term::mom_C1S0(double qi, double qo, double z, std::unordered_map<string,double> LECs)
+double Term::mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs)
 {
-    return LECs['C1S0']; // If momentum dependent, multiply here
+    return LECs["C1S0"]; // If momentum dependent, multiply here
 }

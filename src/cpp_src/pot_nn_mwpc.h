@@ -19,6 +19,7 @@
 #include <cmath>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include "gsl_sf_legendre.h" // Legendre polynomials
 #include "gsl_integration.h" // GL integration
 #include "Term.h"
@@ -33,7 +34,6 @@ private:
    // By calling precompute() the matrices are stored in memory.
    // You can ask the class which channels are stored in memory
    //std::vector<double**> W_list; // List of matrices that are saved by the class
-   std::map<std::string, double> LECs_; // List of lecs  and their values
    std::vector<std::string> LECs_in_use_; // List of lec names of lecs in use in this potential
    std::vector<Term> terms_in_pot_; // Terms in the potential
    
@@ -43,7 +43,7 @@ private:
 
    static const int N_GLI_PWA_ = 96;
    gsl_integration_fixed_workspace* int_ang_;
-public:
+private:
 
    /*
       opep_get_el
@@ -52,15 +52,19 @@ public:
       where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
    */
 
-   void pwa(double qi,double qo, bool coupled, int J,A_m,A_p,A_0,A_1,std::string spin_struct,bool isovector,double* V_arr);
+   double compute_A_integral(double qi, double qo, int J,int l,Term* term);
+   void pwa(double qi,double qo, bool coupled, int J,double A_m,double A_p,double A_0,double A_1,std::string spin_struct,bool isovector,double* V_arr);
 public:
+   
+   std::unordered_map<std::string, double> LECs_; // List of lecs  and their values. Public for now...
+
    // Constructor
-   Potential_mwpc(std::vector<string> terms);
+   Potential_mwpc(std::vector<std::string> terms);
 
    // Destructor 
    ~Potential_mwpc();
 
-   void calc_element(double qi,double qo, bool coupled, int J, double* V_arr);
+   void calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr);
    double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
 
    /*
