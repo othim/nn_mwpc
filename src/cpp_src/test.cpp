@@ -11,7 +11,7 @@ int main(int argc, char** argv)
    Potential_mwpc* V = new Potential_mwpc();
 
    double potential[6];
-   V->opep_get_el(100,100,true,3,potential);
+   V->opep_get_el(10,10,true,2,potential);
    
    for (int i = 0; i<6; i++)
    {
