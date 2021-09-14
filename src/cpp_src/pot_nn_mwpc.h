@@ -15,24 +15,34 @@
    Department of Physics, Chalmers
 */
 #include <vector>
-#include "gsl_sf_legendre.h" // Legendre polynomials
-#include "gsl_integration.h" // GL integration
-#include "Constants.h"
 #include <iostream>
 #include <cmath>
+#include <string>
+#include <map>
+#include "gsl_sf_legendre.h" // Legendre polynomials
+#include "gsl_integration.h" // GL integration
+#include "Term.h"
+#include "Constants.h"
+
 
 class Potential_mwpc
 {
 private:
+   // The matrices are saved in a specific channel and the class
+   // should be able to store a list of W's for different channels.
+   // By calling precompute() the matrices are stored in memory.
+   // You can ask the class which channels are stored in memory
    //std::vector<double**> W_list; // List of matrices that are saved by the class
-   //LECs lecs; // List of lecs
-   //std::vector<Terms> terms; // Terms in the potential
+   std::map<std::string, double> LECs_; // List of lecs  and their values
+   std::vector<std::string> LECs_in_use_; // List of lec names of lecs in use in this potential
+   std::vector<Term> terms_in_pot_; // Terms in the potential
+   
    //double* p_grid;
    //double* w_grid;
    //std::vector<double> phys_constants;
 
-   static const int N_GLI_PWA = 96;
-   gsl_integration_fixed_workspace* int_ang;
+   static const int N_GLI_PWA_ = 96;
+   gsl_integration_fixed_workspace* int_ang_;
 public:
 
    /*
@@ -41,13 +51,18 @@ public:
       The elements are on the form [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
       where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
    */
-   void opep_get_el(double qi,double qo, bool coupled, int J,double* output);
+
+   void pwa(double qi,double qo, bool coupled, int J,A_m,A_p,A_0,A_1,std::string spin_struct,bool isovector,double* V_arr);
 public:
    // Constructor
-   Potential_mwpc();
+   Potential_mwpc(std::vector<string> terms);
 
    // Destructor 
    ~Potential_mwpc();
+
+   void calc_element(double qi,double qo, bool coupled, int J, double* V_arr);
+   double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
+
    /*
       Returns a list of potential elements given the lecs. In some terms the LECs
       do not enter like \alpha_i W_i and therefor the matrix element depends on

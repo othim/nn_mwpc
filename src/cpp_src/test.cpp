@@ -8,7 +8,11 @@ int main(int argc, char** argv)
 {
    std::cout << "Running test.cpp" << std::endl;
 
-   Potential_mwpc* V = new Potential_mwpc();
+   // Constructing potential with only OPEP-term
+   std::vector<string> terms;
+   terms.push_back(std::string('OPEP'));
+
+   Potential_mwpc V = Potential_mwpc(terms);
 
    double potential[6];
    V->opep_get_el(100,100,true,3,potential);
