@@ -11,6 +11,7 @@ Term::Term(std::string name)
         spin_structure_ = "tensor";
         is_lec_ = false;
         my_v_alpha = &Term::v_alpha_OPEP; // Make my_v_alpha point to the correct function for OPEP
+        lecs_in_term_.push_back("gA2");
     } else if (name == "C1S0")
     {
         term_name_ = name;
@@ -21,6 +22,7 @@ Term::Term(std::string name)
         LS_term_lec_.Lo = 0; 
         LS_term_lec_.S = 1;
         my_LEC_term= &Term::mom_C1S0;
+        lecs_in_term_.push_back("C1S0");
     } else
     {
         std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;

@@ -19,12 +19,15 @@
 #include <cmath>
 #include <string>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include "gsl_sf_legendre.h" // Legendre polynomials
 #include "gsl_integration.h" // GL integration
+#include "gsl_matrix.h"
 #include "Term.h"
 #include "Constants.h"
 
+#define ENABLE_DEBUG
 
 class Potential_mwpc
 {
@@ -33,15 +36,16 @@ private:
    // should be able to store a list of W's for different channels.
    // By calling precompute() the matrices are stored in memory.
    // You can ask the class which channels are stored in memory
-   //std::vector<double**> W_list; // List of matrices that are saved by the class
-   std::vector<std::string> LECs_in_use_; // List of lec names of lecs in use in this potential
-   std::vector<Term> terms_in_pot_; // Terms in the potential
+   std::map<std::string, gsl_matrix*> saved_matrices_; // List of matrices that are saved by the class
    
-   //double* p_grid;
-   //double* w_grid;
-   //std::vector<double> phys_constants;
+   // Variables to store the gauss legendre grid for the potential
+   double* p_grid_;
+   double* w_grid_;
+   std::size_t mom_grid_size_;
+   double cutoff_Lambda_;
 
-   static const int N_GLI_PWA_ = 96;
+   // Variables to store
+   unsigned int N_GLI_PWA_;
    gsl_integration_fixed_workspace* int_ang_;
 private:
 
@@ -51,23 +55,38 @@ private:
       The elements are on the form [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
       where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
    */
+   void clear_saved_matrices();
 
    double compute_A_integral(double qi, double qo, int J,int l,Term* term);
    void pwa(double qi,double qo, bool coupled, int J,double A_m,double A_p,double A_0,double A_1,std::string spin_struct,bool isovector,double* V_arr);
+
+   double pot_OPEP_mom(double qi, double qo, double z);
+
 public:
    
+   std::vector<std::string> LEC_names_;
    std::unordered_map<std::string, double> LECs_; // List of lecs  and their values. Public for now...
+   std::vector<std::string> LECs_in_use_; // List of lec names of lecs in use in this potential
+   std::vector<Term> terms_in_pot_; // Terms in the potential
 
    // Constructor
-   Potential_mwpc(std::vector<std::string> terms);
+   Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,double* p_grid = nullptr, double* w_grid = nullptr, std::size_t grid_size = 0);
 
    // Destructor 
    ~Potential_mwpc();
 
    void calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr);
    double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
-
-   /*
+   void populate_saved_mtx(double qi,double qo, bool coupled, int J);
+   
+   /* 
+      This function returns a mom_grid_size_ x mom_grid_size_ matrix IF the channel is uncoupled
+      and 2*mom_grid_size_ x 2*mom_grid_size_ if the channel is coupled.
+   */
+   gsl_matrix* get_matrix(bool coupled, int J,int S, bool rel_correction = true, double regulator = true);
+   void populate_saved_mtx(double qi,double qo, bool coupled, int J, int S, bool rel_correction, bool cutoff_on);
+   void get_saved_matrix(double q_on_shell, bool coupled, int J, int S, bool rel_correction, bool cutoff_on,gsl_matrix* out_matrix);
+ /*
       Returns a list of potential elements given the lecs. In some terms the LECs
       do not enter like \alpha_i W_i and therefor the matrix element depends on
       the vales of the lecs. For OPE and the LO contact terms this is not the
