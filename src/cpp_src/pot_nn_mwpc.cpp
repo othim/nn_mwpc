@@ -63,6 +63,7 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
 
    z_mesh   = gsl_integration_fixed_nodes(int_ang_);
    w_z_mesh = gsl_integration_fixed_weights(int_ang_);
+
    len_z_mesh = N_GLI_PWA_;
 
    // Store some Legendre Polynomials for J = 0,...,J_max
@@ -76,7 +77,6 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
       {
          stored_Legendre_polynomials_[i][j] = gsl_sf_legendre_Pl(i, z_mesh[j]);
       }
-      
    }
 
    #ifdef ENABLE_DEBUG
@@ -154,17 +154,18 @@ double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l,Term
 
    return result*M_PI;
 }*/
-
 double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l, std::vector<double> v_alpha_arr)
 {
    double integral = 0;
    for (int i = 0; i < len_z_mesh; i++)
    {
-      //std::cout << w_z_mesh[i] << " " << v_alpha_arr[i] << " " << stored_Legendre_polynomials_[J][i] << std::endl;
       integral += w_z_mesh[i] * v_alpha_arr[i] * 
          gsl_pow_int(z_mesh[i],l) * stored_Legendre_polynomials_[J][i];
+      
+      //integral += w_z_mesh[i] * pot_OPEP_mom(qi,qo,z_mesh[i]) * 
+      //   gsl_pow_int(z_mesh[i],l) * gsl_sf_legendre_Pl(J, z_mesh[i]);
    }
-   return integral;
+   return integral*M_PI;
 }
 
 void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr)

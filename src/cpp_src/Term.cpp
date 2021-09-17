@@ -98,7 +98,7 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned 
     for (int i = 0; i < z_len; i++)
     {
         q2 = qi*qi + qo*qo - 2*qi*qo*z[i];
-        tmp[i] = (-(lec/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi)));
+        tmp[i] = -(lec/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi));
     }
 	return tmp;
 }

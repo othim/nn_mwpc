@@ -34,7 +34,7 @@ int main(int argc, char** argv)
    start = std::clock();
 
    Pot.LECs_["gA2"] = constants::gA*constants::gA;
-   Pot.calc_element_V_arr(10,10,true,1,potential);
+   Pot.calc_element_V_arr(100,100,true,0,potential);
    //Pot.get_saved_matrix(10,true,1,1,true,true,potential_mtx);
    end = std::clock();
    std::cout << "Time taken to call calc_element_V_arr() is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 
