@@ -23,8 +23,7 @@ private:
     bool isovector_; // \tau_1 \cdot \tau_2 factor if isovector
 
     // Function pointer
-    double (*my_v_alpha)(double qi, double qo, double z,std::unordered_map<std::string,double> LECs);
-
+   
     double (*my_LEC_term)(double qi, double qo,std::unordered_map<std::string,double> LECs);
 
     // Boolean to indicate if the term is a lec-term
@@ -32,6 +31,7 @@ private:
     LS_term LS_term_lec_;
 
 public:
+    std::vector<double> (*my_v_alpha)(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs);
 
     // Constructor
     Term(std::string name);
@@ -44,10 +44,10 @@ public:
     bool get_isovector();
     LS_term get_LS_term();
     std::vector<std::string> get_lecs_in_term();
-    double get_v_alpha(double qi, double qo, double z,std::unordered_map<std::string,double> LECs);
+    std::vector<double> get_v_alpha(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs);
     double get_LEC_element(double qi, double qo,std::unordered_map<std::string,double> LECs);
 
-    static double v_alpha_OPEP(double qi, double qo, double z,std::unordered_map<std::string,double> LECs);
+    static std::vector<double> v_alpha_OPEP(double qi, double qo, double* z, unsigned int z_len, std::unordered_map<std::string,double> LECs);
     static double mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs);
     
 };

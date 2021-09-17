@@ -5,13 +5,14 @@ struct my_f_params { double qi; double qo; int J; int l; Term* term; Potential_m
 
 
 // Constructor
-Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, double* w_grid, std::size_t mom_grid_size)
+Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, double* w_grid, std::size_t mom_grid_size, unsigned int J_max)
 {
    // Init constants
    N_GLI_PWA_ = N_GLI_PWA;
    p_grid_ = p_grid;
    w_grid_ = w_grid;
    mom_grid_size_ = mom_grid_size;
+   J_max_ = J_max;
    
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
@@ -60,6 +61,24 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
    int_ang_ = gsl_integration_fixed_alloc(T, N_GLI_PWA_, -1.0, 1.0, 0, 0);
 
+   z_mesh   = gsl_integration_fixed_nodes(int_ang_);
+   w_z_mesh = gsl_integration_fixed_weights(int_ang_);
+   len_z_mesh = N_GLI_PWA_;
+
+   // Store some Legendre Polynomials for J = 0,...,J_max
+
+   stored_Legendre_polynomials_ = (double**) malloc( (J_max+1) * sizeof(double*));
+
+   for (int i = 0; i < J_max_+1; i++)
+   {
+      stored_Legendre_polynomials_[i] = (double*) malloc(len_z_mesh*sizeof(double));
+      for (int j = 0; j < len_z_mesh; j++)
+      {
+         stored_Legendre_polynomials_[i][j] = gsl_sf_legendre_Pl(i, z_mesh[j]);
+      }
+      
+   }
+
    #ifdef ENABLE_DEBUG
       std::cout << "V object created" << std::endl;
    #endif
@@ -70,6 +89,13 @@ Potential_mwpc::~Potential_mwpc()
 {
    // Free all memory allocations
    gsl_integration_fixed_free(int_ang_);
+
+   for (int i = 0; i < J_max_; i++)
+   {
+      free(stored_Legendre_polynomials_[i]);
+   }
+   free(stored_Legendre_polynomials_);
+
    #ifdef ENABLE_DEBUG
       std::cout << "V object deleted" << std::endl;
    #endif
@@ -80,16 +106,12 @@ Potential_mwpc::~Potential_mwpc()
    ******************************************
 */
 
-
-/*
-   V_\alpha from Erkelenz without the isospin factor
-*/
-double Potential_mwpc::pot_OPEP_mom(double qi, double qo, double z)
+double Potential_mwpc::pot_OPEP_mom(double qo,double qi, double z)
 {
-   double q2 = qi*qi + qo*qo - 2*qi*qo*z;
-	return -(LECs_["gA2"]/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi));
-}
+	double q2 = qi*qi + qo*qo - 2*qi*qo*z;
 
+	return -(constants::gA*constants::gA/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi));
+}
 /*
    Computes the total isospin factor from \tau_1 \cdot \tau_2 from
    the constraint J+L+T = odd 
@@ -105,8 +127,7 @@ double Potential_mwpc::calc_element_JLS(double qi,double qo, int J, int L, int S
 {
    // TODO implement
    return 0;
-}
-
+}/*
 double f_int_helper(double z, void* p)
 {
    // Decode the void* to the parameters
@@ -117,8 +138,8 @@ double f_int_helper(double z, void* p)
    int l = (params->l);
    
    return (params->term)->get_v_alpha(qi,qo,z,params->this_pot->LECs_)*gsl_pow_int(z,l)*gsl_sf_legendre_Pl(J, z);
-}
-
+}*/
+/*
 double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l,Term* term)
 {
    // Define function to integrate
@@ -132,6 +153,18 @@ double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l,Term
    gsl_integration_fixed(&F,&result,int_ang_);
 
    return result*M_PI;
+}*/
+
+double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l, std::vector<double> v_alpha_arr)
+{
+   double integral = 0;
+   for (int i = 0; i < len_z_mesh; i++)
+   {
+      //std::cout << w_z_mesh[i] << " " << v_alpha_arr[i] << " " << stored_Legendre_polynomials_[J][i] << std::endl;
+      integral += w_z_mesh[i] * v_alpha_arr[i] * 
+         gsl_pow_int(z_mesh[i],l) * stored_Legendre_polynomials_[J][i];
+   }
+   return integral;
 }
 
 void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr)
@@ -140,37 +173,54 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
    {  
       if (!terms_in_pot_[i].is_lec())
       {
-         // Calculate the A_x integrals (don't calculate all)
-         std::clock_t start, end;
-         start = std::clock();
+         #ifdef ENABLE_DEBUG
+            std::clock_t start,end;
+            start = std::clock();
+         #endif
+         // Compute v_alpha array. Just make this function call ONCE!
+         std::vector<double> v_alpha_arr = terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_);
 
-         double A_0 = compute_A_integral(qi,qo,J,0,&terms_in_pot_[i]);
+         #ifdef ENABLE_DEBUG
+            end = std::clock();
+            std::cout << "Time taken to call get_v_alpha is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 
+            std::cout << " mu sec " << std::endl;
+         #endif
+         // Calculate the A_x integrals (don't calculate all)
+         #ifdef ENABLE_DEBUG
+            start = std::clock();
+         #endif
+
+         double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
          double A_1 = 0;
-         double A_P = compute_A_integral(qi,qo,J+1,0,&terms_in_pot_[i]);
+         double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
          double A_M = 0;
 
          if (J!=0) {
-            A_M = compute_A_integral(qi,qo,J-1,0,&terms_in_pot_[i]);
+            A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
          }
          if (!coupled) {
-            A_1 = compute_A_integral(qi,qo,J,1,&terms_in_pot_[i]);
+            A_1 = compute_A_integral(qi,qo,J,1,v_alpha_arr);
          }
 
-         end = std::clock();
-         std::cout << "Time taken to compute A integrals is : " << (double)(end-start)/(double)CLOCKS_PER_SEC; 
-         std::cout << " sec " << std::endl;
-
+         #ifdef ENABLE_DEBUG
+            end = std::clock();
+            std::cout << "Time taken to compute A integrals is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 
+            std::cout << " mu sec " << std::endl;
+         #endif
          // Call pwa with the correct spin structure from this term
          // This will fill up the array V_arr with the correct potential elements
          
-         start = std::clock();
-
+         #ifdef ENABLE_DEBUG
+            start = std::clock();
+         #endif
          pwa(qi,qo,coupled,J,A_M,A_P,A_0,A_1,terms_in_pot_[i].get_spin_structure(),terms_in_pot_[i].get_isovector(),V_arr);
 
-         end = std::clock();
-         std::cout << "Time taken to call pwa is : " << (double)(end-start)/(double)CLOCKS_PER_SEC; 
-         std::cout << " sec " << std::endl;
-       
+         #ifdef ENABLE_DEBUG
+            end = std::clock();
+            std::cout << "Time taken to call pwa is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 
+            std::cout << " mu sec " << std::endl;
+         #endif
+
       } else 
       {
          // Define some variables and initialize V_arr to all zeros.

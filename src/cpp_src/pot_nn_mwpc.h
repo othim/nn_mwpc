@@ -27,7 +27,7 @@
 #include "Term.h"
 #include "Constants.h"
 
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 class Potential_mwpc
 {
@@ -44,9 +44,14 @@ private:
    std::size_t mom_grid_size_;
    double cutoff_Lambda_;
 
+   unsigned int J_max_;
+   double** stored_Legendre_polynomials_;
    // Variables to store
    unsigned int N_GLI_PWA_;
    gsl_integration_fixed_workspace* int_ang_;
+   double* z_mesh;
+   double* w_z_mesh;
+   unsigned int len_z_mesh;
 private:
 
    /*
@@ -57,11 +62,9 @@ private:
    */
    void clear_saved_matrices();
 
-   double compute_A_integral(double qi, double qo, int J,int l,Term* term);
+   double compute_A_integral(double qi, double qo, int J,int l, std::vector<double> v_alpha_arr);
    void pwa(double qi,double qo, bool coupled, int J,double A_m,double A_p,double A_0,double A_1,std::string spin_struct,bool isovector,double* V_arr);
-
-   double pot_OPEP_mom(double qi, double qo, double z);
-
+   double pot_OPEP_mom(double qo,double qi, double z);
 public:
    
    std::vector<std::string> LEC_names_;
@@ -70,7 +73,7 @@ public:
    std::vector<Term> terms_in_pot_; // Terms in the potential
 
    // Constructor
-   Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,double* p_grid = nullptr, double* w_grid = nullptr, std::size_t grid_size = 0);
+   Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,double* p_grid = nullptr, double* w_grid = nullptr, std::size_t grid_size = 0,unsigned int J_max = 0);
 
    // Destructor 
    ~Potential_mwpc();

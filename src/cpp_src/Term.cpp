@@ -67,9 +67,9 @@ std::vector<std::string> Term::get_lecs_in_term()
 }
 
 
-double Term::get_v_alpha(double qi, double qo, double z,std::unordered_map<std::string,double> LECs)
+std::vector<double> Term::get_v_alpha(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs)
 {
-    return my_v_alpha(qi,qo,z,LECs);
+    return my_v_alpha(qi,qo,z,z_len,LECs);
 }
 
 double Term::get_LEC_element(double qi, double qo,std::unordered_map<std::string,double> LECs)
@@ -89,10 +89,18 @@ double Term::get_LEC_element(double qi, double qo,std::unordered_map<std::string
 */
 
 // OPEP
-double Term::v_alpha_OPEP(double qi, double qo, double z,std::unordered_map<std::string,double> LECs)
+std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned int z_len, std::unordered_map<std::string,double> LECs)
 {
-    double q2 = qi*qi + qo*qo - 2*qi*qo*z;
-	return -(constants::gA*constants::gA/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi));
+    double lec = LECs["gA2"];
+    std::vector<double> tmp(z_len);
+    double q2;
+    
+    for (int i = 0; i < z_len; i++)
+    {
+        q2 = qi*qi + qo*qo - 2*qi*qo*z[i];
+        tmp[i] = (-(lec/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi)));
+    }
+	return tmp;
 }
 
 // C1S0

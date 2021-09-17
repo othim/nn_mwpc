@@ -2,7 +2,7 @@
 
 CC = g++
 CFLAGS = -Wall -g
-
+#CFLAGS = -g -O2
 
 main: test.o pot_nn_mwpc.o Term.o
 	$(CC) $(CFLAGS) -o main test.o pot_nn_mwpc.o Term.o -lgsl -lcblas -lgslcblas -lm
