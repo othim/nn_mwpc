@@ -157,6 +157,14 @@ double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l,Term
 double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l, std::vector<double> v_alpha_arr)
 {
    double integral = 0;
+   #ifdef ENABLE_DEBUG
+   if (!(J<J_max_)) 
+   {
+      std::cerr << "Error in compute_A_integral(): J>=J_max, returning 0" << std::endl;
+      return 0;
+   }
+   #endif
+
    for (int i = 0; i < len_z_mesh; i++)
    {
       integral += w_z_mesh[i] * v_alpha_arr[i] * 
@@ -407,14 +415,21 @@ void print_gsl_matrix(gsl_matrix* matrix)
 void Potential_mwpc::clear_saved_matrices()
 {
    // Go through the map and remove the created matrices
-   for (std::map<std::string, gsl_matrix*>::iterator it=saved_matrices_.begin(); it!=saved_matrices_.end(); ++it)
+   for (std::map<qs::quantum_channel, std::map<std::string, gsl_matrix*>, qs::comp>::iterator it1=saved_matrices_.begin(); it1!=saved_matrices_.begin(); ++it1)
    {
-      gsl_matrix_free(it->second);
+      for (std::map<std::string, gsl_matrix*>::iterator it=it1->second.begin(); it!=it1->second.end(); ++it)
+      {
+         gsl_matrix_free(it->second);
+      }
    }
 }
 
-void Potential_mwpc::populate_saved_mtx(double qi,double qo, bool coupled, int J, int S, bool rel_correction, bool cutoff_on)
+void Potential_mwpc::populate_saved_mtx(double qi,double qo, qs::quantum_channel chn, bool rel_correction, bool cutoff_on)
 {
+   unsigned int J = chn.J;
+   unsigned int S = chn.S;
+   bool coupled = chn.coupled;
+
    clear_saved_matrices(); // Clears the allocated pointers
 
    // Set each lec=1 and the rest to 0
@@ -440,23 +455,26 @@ void Potential_mwpc::populate_saved_mtx(double qi,double qo, bool coupled, int J
          print_gsl_matrix(matrix);
       #endif
       // Save the matrix as the matrix corresponding tho the non-zero LEC.
-      saved_matrices_[LECs_in_use_[i]] = matrix;
+      saved_matrices_[chn][LECs_in_use_[i]] = matrix;
    }
    LECs_[LECs_in_use_[LECs_in_use_.size()-1]] = 0.0;
    // After the function has populated the matrices the default is that all LECs are set to zero, 
    // this is to alert the user if the LECs are not updater before getting the matrix.
 }
 
-void Potential_mwpc::get_saved_matrix(double q_on_shell, bool coupled, int J, int S, bool rel_correction, bool cutoff_on,gsl_matrix* out_matrix)
+void Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on,gsl_matrix* out_matrix)
 {
+   unsigned int J = chn.J;
+   unsigned int S = chn.S;
+   bool coupled = chn.coupled;
    // Note that the matrix is computed for the current LECs_!!
    // Note also that the LECs_ are screwed up by the act of saving the matrices!
    // This means that the 
    
    // Check if saved otherwise print error message
-   if (saved_matrices_.empty())
+   if (saved_matrices_[chn].empty())
    {
-      std::cerr << "get_saved_matrix(): There is no saved matrices, returning." << std::endl;
+      std::cerr << "get_saved_matrix(): There is no saved matrices in this channel, returning." << std::endl;
       return;
    }
 
@@ -471,7 +489,7 @@ void Potential_mwpc::get_saved_matrix(double q_on_shell, bool coupled, int J, in
       for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
       {
          // Copy saved matrix to not mess it upp
-         gsl_matrix_memcpy(tmp_matrix, saved_matrices_[LECs_in_use_[i]]);
+         gsl_matrix_memcpy(tmp_matrix, saved_matrices_[chn][LECs_in_use_[i]]);
 
          // Scale tmp_matrix by the correct LEC
          gsl_matrix_scale(tmp_matrix, LECs_[LECs_in_use_[i]]);
@@ -512,7 +530,7 @@ void Potential_mwpc::get_saved_matrix(double q_on_shell, bool coupled, int J, in
       for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
       {
          // Copy saved matrix to not mess it upp
-         gsl_matrix_memcpy(tmp_matrix, saved_matrices_[LECs_in_use_[i]]);
+         gsl_matrix_memcpy(tmp_matrix, saved_matrices_[chn][LECs_in_use_[i]]);
 
          // Scale tmp_matrix by the correct LEC
          gsl_matrix_scale(tmp_matrix, LECs_[LECs_in_use_[i]]);

@@ -26,6 +26,7 @@
 #include "gsl_matrix.h"
 #include "Term.h"
 #include "Constants.h"
+#include "quantum_states.h"
 
 //#define ENABLE_DEBUG
 
@@ -36,7 +37,7 @@ private:
    // should be able to store a list of W's for different channels.
    // By calling precompute() the matrices are stored in memory.
    // You can ask the class which channels are stored in memory
-   std::map<std::string, gsl_matrix*> saved_matrices_; // List of matrices that are saved by the class
+   std::map<qs::quantum_channel, std::map<std::string, gsl_matrix*>, qs::comp> saved_matrices_; // List of matrices that are saved by the class
    
    // Variables to store the gauss legendre grid for the potential
    double* p_grid_;
@@ -80,15 +81,14 @@ public:
 
    void calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr);
    double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
-   void populate_saved_mtx(double qi,double qo, bool coupled, int J);
-   
+ 
    /* 
       This function returns a mom_grid_size_ x mom_grid_size_ matrix IF the channel is uncoupled
       and 2*mom_grid_size_ x 2*mom_grid_size_ if the channel is coupled.
    */
    gsl_matrix* get_matrix(bool coupled, int J,int S, bool rel_correction = true, double regulator = true);
-   void populate_saved_mtx(double qi,double qo, bool coupled, int J, int S, bool rel_correction, bool cutoff_on);
-   void get_saved_matrix(double q_on_shell, bool coupled, int J, int S, bool rel_correction, bool cutoff_on,gsl_matrix* out_matrix);
+   void populate_saved_mtx(double qi,double qo, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
+   void get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on,gsl_matrix* out_matrix);
  /*
       Returns a list of potential elements given the lecs. In some terms the LECs
       do not enter like \alpha_i W_i and therefor the matrix element depends on
