@@ -15,11 +15,39 @@
    Oliver Thim 2021-09 --
    Department of Physics, Chalmers
 */
+#include "pot_nn_mwpc.h"
+#include "gsl_matrix.h"
+#include <cmath>
+
+struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon;};
 
 class LS_Solver
 {
 private:
+   Potential_mwpc* pot_V_;
+   std::vector<qs:quantum_channel> channels_;
+
+   double* p_grid_;
+   double* w_grid_;
+   std::size_t mom_grid_size_;
+   double cutoff_Lambda_;
+
+   unsigned int J_max_;
+
+   double cutoff_Lambda_;
+   bool cutoff_enabled_;
+
+   bool relcorr_enabled_;
+
+   double* setup_D_vector(double q_on_shell);
+   gsl_matrix* setup_F_matrix(double q_on_shell, gsl_matrix* V_mtx);
 
 public:
+
+   LS_Solver();
+   ~LS_Solver();
+
+   // Returns an array of phase shifts in the convention: ...
+   Phase_shifts_chn solve_in_chn(solve_in_chn(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
 
 };

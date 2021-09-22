@@ -30,7 +30,6 @@ int main(int argc, char** argv)
    gsl_matrix* potential_mtx;
 
    qs::quantum_channel chn= {.J=30, .S=1,.tz=0,.coupled=true};
-
    Pot.populate_saved_mtx(10.0,10.0,chn,true,true);
    
    
@@ -40,7 +39,7 @@ int main(int argc, char** argv)
 
    Pot.LECs_["gA2"] = constants::gA*constants::gA;
    
-   Pot.get_saved_matrix(10,chn,true,true,potential_mtx);
+   Pot.get_saved_matrix(10,chn2,true,true,potential_mtx);
    
    end = std::clock();
    std::cout << "Time taken to get_saved_matrix() is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 

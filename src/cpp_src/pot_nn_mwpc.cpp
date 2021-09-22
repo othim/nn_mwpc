@@ -337,7 +337,7 @@ void Potential_mwpc::pwa(double qi,double qo, bool coupled, int J,double A_M,dou
       V_arr[5] = V_coupled_mp;
 }
 
-gsl_matrix* Potential_mwpc::get_matrix(bool coupled, int J,int S, bool rel_correction, double regulator)
+gsl_matrix* Potential_mwpc::get_matrix(bool coupled, int J,int S, bool regulator_on,double regulator)
 {
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case

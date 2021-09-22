@@ -86,7 +86,7 @@ public:
       This function returns a mom_grid_size_ x mom_grid_size_ matrix IF the channel is uncoupled
       and 2*mom_grid_size_ x 2*mom_grid_size_ if the channel is coupled.
    */
-   gsl_matrix* get_matrix(bool coupled, int J,int S, bool rel_correction = true, double regulator = true);
+   gsl_matrix* get_matrix(bool coupled, int J,int S, bool regulator_on = false, double regulator = 0);
    void populate_saved_mtx(double qi,double qo, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
    void get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on,gsl_matrix* out_matrix);
  /*
