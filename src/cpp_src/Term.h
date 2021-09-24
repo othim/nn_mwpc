@@ -1,6 +1,11 @@
+#ifndef TERM_H
+#define TERM_H
+
 #include <string>
 #include <vector>
 #include <unordered_map>
+
+
 
 struct LS_term {int J; int Li; int Lo; int S;};
 
@@ -51,3 +56,5 @@ public:
     static double mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs);
     
 };
+
+#endif

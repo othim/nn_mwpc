@@ -1,23 +1,71 @@
 #include "LS_Solver.h"
 
+//#define ENABLE_DEBUG
 
 // Constructor
-LS_Solver::LS_Solver()
+LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, Potential_mwpc* pot_V, unsigned int mom_grid_size,
+    double mom_grid_scale, bool cutoff_enabled, double cutoff_Lambda, bool relcorr_enabled)
 {
-
+    #ifdef ENABLE_DEBUG
+        std::cout << "LS_Solver()" << std::endl;
+    #endif
+    // Init variables
+    pot_V_ = pot_V;
+    channels_ = channels;
+    mom_grid_size_ = mom_grid_size;
+    cutoff_enabled_ = cutoff_enabled;
+    cutoff_Lambda_ = cutoff_Lambda;
+    relcorr_enabled_ = relcorr_enabled;
+    
+    // Make GL-grid
+    gauss_legendre_inf_mesh(mom_grid_size_,mom_grid_scale,&p_grid_,&w_grid_);
 }
 
 // Destructor
 LS_Solver::~LS_Solver()
 {
-
+    delete p_grid_;
+    delete w_grid_;
 }
 
+/*
+    This function creates a GL-grid on the interval [0,\infty) with the scale <scale>
+*/
+void LS_Solver::gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w)
+{
+    #ifdef ENABLE_DEBUG
+        std::cout << "gauss_legendre_inf_mesh()" << std::endl;
+    #endif
+    // Make grid from -1 to 1
 
-gsl_vector* setup_D_vector(double q_on_shell, bool coupled, double mu)
+    const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
+    gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Numper_of_points, -1.0, 1.0, 0, 0);
+
+    double* p_grid = gsl_integration_fixed_nodes(int_ang_);
+    double* w_grid = gsl_integration_fixed_weights(int_ang_);
+
+    // Make transformation
+    double pi_4 = M_PI/4.0;
+
+    for (int i = 0; i < Numper_of_points; i++)
+    {
+        double x = p_grid[i];
+        p_grid[i] = scale*tan(pi_4*(x+1));
+        w_grid[i] = (scale*pi_4/(cos(pi_4*(x+1))*cos(pi_4*(x+1))))*w_grid[i];
+    }
+
+    // ???
+    *p = p_grid;
+    *w = w_grid;
+   
+}
+
+gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu)
 {
     // See eq (18.19) in Landau
-
+    #ifdef ENABLE_DEBUG
+        std::cerr << "setup_D_vector()" << std::endl;
+    #endif
     // D - energy denominator and weights
     gsl_vector* D_vector;
     double q2_on_shell = q_on_shell*q_on_shell;
@@ -37,7 +85,8 @@ gsl_vector* setup_D_vector(double q_on_shell, bool coupled, double mu)
     for (int i = 0; i < mom_grid_size_; i++)
     {
         double p2 = p_grid_[i]*p_grid_[i];
-        double el = (2.0*mu)*(2.0/M_PI)*w_grid_[i]*p2/(p2-q2_on_shell);
+        double cutoff_regulator = exp(-gsl_pow_uint(p_grid_[i]/cutoff_Lambda_,6));
+        double el = (2.0*mu)*(2.0/M_PI)*w_grid_[i]*p2*cutoff_regulator/(p2-q2_on_shell);
 
         if (coupled)
         {
@@ -55,7 +104,8 @@ gsl_vector* setup_D_vector(double q_on_shell, bool coupled, double mu)
     {
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
-    double el = -(2.0/M_PI)*2.0*mu*q2_on_shell*sum;
+    double cutoff_regulator = exp(-gsl_pow_uint(q2_on_shell/cutoff_Lambda_,6));
+    double el = -(2.0/M_PI)*2.0*mu*q2_on_shell*sum*cutoff_regulator;
 
     if (coupled)
     {
@@ -68,8 +118,11 @@ gsl_vector* setup_D_vector(double q_on_shell, bool coupled, double mu)
     return D_vector;
 }
 
-gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx)
+gsl_matrix* LS_Solver::setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx)
 {
+    #ifdef ENABLE_DEBUG
+        std::cerr << "setup_F_matrix()" << std::endl;
+    #endif
     // F_ij = \delta_ij + D_j V_ij (no sum over i)
 
     // Create matrix pointer and allocate the size for the 
@@ -85,8 +138,10 @@ gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx
     } else 
     {
         F_mtx = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
+        std::cout << "1" << std::endl;
         gsl_matrix_set_identity(F_mtx); // Set to unity
         V_copy = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
+        std::cout << "2" << std::endl;
         gsl_matrix_memcpy(V_copy,V_mtx);
     }
 
@@ -102,67 +157,127 @@ gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx
     return F_mtx;
 }
 
+void print_matrix(gsl_matrix* matrix)
+{
+   std::cout << "---------" << std::endl;
+   for (std::size_t i = 0; i < matrix->size1; i++)
+   {
+      for (std::size_t j = 0; j < matrix->size1; j++)
+      {
+         std::cout << gsl_matrix_get(matrix,i,j) << " ";
+      }   
+      std::cout << std::endl;
+   }
+   std::cout << "---------" << std::endl;
+}
+
 Phase_shifts_chn LS_Solver::solve_in_chn(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on)
 {
-    // Compute reduced mass mu
-    double mu =     
+    #ifdef ENABLE_DEBUG
+        std::cerr << "solve_in_chn()" << std::endl;
+    #endif
+    // Compute reduced mass mu, which depends on the isospin-prijection.
+    double mu;
+    if (chn.tz == -1)
+    {
+        mu = constants::Mn/2.0; // nn
+    } else if (chn.tz == 0)
+    {
+        mu = constants::Mn*constants::Mn/(constants::Mn+constants::Mp); // np
+    } else if (chn.tz == 1)
+    {
+        mu = constants::Mp/2.0; // pp
+    } else 
+    {
+        #ifdef ENABLE_DEBUG
+            std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
+        #endif
+    }
 
-    gsl_matrix* pot_V_mtx;
+    // rho = 2*q*mu   
+    // This is a convecntion dependent parameter that relates the 
+    // R-matrix to the T/S matrices. rho will be different if a different 
+    // normalization for the |klm> quantum states is choosen. To see the conventions
+    // Used in this code see the README.md file.
+    double rho = 2*q_on_shell*mu;
+
+    
     // Get potential matrix with the correct on-shell momentum
     // The size of the matrix depends on if the channels is coupled or not
-    pot_V_->get_get_saved_matrix(q_on_shell,chn,rel_correction,cutoff_on, pot_V_mtx);
+    gsl_matrix* pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction,cutoff_on);
+
+    std::cout << pot_V_mtx->size1 << " " << pot_V_mtx->size2 << std::endl;
     // Setup D-vector
     gsl_vector* D_vector;
-    D_vector = setup_D_vector(q_on_shell,coupled,mu);
+    D_vector = setup_D_vector(q_on_shell,chn.coupled,mu);
+    std::cout << D_vector->size << std::endl;
     // Setup F-matrix
     gsl_matrix* F_matrix;
-    F_matrix = setup_F_matrix(q_on_shell,pot_V_);
+    F_matrix = setup_F_matrix(chn.coupled,D_vector,pot_V_mtx);
+    
+    std::cout << pot_V_mtx->size1 << " " << pot_V_mtx->size2 << std::endl;
+    std::cout << F_matrix->size1  << " " << F_matrix->size2  << std::endl;
+  
     // Solve the matrix equation F*R = V
         
     // LU decompose
-    gsl_permutation* perm;
-    int* signum;
-    gsl_linalg_LU_decomp(F_matrix,perm,signum);
-
-    // Invert from LU decompusition
-    gsl_vector* inverse;
-    gsl_linalg_LU_invert(F_matrix,perm,V_last_col,inverse);
+    gsl_permutation* perm = gsl_permutation_alloc(F_matrix->size1);
+    int signum;
     
-    gsl_matrix* R_result;
-
+    gsl_linalg_LU_decomp(F_matrix,perm,&signum);
+   
+    // Invert from LU decompusition
+    gsl_matrix* inverse = gsl_matrix_alloc(F_matrix->size1,F_matrix->size2);
+    gsl_linalg_LU_invert(F_matrix,perm,inverse);
+   
+    gsl_matrix* R_result = gsl_matrix_alloc(F_matrix->size1,F_matrix->size2);
+    
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, inverse, pot_V_mtx, 0.0, R_result); 
-
+   
     // Get the matrix elements corresponding to the on-shell R-matrix
+    std::cout << "Potential" << std::endl;
+    print_matrix(pot_V_mtx);
+    std::cout << "F_matrix" << std::endl;
+    print_matrix(F_matrix);
+    std::cout << "inverse" << std::endl;
+    print_matrix(inverse);
+    std::cout << "R_result" << std::endl;
+    print_matrix(R_result);
 
     Phase_shifts_chn phase_shifts;
 
-    if (coupled) 
+    if (chn.coupled) 
     {
         // on-shell R-matrix is 2x2
-        double R[2][2];
-        R[0][0] = gsl_matrix_get_element(R_result,mom_grid_size_,mom_grid_size_);
-        R[1][0] = gsl_matrix_get_element(R_result,2*mom_grid_size_+1,mom_grid_size_);
-        R[0][1] = R[1][0];
-        R[1][1] = gsl_matrix_get_element(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
-
+        double R_pp,R_mm,R_mp;
+        R_mm = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
+        R_mp = gsl_matrix_get(R_result,2*mom_grid_size_+1,mom_grid_size_);
+        R_pp = gsl_matrix_get(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
+        std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
         // Compute phase shifts
-
         
+        
+        phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
+        phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
     } else 
     {
         // on-shell R-matrix is 1x1
-        double R = gsl_matrix_get_element(R_result,mom_grid_size_,mom_grid_size_);
+        double R = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
 
         // Compute phase shift
+        phase_shifts.delta_uncoupled = atan(-rho*R);
     }
 
 
     // Delete temporary pointers
     gsl_vector_free(D_vector);
-    gsl_vector_free(R_result);
+    gsl_matrix_free(R_result);
 
-    gsl_matrix_free(pot_V_mtx;
+    gsl_matrix_free(pot_V_mtx);
     gsl_matrix_free(F_matrix);
-
+    gsl_matrix_free(inverse);
     gsl_permutation_free(perm);
+
+    return phase_shifts;
 }

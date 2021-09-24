@@ -11,4 +11,5 @@ namespace constants
     const double Mn  = 939.56542;
     const double inv_fm_to_MeV = 197.3269789;
 };
+
 #endif

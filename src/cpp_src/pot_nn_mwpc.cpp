@@ -176,6 +176,16 @@ double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l, std
    return integral*M_PI;
 }
 
+/*
+   This function returns in the V_arr pointer, an array of lengt 6 which include the potential 
+   elemetns V_arr = [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp] where 
+   S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc.
+
+   The potential elements are in the same normalization as in the input terms that are entered in 
+   the class Term. This is a relativistic normalization (see README.md). This means that to, for example,
+   construct a motential matrix in a momentum basis <p'|p> = \delta^3(p'-p) a relativistic factor
+   needs to be added. The  (2\pi)^{-3} factor ARE included.
+*/
 void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr)
 {
    for (std::size_t i = 0; i < terms_in_pot_.size(); i++)
@@ -271,16 +281,21 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
                }
             }
          }
-         V_arr[0] = V_uncoupled_S0;
-         V_arr[1] = V_uncoupled_S1;
-         V_arr[2] = V_coupled_pp;
-         V_arr[3] = V_coupled_mm;
-         V_arr[4] = V_coupled_pm;
-         V_arr[5] = V_coupled_mp;
+         double fac = gsl_pow_int(2*M_PI,-3);
+         V_arr[0] = V_uncoupled_S0*fac;
+         V_arr[1] = V_uncoupled_S1*fac;
+         V_arr[2] = V_coupled_pp*fac;
+         V_arr[3] = V_coupled_mm*fac;
+         V_arr[4] = V_coupled_pm*fac;
+         V_arr[5] = V_coupled_mp*fac;
       }
    }
 }
 
+/*
+   This funtion performs the partial wave decomposition, which depends on the tensor structure of the 
+   respective term in the potential.
+*/
 void Potential_mwpc::pwa(double qi,double qo, bool coupled, int J,double A_M,double A_P,double A_0,double A_1,std::string spin_struct,bool isovector,double* V_arr)
 {
    // Define some variables
@@ -329,23 +344,62 @@ void Potential_mwpc::pwa(double qi,double qo, bool coupled, int J,double A_M,dou
        std::cerr << "Unknown <spin_struct> passed to function <pwa> in Potential_mwpc object." << std::endl;
     }
       // Fill the output array with the correct values
-      V_arr[0] = V_uncoupled_S0;
-      V_arr[1] = V_uncoupled_S1;
-      V_arr[2] = V_coupled_pp;
-      V_arr[3] = V_coupled_mm;
-      V_arr[4] = V_coupled_pm;
-      V_arr[5] = V_coupled_mp;
+      double fac = gsl_pow_int(2*M_PI,-3);
+      V_arr[0] = V_uncoupled_S0*fac;
+      V_arr[1] = V_uncoupled_S1*fac;
+      V_arr[2] = V_coupled_pp*fac;
+      V_arr[3] = V_coupled_mm*fac;
+      V_arr[4] = V_coupled_pm*fac;
+      V_arr[5] = V_coupled_mp*fac;
 }
 
-gsl_matrix* Potential_mwpc::get_matrix(bool coupled, int J,int S, bool regulator_on,double regulator)
+/*
+   This function is the key function to compute the potential matrix unsing the potential matrix elements
+   conputed from calc_element_V_arr(). calc_element_V_arr() returns potential elements in a relativistic 
+   momentum basis (see REDME.md) in which the LS equation has a factor of $(2\pi)^{-3} as well as
+   a relativistic correction factor. To get the potential in the correclty normalized non-relativistic
+   three-momentum basis <p'|p> = \delta(p'- p) these factors are included in the potential.
+
+   For computational reasons the cutoff are also included in the potential, since is depends on the 
+   momentum. Not including this would mean that every matrix element would need to be recalculated
+
+   Input:
+      channel: (coupled, J,S)
+      regulator
+
+   Output:
+      Potential matrix [V] including relativistic corrections and cutoff. The basis is a partial wave basis 
+      normalized as (see README.md) springing from the three-momentum basis normalized as <p'|p> = \delta(p'- p)
+*/
+gsl_matrix* Potential_mwpc::get_matrix(qs::quantum_channel chn)
 {
+   #ifdef ENABLE_DEBUG
+      std::cerr << "get_matrix()" << std::endl;
+   #endif
+   double mu;
+   if (chn.tz == -1)
+   {
+      mu = constants::Mn/2.0; // nn
+   } else if (chn.tz == 0)
+   {
+      mu = constants::Mn*constants::Mn/(constants::Mn+constants::Mp); // np
+   } else if (chn.tz == 1)
+   {
+      mu = constants::Mp/2.0; // pp
+   } else 
+   {
+      #ifdef ENABLE_DEBUG
+         std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
+      #endif
+   }
+
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
    // In the construction of the saved matrix the desired on-shell momentum 
    // that the matrix element will be evaluated on are unknown. These matrix elements needs
    // to be computed at runtime
    gsl_matrix* matrix_data;
-   if (coupled) {
+   if (chn.coupled) {
       matrix_data = gsl_matrix_alloc((2*mom_grid_size_ + 2),(2*mom_grid_size_ + 2));
    } else {
       matrix_data = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
@@ -365,35 +419,46 @@ gsl_matrix* Potential_mwpc::get_matrix(bool coupled, int J,int S, bool regulator
       for (std::size_t j = 0; j < mom_grid_size_; j++)
       {
          double V_arr[6]; // Array for data
+         
          // Outgoing momentum is row index
-         calc_element_V_arr(p_grid_[j],p_grid_[i],coupled,J,V_arr);
+         double p_in = p_grid_[j];
+         double p_out =p_grid_[i];
 
-         if (!coupled)
+         // Compute relativistic factors
+         double E_rel_in = sqrt(mu*mu+p_in*p_in);
+         double E_rel_out = sqrt(mu*mu+p_out*p_out);
+         double rel_factor_in = sqrt(mu/E_rel_in);
+         double rel_factor_out = sqrt(mu/E_rel_out);
+         double rel_fac = rel_factor_in*rel_factor_out;
+         
+         calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,V_arr);
+
+         if (!chn.coupled)
          {
-            if (S==0) 
+            if (chn.S==0) 
             {
-               // Take S=0 element of V_arr
-               gsl_matrix_set(matrix_data,i,j,V_arr[0]);
-            } else if (S==1)
+               // Take S=0 element of V_arr and multiply by the relativistic factor
+               gsl_matrix_set(matrix_data,i,j,V_arr[0]*rel_fac);
+            } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
-               gsl_matrix_set(matrix_data,i,j,V_arr[0]);
+               gsl_matrix_set(matrix_data,i,j,V_arr[1]*rel_fac);
             }
          } else 
          {
+            
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            gsl_matrix_set(matrix_data,i,j,V_arr[2]); //mm
+            gsl_matrix_set(matrix_data,i,j,V_arr[2]*rel_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
-            gsl_matrix_set(matrix_data,i,j+(mom_grid_size_+1),V_arr[3]); //mp
-            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j,V_arr[4]); //pm
-            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j+(mom_grid_size_+1),V_arr[5]); //pp
+            
+            gsl_matrix_set(matrix_data,i,j+(mom_grid_size_+1),V_arr[3]*rel_fac); //mp
+            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j,V_arr[4]*rel_fac); //pm
+            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j+(mom_grid_size_+1),V_arr[5]*rel_fac); //pp
          }
       }
    }
    
-   // Add relativistic factors and cutoff
-
    // Return the matrix
    return matrix_data;
 }
@@ -414,6 +479,9 @@ void print_gsl_matrix(gsl_matrix* matrix)
 
 void Potential_mwpc::clear_saved_matrices()
 {
+   #ifdef ENABLE_DEBUG
+      std::cerr << "clear_saved_matrices()" << std::endl;
+   #endif
    // Go through the map and remove the created matrices
    for (std::map<qs::quantum_channel, std::map<std::string, gsl_matrix*>, qs::comp>::iterator it1=saved_matrices_.begin(); it1!=saved_matrices_.begin(); ++it1)
    {
@@ -422,13 +490,24 @@ void Potential_mwpc::clear_saved_matrices()
          gsl_matrix_free(it->second);
       }
    }
+   #ifdef ENABLE_DEBUG
+      std::cerr << "clear_saved_matrices() - end" << std::endl;
+   #endif
+   
 }
 
+/*
+   This function popolates the saved matrices in the given channel.
+*/
 void Potential_mwpc::populate_saved_mtx(double qi,double qo, qs::quantum_channel chn, bool rel_correction, bool cutoff_on)
 {
+   #ifdef ENABLE_DEBUG
+      std::cerr << "populate_saved_mtx()" << std::endl;
+   #endif
    unsigned int J = chn.J;
    unsigned int S = chn.S;
    bool coupled = chn.coupled;
+
 
    clear_saved_matrices(); // Clears the allocated pointers
 
@@ -437,21 +516,22 @@ void Potential_mwpc::populate_saved_mtx(double qi,double qo, qs::quantum_channel
    {
       // Reset ALL lecs to zero, just to be sure
       // Would suffice to do it for all LECs in use
+   
       for (std::size_t j = 0; j < LEC_names_.size(); j++)
       {
          LECs_[LEC_names_[j]] = 0.0;
       }
-
+   
       // Set one LEC to 1.0;
       LECs_[LECs_in_use_[i]] = 1.0;
-
+         
       // Compute potential matrix for these LECs
       // Note that the function get_matrix() will compute the matrix elements using the 
       // LECs in the private variable LECs_ 
-      gsl_matrix* matrix = get_matrix(coupled, J, S,rel_correction, cutoff_on); 
-
+      gsl_matrix* matrix = get_matrix(chn); 
+      
       #ifdef ENABLE_DEBUG
-         std::cout << std::endl << "populate_saved_mtx(): Printing matrix associated to LEC: " << LECs_in_use_[i] << "." << std::endl;
+         std::cerr << std::endl << "populate_saved_mtx(): Printing matrix associated to LEC: " << LECs_in_use_[i] << "." << std::endl;
          print_gsl_matrix(matrix);
       #endif
       // Save the matrix as the matrix corresponding tho the non-zero LEC.
@@ -462,7 +542,11 @@ void Potential_mwpc::populate_saved_mtx(double qi,double qo, qs::quantum_channel
    // this is to alert the user if the LECs are not updater before getting the matrix.
 }
 
-void Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on,gsl_matrix* out_matrix)
+/*
+   This function returns the potential matrix in the given channel. It does not recompute all matrix elements
+   but loades the saved part and just fills in the parts that depends on the on-shell momentum.
+*/
+gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on)
 {
    unsigned int J = chn.J;
    unsigned int S = chn.S;
@@ -475,7 +559,7 @@ void Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn
    if (saved_matrices_[chn].empty())
    {
       std::cerr << "get_saved_matrix(): There is no saved matrices in this channel, returning." << std::endl;
-      return;
+      return nullptr;
    }
 
    // Load the matrices and compute the necessary matrix elements on the diagonal
@@ -484,8 +568,8 @@ void Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn
    gsl_matrix* matrix_saved_sum;
    if (!coupled)
    {
-      matrix_saved_sum = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
-      gsl_matrix* tmp_matrix       = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
+      matrix_saved_sum       = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
+      gsl_matrix* tmp_matrix = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
       for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
       {
          // Copy saved matrix to not mess it upp
@@ -556,20 +640,20 @@ void Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn
          calc_element_V_arr(p_grid_[i],q_on_shell, coupled, J,tmp_arr);
 
          // Take mm element and insert it into the matrix
-         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[2]); // Column
-         gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[2]); // Row
+         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]); // Column
+         gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]); // Row
 
          // Take mp element one and insert it into the matrix
-         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[3]); // Column
-         gsl_matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[3]); // Row 
+         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[5]); // Column
+         gsl_matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[5]); // Row 
 
          // Take pm element one and insert it into the matrix
-         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[3]); // Column
-         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[3]); // Row 
+         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[4]); // Column
+         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[4]); // Row 
 
          // Take pp element one and insert it into the matrix
-         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i+mom_grid_size_+1,tmp_arr[3]); // Column
-         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,2*mom_grid_size_+1,tmp_arr[3]); // Row 
+         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i+mom_grid_size_+1,tmp_arr[2]); // Column
+         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,2*mom_grid_size_+1,tmp_arr[2]); // Row 
       }
    }
 
@@ -579,5 +663,5 @@ void Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn
    #endif
      
    // Return pointer to the full potential matrix.
-   out_matrix = matrix_saved_sum;
+   return matrix_saved_sum;
 }

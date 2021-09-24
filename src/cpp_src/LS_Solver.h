@@ -15,22 +15,31 @@
    Oliver Thim 2021-09 --
    Department of Physics, Chalmers
 */
+
+#ifndef LS_SOLVER_H
+#define LS_SOLVER_H
+
 #include "pot_nn_mwpc.h"
 #include "gsl_matrix.h"
+#include "gsl_sf_trig.h"
+#include "gsl_blas.h"
+#include "gsl_vector.h"
+#include "gsl_linalg.h"
+#include "quantum_states.h"
+#include "gsl_permutation.h"
+#include "gsl_integration.h" // GL integration
 #include <cmath>
 
-struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon;};
 
 class LS_Solver
 {
 private:
    Potential_mwpc* pot_V_;
-   std::vector<qs:quantum_channel> channels_;
+   std::vector<qs::quantum_channel> channels_;
 
    double* p_grid_;
    double* w_grid_;
    std::size_t mom_grid_size_;
-   double cutoff_Lambda_;
 
    unsigned int J_max_;
 
@@ -39,15 +48,21 @@ private:
 
    bool relcorr_enabled_;
 
-   double* setup_D_vector(double q_on_shell);
-   gsl_matrix* setup_F_matrix(double q_on_shell, gsl_matrix* V_mtx);
+   gsl_vector*  setup_D_vector(double q_on_shell, bool coupled, double mu);
+   gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx);
+  
 
 public:
 
-   LS_Solver();
+   LS_Solver(std::vector<qs::quantum_channel> channels, Potential_mwpc* pot_V, unsigned int mom_grid_size=100,
+      double mom_grid_scale=100.0, bool cutoff_enabled_ = true, double cutoff_Lambda_ = 450.0, bool relcorr_enabled = true);
+
    ~LS_Solver();
+   void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);
 
    // Returns an array of phase shifts in the convention: ...
-   Phase_shifts_chn solve_in_chn(solve_in_chn(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
+   Phase_shifts_chn solve_in_chn(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
 
 };
+
+#endif

@@ -21,4 +21,7 @@ namespace qs
         }
     };
 };
+
+struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; double delta_uncoupled;};
+
 #endif
