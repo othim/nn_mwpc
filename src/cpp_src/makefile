@@ -7,7 +7,7 @@ CFLAGS = -Wall -g
 main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o
 	$(CC) $(CFLAGS) -o main test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o -lgsl -lcblas -lgslcblas -lm
 
-run: main
+run: main 
 	./main
 
 test.o: test.cpp pot_nn_mwpc.h

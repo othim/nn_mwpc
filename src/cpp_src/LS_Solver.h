@@ -35,6 +35,8 @@ class LS_Solver
 {
 private:
    Potential_mwpc* pot_V_;
+
+   // TODO REMOVE NOT USED
    std::vector<qs::quantum_channel> channels_;
 
    double* p_grid_;
@@ -61,7 +63,7 @@ public:
    void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);
 
    // Returns an array of phase shifts in the convention: ...
-   Phase_shifts_chn solve_in_chn(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
+   Phase_shifts_chn solve_in_chn(double T_lab, qs::quantum_channel chn, bool rel_correction);
 
 };
 

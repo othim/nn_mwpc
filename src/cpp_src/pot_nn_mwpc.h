@@ -91,9 +91,9 @@ public:
       This function returns a mom_grid_size_ x mom_grid_size_ matrix IF the channel is uncoupled
       and 2*mom_grid_size_ x 2*mom_grid_size_ if the channel is coupled.
    */
-   gsl_matrix* get_matrix(qs::quantum_channel chn);
-   void populate_saved_mtx(double qi,double qo, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
-   gsl_matrix* get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction, bool cutoff_on);
+   gsl_matrix* get_matrix(qs::quantum_channel chn, bool rel_correction);
+   void populate_saved_mtx(qs::quantum_channel chn, bool rel_correction);
+   gsl_matrix* get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction);
  /*
       Returns a list of potential elements given the lecs. In some terms the LECs
       do not enter like \alpha_i W_i and therefor the matrix element depends on
@@ -113,7 +113,6 @@ public:
       This function geives the whole potential matrix for a geven set of lecs.
       This function call will be fast if the W's are precomputed and saved in
       memory during runtime.
-
    */
 
    //double** get_mtx(LECs lecs);

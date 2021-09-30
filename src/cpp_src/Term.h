@@ -54,7 +54,8 @@ public:
 
     static std::vector<double> v_alpha_OPEP(double qi, double qo, double* z, unsigned int z_len, std::unordered_map<std::string,double> LECs);
     static double mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs);
-    
+    static double mom_C3S1(double qi, double qo, std::unordered_map<std::string,double> LECs);
+
 };
 
 #endif

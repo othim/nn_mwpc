@@ -10,6 +10,11 @@
 #include <cstdio>
 #include <ctime>
 
+double rad_to_deg(double in)
+{
+   return in*180.0/M_PI;
+}
+
 void gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,double** p,double** w)
 {
     // Make grid from -1 to 1
@@ -22,11 +27,6 @@ void gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,double*
    // Make transformation
    double pi_4 = M_PI/4.0;
 
-
-   for (int i = 0; i < Number_of_points; i++) 
-   {
-      std::cout << p_grid[i] << " " << w_grid[i] << std::endl;
-   }
    double* pp = (double*)malloc(Number_of_points*sizeof(double));
    double* ww = (double*)malloc(Number_of_points*sizeof(double));
   
@@ -55,23 +55,160 @@ void print_m(gsl_matrix* matrix)
 }
 
 
-void test_computing_phase_shifts()
+
+// Returns true if all tests are passed
+bool test_potential_elements(qs::quantum_channel chn,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double T_lab,double scale,double* V_arr_correct,double tol)
 {
-   // Test potential elements
+   // Calculate mass and on-shell momentum
+   double mu;
+   double q_on_shell;
+   if (chn.tz == -1)
+   {
+      mu = constants::Mn/2.0; // nn
+      q_on_shell = sqrt(mu*T_lab);
+   } else if (chn.tz == 0)
+   {
+      mu = constants::Mn*constants::Mn/(constants::Mn+constants::Mp); // np
+      q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
+         ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
+   } else if (chn.tz == 1)
+   {
+      mu = constants::Mp/2.0; // pp
+      q_on_shell = sqrt(mu*T_lab);
+   }
+   
 
-   // Test potential matrix elements
+   // Make grid
+   double* p_grid;
+   double* w_grid;
+   gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
-   // Test phase shifts
+   // Choose terms in the potential
+   std::vector<std::string> terms;
+   terms.push_back("OPEP"); // To just test elements use just OPEP
+
+   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot);
+   Pot.LECs_["gA2"] = constants::gA*constants::gA; // Set correct LEC
+
+   double V_arr[6];
+   Pot.calc_element_V_arr(q_on_shell,q_on_shell,chn.coupled,chn.J,&V_arr[0]);
+
+   bool passed = true;
+   for (int i= 0; i < 6; i++)
+   {
+      std::cout << fabs((V_arr[i]*pow(2.0*M_PI,3) - V_arr_correct[i])/V_arr_correct[i]) << " ";
+      if (fabs((V_arr[i]*pow(2.0*M_PI,3) - V_arr_correct[i])/V_arr_correct[i]) > tol)
+      {
+         passed = false;
+      }
+   }
+   std::cout << std::endl;
+   return passed;
 }
 
-double rad_to_deg(double in)
+bool test_potential_matrix(qs::quantum_channel chn)
 {
-   return in*180.0/M_PI;
+
+}
+
+bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double T_lab,double scale,double* V_arr_correct,double tol,
+   double Lambda, double C1S0, double C3S1)
+{
+    // Make grid
+   double* p_grid;
+   double* w_grid;
+   gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+   // Choose terms in the potential, LO WPC
+   std::vector<std::string> terms;
+   terms.push_back("OPEP"); // To just test elements use just OPEP
+   terms.push_back("C1S0");
+   terms.push_back("C3S1");
+
+   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot);
+   Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+   Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+   Pot.LECs_["C1S0"] = C1S0;
+   Pot.LECs_["C3S1"] = C3S1;   
+
+   std::vector<qs::quantum_channel> chns; // Do not do anythin
+   chns.push_back(chn); // Do not do anything
+   LS_Solver solver = LS_Solver(chns,&Pot,number_of_p_points,scale,true,Lambda,true);
+ 
+   Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true);
+
+   std::cout << "Phases in Stapp convection: " << "delta_p=" << rad_to_deg(phases.delta_p) << " delta_m=" << rad_to_deg(phases.delta_m) << 
+      " epsilon=" << rad_to_deg(phases.epsilon) << " delta_uncoupled=" << rad_to_deg(phases.delta_uncoupled) << " deg" << std::endl;
+
+   return false; // TODO change
+}
+
+void run_tests(qs::quantum_channel chn, unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double T_lab,double scale,double* V_arr_correct,double tol,
+   double Lambda, double C1S0, double C3S1)
+{
+   std::cout << "Testing in channel: " << "J=" << chn.J << " S=" << chn.S << " tz=" << chn.tz << 
+      " coupled=" << chn.coupled << std::endl << "-------------------------------------------" << std::endl << std::endl;
+
+   std::cout << "Testing potential elements" << std::endl;
+   bool pot_test = test_potential_elements(chn,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,V_arr_correct,tol);
+   std::cout << "Test passed: " << pot_test << std::endl << "---------" << std::endl;
+
+   //std::cout << "Testing potential matrix" << std::endl;
+   //bool pot_test_mtx = test_potential_matrix(chn);
+   //std::cout << "Test passed: " << pot_test_mtx << std::endl << "---------" << std::endl;
+
+   //std::cout << "Testing phase shifts" << std::endl;
+   //bool test_phase = test_phase_shifts(chn,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,V_arr_correct,tol,Lambda,C1S0,C3S1);
+   //std::cout << "Test passed: " << test_phase << std::endl << "---------" << std::endl;
+
+   //std::cout << "TEST PASSED: " << (pot_test && pot_test_mtx && test_phase) << std::endl;
+   //std::cout << "-----------" << std::endl << "----END----" << std::endl << std::endl;
+}
+
+void run_speed_tests(qs::quantum_channel chn)
+{
+
 }
 
 int main(int argc, char** argv)
 {
+   // ------ CONSTANTS TO CHANGE ------
+   // ---------------------------------
+   double scale = 100.0; // Scale of momenutm grid MeV
+   unsigned int ang_int_points = 96; // Number of points in angular integration
+   unsigned int number_of_p_points = 100; // Number of momentum-grid points
+   unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
+   double T_lab = 10.0; // Lab energy in MeV
+   double rel_tol_pot_elements = 1e-4;
 
+   // ----- JUST CHOOSE SOME VALUES TO REPRODUCE PHASE SHIFTS WITH -----
+   static double Lambda	= 450; 		  // cut-off for renormalization of LO  [MeV]
+   static double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+   static double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+
+   // ---------------------------------
+   double q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
+         ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
+   std::cout << "On-shell momentum: " << q_on_shell << std::endl;
+
+   // Test the code in the following channels
+   
+   qs::quantum_channel chn_uncoup = {.J=1, .S=0,.tz=0,.coupled=false};
+   double V_arr_correct1[] = {1.453716658589179581973e-04, 1.175326792502285721664e-04, 0.000000000000000000000e+00, 0.000000000000000000000e+00, -0.000000000000000000000e+00, -0.000000000000000000000e+00};   
+   run_tests(chn_uncoup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct1[0],rel_tol_pot_elements,Lambda,C1S0,C3S1);
+
+   qs::quantum_channel chn_coup = {.J=6, .S=0,.tz=0,.coupled=true};
+   double V_arr_correct2[] = {  0.000000000000000000000e+00, 0.000000000000000000000e+00, -1.114898705446752692805e-10, -7.129564851709590453523e-10, -3.897949168142152748363e-09, -3.897949168142152748363e-09};   
+   run_tests(chn_coup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct2[0],rel_tol_pot_elements,Lambda,C1S0,C3S1);
+
+   // Test the speed of some calculations
+
+   // -----------------
+   // ------OLD--------
+   /*
    qs::quantum_channel chn2= {.J=1, .S=0,.tz=0,.coupled=true};
    std::vector<qs::quantum_channel> chns;
    chns.push_back(chn2);
@@ -101,7 +238,7 @@ int main(int argc, char** argv)
    qs::quantum_channel chn= {.J=1, .S=1,.tz=0,.coupled=true};
   
    Potential_mwpc Pot = Potential_mwpc(terms2,96,p_grid_2,w_grid_2,number_of_points,40);
-   Pot.populate_saved_mtx(10.0,10.0,chn,true,true);
+   Pot.populate_saved_mtx(chn,true,true);
   
    double potential[6];
    gsl_matrix* potential_mtx;
@@ -129,7 +266,7 @@ int main(int argc, char** argv)
    std::cout << "TESTING LS-SOLVER" << std::endl;
      
    Potential_mwpc pot2 = Potential_mwpc(terms2,96,p_grid_2,w_grid_2,number_of_points,40);
-   pot2.populate_saved_mtx(10.0,10.0,chn2,true,true);
+   pot2.populate_saved_mtx(chn2,true,true);
 
    Pot.LECs_["gA2"] = constants::gA*constants::gA;
 
@@ -149,6 +286,6 @@ int main(int argc, char** argv)
 
 
    //LS_Solver solver = LS_Solver(100,&Pot);
-   //solver.solve_in_chn(10,chn,false,false);
+   //solver.solve_in_chn(10,chn,false,false);*/
    return 0;
 }

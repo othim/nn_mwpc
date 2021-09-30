@@ -12,6 +12,7 @@ Term::Term(std::string name)
         is_lec_ = false;
         my_v_alpha = &Term::v_alpha_OPEP; // Make my_v_alpha point to the correct function for OPEP
         lecs_in_term_.push_back("gA2");
+        isovector_ = true;
     } else if (name == "C1S0")
     {
         term_name_ = name;
@@ -20,10 +21,23 @@ Term::Term(std::string name)
         LS_term_lec_.J = 0;
         LS_term_lec_.Li = 0;
         LS_term_lec_.Lo = 0; 
-        LS_term_lec_.S = 1;
+        LS_term_lec_.S = 0;
         my_LEC_term= &Term::mom_C1S0;
+        isovector_ = false;
         lecs_in_term_.push_back("C1S0");
-    } else
+    } else if (name == "C3S1")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        is_lec_ = true;
+        LS_term_lec_.J = 1;
+        LS_term_lec_.Li = 0;
+        LS_term_lec_.Lo = 0; 
+        LS_term_lec_.S = 1;
+        isovector_ = false;
+        my_LEC_term= &Term::mom_C3S1;
+        lecs_in_term_.push_back("C3S1");
+    } else 
     {
         std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;
     }
@@ -107,4 +121,9 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned 
 double Term::mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs)
 {
     return LECs["C1S0"]; // If momentum dependent, multiply here
+}
+// C3S1
+double Term::mom_C3S1(double qi, double qo, std::unordered_map<std::string,double> LECs)
+{
+    return LECs["C3S1"]; // If momentum dependent, multiply here
 }
