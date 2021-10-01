@@ -120,7 +120,17 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    double* p_grid;
    double* w_grid;
    gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-
+   /*
+   for (int i = 0; i < number_of_p_points; i++)
+   {
+      std::cout << p_grid[i] << " ";
+   }
+   std::cout << std::endl;
+   for (int i = 0; i < number_of_p_points; i++)
+   {
+      std::cout << w_grid[i] << " ";
+   }*/
+   std::cout << std::endl;
    // Choose terms in the potential, LO WPC
    std::vector<std::string> terms;
    terms.push_back("OPEP"); // To just test elements use just OPEP
@@ -137,7 +147,7 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    chns.push_back(chn); // Do not do anything
    LS_Solver solver = LS_Solver(chns,&Pot,number_of_p_points,scale,true,Lambda,true);
  
-   Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true);
+   Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true,false);
 
    std::cout << "Phases in Stapp convection: " << "delta_p=" << rad_to_deg(phases.delta_p) << " delta_m=" << rad_to_deg(phases.delta_m) << 
       " epsilon=" << rad_to_deg(phases.epsilon) << " delta_uncoupled=" << rad_to_deg(phases.delta_uncoupled) << " deg" << std::endl;
@@ -160,9 +170,9 @@ void run_tests(qs::quantum_channel chn, unsigned int number_of_p_points,unsigned
    //bool pot_test_mtx = test_potential_matrix(chn);
    //std::cout << "Test passed: " << pot_test_mtx << std::endl << "---------" << std::endl;
 
-   //std::cout << "Testing phase shifts" << std::endl;
-   //bool test_phase = test_phase_shifts(chn,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,V_arr_correct,tol,Lambda,C1S0,C3S1);
-   //std::cout << "Test passed: " << test_phase << std::endl << "---------" << std::endl;
+   std::cout << "Testing phase shifts" << std::endl;
+   bool test_phase = test_phase_shifts(chn,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,V_arr_correct,tol,Lambda,C1S0,C3S1);
+   std::cout << "Test passed: " << test_phase << std::endl << "---------" << std::endl;
 
    //std::cout << "TEST PASSED: " << (pot_test && pot_test_mtx && test_phase) << std::endl;
    //std::cout << "-----------" << std::endl << "----END----" << std::endl << std::endl;
@@ -179,7 +189,7 @@ int main(int argc, char** argv)
    // ---------------------------------
    double scale = 100.0; // Scale of momenutm grid MeV
    unsigned int ang_int_points = 96; // Number of points in angular integration
-   unsigned int number_of_p_points = 100; // Number of momentum-grid points
+   unsigned int number_of_p_points = 10; // Number of momentum-grid points
    unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
    double T_lab = 10.0; // Lab energy in MeV
    double rel_tol_pot_elements = 1e-4;

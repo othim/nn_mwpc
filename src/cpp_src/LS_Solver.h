@@ -63,7 +63,7 @@ public:
    void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);
 
    // Returns an array of phase shifts in the convention: ...
-   Phase_shifts_chn solve_in_chn(double T_lab, qs::quantum_channel chn, bool rel_correction);
+   Phase_shifts_chn solve_in_chn(double T_lab, qs::quantum_channel chn, bool rel_correction, bool get_saved_potential);
 
 };
 

@@ -66,6 +66,8 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     #ifdef ENABLE_DEBUG
         std::cerr << "setup_D_vector()" << std::endl;
     #endif
+
+    double fac = 1.0;//2.0/M_PI; // Should be 2.0/M_PI
     // D - energy denominator and weights
     gsl_vector* D_vector;
     double q2_on_shell = q_on_shell*q_on_shell;
@@ -85,8 +87,8 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     for (int i = 0; i < mom_grid_size_; i++)
     {
         double p2 = p_grid_[i]*p_grid_[i];
-        double cutoff_regulator = exp(-gsl_pow_uint(p_grid_[i]/cutoff_Lambda_,6));
-        double el = (2.0*mu)*(2.0/M_PI)*w_grid_[i]*p2*cutoff_regulator/(p2-q2_on_shell);
+        //double cutoff_regulator = exp(-gsl_pow_uint(p_grid_[i]/cutoff_Lambda_,6));
+        double el = (2.0*mu)*(fac)*w_grid_[i]*p2/(p2-q2_on_shell); // NO CUTOFF
 
         if (coupled)
         {
@@ -104,8 +106,9 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     {
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
-    double cutoff_regulator = exp(-gsl_pow_uint(q2_on_shell/cutoff_Lambda_,6));
-    double el = -(2.0/M_PI)*2.0*mu*q2_on_shell*sum*cutoff_regulator;
+    //double cutoff_regulator = exp(-gsl_pow_uint(q2_on_shell/cutoff_Lambda_,6));
+
+    double el = -(fac)*2.0*mu*q2_on_shell*sum; // NO CUTOFF
 
     if (coupled)
     {
@@ -138,19 +141,15 @@ gsl_matrix* LS_Solver::setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_ma
     } else 
     {
         F_mtx = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
-        std::cout << "1" << std::endl;
         gsl_matrix_set_identity(F_mtx); // Set to unity
         V_copy = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
-        std::cout << "2" << std::endl;
         gsl_matrix_memcpy(V_copy,V_mtx);
     }
 
     // Compute the matrix elements according to (18.22) in Landau
     
     // Scale V by D
-    std::cout << "3" << std::endl;
     gsl_matrix_scale_columns(V_copy, D_vector);
-    std::cout << "4" << std::endl;
     // Add V D to F
     gsl_matrix_add(F_mtx,V_copy);
     gsl_matrix_free(V_copy);
@@ -182,13 +181,17 @@ Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
     phases.epsilon = asin(sin(2*ps.epsilon)* sin(ps.delta_m - ps.delta_p));
     phases.delta_m = 0.5*(ps.delta_p + ps.delta_m + asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)));
     phases.delta_p = 0.5*(ps.delta_p + ps.delta_m - asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)));
+
+    phases.delta_uncoupled = ps.delta_uncoupled;
+
+    return phases;
 }
 
 /*
     This function returns the phase shifts in at the desired lab energy T_lab for the channel chn.
     The phase shifts are returned in the Stapp convention
 */
-Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, bool rel_correction)
+Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential)
 {
     #ifdef ENABLE_DEBUG
         std::cerr << "solve_in_chn()" << std::endl;
@@ -202,9 +205,9 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
         q_on_shell = sqrt(mu*T_lab);
     } else if (chn.tz == 0)
     {
-        mu = constants::Mn*constants::Mn/(constants::Mn+constants::Mp); // np
-        q_on_shell = constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
-            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp);
+        mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
+        q_on_shell = sqrt(constants::Mn*constants::Mn*T_lab*(T_lab + 2.0*constants::Mp)/
+            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mn));
     } else if (chn.tz == 1)
     {
         mu = constants::Mp/2.0; // pp
@@ -215,33 +218,36 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
             std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
         #endif
     }
-
+    std::cout << "q_on_shell=" << q_on_shell << std::endl;
     // rho = 2*q*mu   
     // This is a convecntion dependent parameter that relates the 
     // R-matrix to the T/S matrices. rho will be different if a different 
     // normalization for the |klm> quantum states is choosen. To see the conventions
     // Used in this code see the README.md file.
-    double rho = 2*q_on_shell*mu;
+    double rho = (M_PI/2.0)*2.0*q_on_shell*mu;
 
     
     // Get potential matrix with the correct on-shell momentum
     // The size of the matrix depends on if the channels is coupled or not
-    gsl_matrix* pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
-    //std::cout << "Potential" << std::endl;
-    //print_matrix(pot_V_mtx);
-
-    std::cout << pot_V_mtx->size1 << " " << pot_V_mtx->size2 << std::endl;
+    gsl_matrix* pot_V_mtx;
+    if (get_saved_potential) {
+        pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
+    } else {
+        pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
+    }
+    
+    
+    std::cout << "Potential" << std::endl;
+    print_matrix(pot_V_mtx);
+   
     // Setup D-vector
     gsl_vector* D_vector;
     D_vector = setup_D_vector(q_on_shell,chn.coupled,mu);
-    std::cout << D_vector->size << std::endl;
+    
     // Setup F-matrix
     gsl_matrix* F_matrix;
     F_matrix = setup_F_matrix(chn.coupled,D_vector,pot_V_mtx);
     
-    //std::cout << pot_V_mtx->size1 << " " << pot_V_mtx->size2 << std::endl;
-    //std::cout << F_matrix->size1  << " " << F_matrix->size2  << std::endl;
-  
     // Solve the matrix equation F*R = V
         
     // LU decompose
@@ -259,16 +265,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, inverse, pot_V_mtx, 0.0, R_result); 
    
     // Get the matrix elements corresponding to the on-shell R-matrix
-    
-    /*std::cout << "F_matrix" << std::endl;
-    print_matrix(F_matrix);
-    std::cout << "inverse" << std::endl;
-    print_matrix(inverse);
-    std::cout << "R_result" << std::endl;
-    print_matrix(R_result);*/
 
     Phase_shifts_chn phase_shifts;
-
     if (chn.coupled) 
     {
         // on-shell R-matrix is 2x2
@@ -282,12 +280,20 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
         phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
         phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
         phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+
+        phase_shifts.delta_uncoupled = 0;
     } else 
     {
         // on-shell R-matrix is 1x1
         double R = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
-
+        std::cout << "R= " << R << std::endl;
+        std::cout << "-rho*R= " << -rho*R << std::endl;
+        
         // Compute phase shift in radians BB and Stapp is the same for uncoupled channels
+        phase_shifts.epsilon = 0;
+        phase_shifts.delta_p = 0;
+        phase_shifts.delta_m = 0;
+
         phase_shifts.delta_uncoupled = atan(-rho*R);
     }
 
@@ -309,7 +315,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
     which needs to be entered in the Stapp convention. If the channel is uncoupled the 
     matrix is of size 1x1 otherwise it is of size 2x2.
 */
-gsl_matrix* get_T_matrix(Phase_shifts_chn phase_shifts, qs::quantum_channel chn)
-{
+//gsl_matrix* get_T_matrix(Phase_shifts_chn phase_shifts, qs::quantum_channel chn)
+//{
     // Observe! The phase chifts needs to be in the Stapp convention!
-}
+//}
