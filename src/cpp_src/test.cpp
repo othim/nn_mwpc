@@ -135,17 +135,22 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    terms.push_back("C3S1");
 
    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot);
-   //Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
-   Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
-   Pot.LECs_["C1S0"] = C1S0;
-   Pot.LECs_["C3S1"] = C3S1;
+   Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
    
    std::vector<qs::quantum_channel> chns; // Do not do anythin
    chns.push_back(chn); // Do not do anything
    LS_Solver solver = LS_Solver(chns,&Pot,number_of_p_points,scale,true,Lambda,true);
- 
-   Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true,false);
-
+   
+   std::clock_t start, end;   
+   start = std::clock();
+   Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+   Pot.LECs_["C1S0"] = C1S0;
+   Pot.LECs_["C3S1"] = C3S1;
+   Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true,true);
+   end = std::clock();
+   std::cout << "Time taken to compute phase shifts() is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
+   
+   
    std::cout << std::setprecision(16) << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
       "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
   

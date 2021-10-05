@@ -550,6 +550,16 @@ void Potential_mwpc::populate_saved_mtx(qs::quantum_channel chn, bool rel_correc
 
    clear_saved_matrices(); // Clears the allocated pointers
 
+   // Get the constant
+   for (std::size_t j = 0; j < LEC_names_.size(); j++)
+   {
+      LECs_[LEC_names_[j]] = 0.0;
+   }
+   gsl_matrix* mtx_const = get_matrix(0.0,chn,rel_correction); // Do not care about on-shell part
+   //print_gsl_matrix(mtx_const);
+   // Save it
+   saved_matrices_[chn]["const"] = mtx_const;
+
    // Set each lec=1 and the rest to 0
    for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
    {
@@ -569,6 +579,9 @@ void Potential_mwpc::populate_saved_mtx(qs::quantum_channel chn, bool rel_correc
       // LECs in the private variable LECs_ 
       gsl_matrix* matrix = get_matrix(0.0,chn,rel_correction); // Do not care about on-shell part
       
+      // Subtract the constant matrix
+      gsl_matrix_sub(matrix,mtx_const);
+
       #ifdef ENABLE_DEBUG
          std::cerr << std::endl << "populate_saved_mtx(): Printing matrix associated to LEC: " << LECs_in_use_[i] << "." << std::endl;
          print_gsl_matrix(matrix);
@@ -641,6 +654,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
    {
       matrix_saved_sum       = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
       gsl_matrix* tmp_matrix = gsl_matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
+      gsl_matrix_set_zero(matrix_saved_sum);
       for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
       {
          // Copy saved matrix to not mess it upp
@@ -653,6 +667,8 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
 
          gsl_matrix_add(matrix_saved_sum,tmp_matrix);
       }
+      // Add constant
+      gsl_matrix_add(matrix_saved_sum,saved_matrices_[chn]["const"]);
       // Delete the tmp matrix
       gsl_matrix_free(tmp_matrix);
 
@@ -665,7 +681,12 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
       for (std::size_t i = 0; i < mom_grid_size_+1; i++)
       {
          double tmp_arr[6];
-         double p_in = p_grid_[i]; // column index
+         double p_in;
+         if (i < mom_grid_size_) {
+            p_in = p_grid_[i];
+         } else {
+            p_in = q_on_shell;
+         }
          double p_out = q_on_shell; // row is fixed
          calc_element_V_arr(p_in,p_out, coupled, J,&tmp_arr[0]);
 
@@ -687,6 +708,9 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             // Take element zero and insert it into the matrix
             gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[0]*rel_fac);
             gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[0]*rel_fac);
+            if (i==mom_grid_size_) {
+               std::cout << tmp_arr[0]*rel_fac << std::endl;
+            }
          } else 
          {
             // Take element one and insert it into the matrix
@@ -699,17 +723,22 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
    {
       matrix_saved_sum       = gsl_matrix_alloc(2*mom_grid_size_ + 2,2*mom_grid_size_ + 2);
       gsl_matrix* tmp_matrix = gsl_matrix_alloc(2*mom_grid_size_ + 2,2*mom_grid_size_ + 2);
-      for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
+      gsl_matrix_set_zero(matrix_saved_sum);
+       for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
       {
          // Copy saved matrix to not mess it upp
          gsl_matrix_memcpy(tmp_matrix, saved_matrices_[chn][LECs_in_use_[i]]);
 
          // Scale tmp_matrix by the correct LEC
+         //std::cout << "LEC=" << LECs_[LECs_in_use_[i]] << std::endl;
          gsl_matrix_scale(tmp_matrix, LECs_[LECs_in_use_[i]]);
 
          // Add this contribution to the sum
          gsl_matrix_add(matrix_saved_sum,tmp_matrix);
       }
+      // Add constant
+      gsl_matrix_add(matrix_saved_sum,saved_matrices_[chn]["const"]);
+     
       // Delete the tmp matrix
       gsl_matrix_free(tmp_matrix);
 
@@ -725,7 +754,13 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
       for (std::size_t i = 0; i < mom_grid_size_+1; i++)
       {
          double tmp_arr[6];
-         double p_in = p_grid_[i]; // column index
+         double p_in;
+         if (i < mom_grid_size_) {
+            p_in = p_grid_[i];
+         } else {
+            p_in = q_on_shell;
+         }
+         // column index
          double p_out = q_on_shell; // row is fixed
          calc_element_V_arr(p_in,p_out, coupled, J,&tmp_arr[0]);
 
@@ -741,20 +776,28 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          }
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/450.0,6))*exp(-gsl_pow_uint(p_out/450.0,6));
          rel_fac *= cutoff_regulator;
-      
+
+         // In this part of the code the symmetry of the potential in momentum is taken
+         // advantage of. Note that this does NOT mean that every block is symmetric,
+         // but rather the WHOLE matrix.
+
          // Take mm element and insert it into the matrix
+         // mm
          gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]*rel_fac); // Column
          gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]*rel_fac); // Row
 
          // Take mp element one and insert it into the matrix
-         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[5]*rel_fac); // Column
+         // mp 
+         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[4]*rel_fac); // Column
          gsl_matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[5]*rel_fac); // Row 
 
          // Take pm element one and insert it into the matrix
-         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[4]*rel_fac); // Column
+         // pm
+         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[5]*rel_fac); // Column
          gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[4]*rel_fac); // Row 
 
          // Take pp element one and insert it into the matrix
+         // pp
          gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i+mom_grid_size_+1,tmp_arr[2]*rel_fac); // Column
          gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,2*mom_grid_size_+1,tmp_arr[2]*rel_fac); // Row 
       }
