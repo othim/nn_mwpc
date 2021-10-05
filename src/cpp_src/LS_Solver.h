@@ -28,6 +28,8 @@
 #include "quantum_states.h"
 #include "gsl_permutation.h"
 #include "gsl_integration.h" // GL integration
+#include "gsl_complex.h"
+#include "gsl_complex_math.h"
 #include <cmath>
 
 

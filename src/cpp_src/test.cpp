@@ -155,11 +155,11 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
       "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
   
    if (chn.coupled==false) {
-      return (abs(rad_to_deg(phases.delta_uncoupled)+3.0653114390925977) < tol);
+      return (abs(rad_to_deg(phases.delta_uncoupled)+3.061426389773196) < tol);
    } else {
-      return (abs(rad_to_deg(phases.delta_m)+75.30484869688857) < tol && 
-         abs(rad_to_deg(phases.delta_p)+0.7896139562170525) < tol && 
-         abs(rad_to_deg(phases.epsilon)-1.6389438924401425) < tol);
+      return (abs(rad_to_deg(phases.delta_m)+75.27581878915144) < tol && 
+         abs(rad_to_deg(phases.delta_p)+0.787703968368532) < tol && 
+         abs(rad_to_deg(phases.epsilon)-1.637312987120185) < tol);
    }
 }
 

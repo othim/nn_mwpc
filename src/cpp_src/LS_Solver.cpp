@@ -67,7 +67,12 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
         std::cerr << "setup_D_vector()" << std::endl;
     #endif
 
-    double fac = 1.0;//2.0/M_PI; // Should be 2.0/M_PI
+    // This is the factor in front of the LS equation.
+    // In some cases it is 2/pi when that is a factor in
+    // the partial wave momentum base normalization.
+    // For now, the code is written without this factor, it will affect the 
+    // rho value when raltiong the T/R matrix to the S-matrix/phase-shifts.
+    double fac = 1.0;
     // D - energy denominator and weights
     gsl_vector* D_vector;
     double q2_on_shell = q_on_shell*q_on_shell;
@@ -79,9 +84,10 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
         D_vector = gsl_vector_alloc(2*mom_grid_size_ + 2);
     } else 
     {
+        // Channel is uncoupled D is of length mom_grid_size_ + 1
         D_vector = gsl_vector_alloc(mom_grid_size_ + 1);
     }
-    // Channel is uncoupled D is of length mom_grid_size_ + 1
+   
     
     
     for (int i = 0; i < mom_grid_size_; i++)
@@ -106,7 +112,6 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     {
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
-    //double cutoff_regulator = exp(-gsl_pow_uint(q2_on_shell/cutoff_Lambda_,6));
 
     double el = -(fac)*2.0*mu*q2_on_shell*sum; // NO CUTOFF
 
@@ -189,6 +194,29 @@ Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
     return phases;
 }
 
+void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell)
+{
+    if (chn.tz == -1)
+    {
+        *mu = constants::Mn/2.0; // nn
+        *q_on_shell = sqrt(*mu*T_lab);
+    } else if (chn.tz == 0)
+    {
+        *mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
+        *q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
+            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
+    } else if (chn.tz == 1)
+    {
+        *mu = constants::Mp/2.0; // pp
+        *q_on_shell = sqrt(*mu*T_lab);
+    } else 
+    {
+        #ifdef ENABLE_DEBUG
+            std::cerr << "Error in get_mu_q_on_shell(): Unknown isospin" << std::endl;
+        #endif
+    }
+}
+
 /*
     This function returns the phase shifts in at the desired lab energy T_lab for the channel chn.
     The phase shifts are returned in the Stapp convention
@@ -201,25 +229,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     // Compute reduced mass mu, which depends on the isospin-prijection.
     double mu;
     double q_on_shell;
-    if (chn.tz == -1)
-    {
-        mu = constants::Mn/2.0; // nn
-        q_on_shell = sqrt(mu*T_lab);
-    } else if (chn.tz == 0)
-    {
-        mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-        q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
-            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
-    } else if (chn.tz == 1)
-    {
-        mu = constants::Mp/2.0; // pp
-        q_on_shell = sqrt(mu*T_lab);
-    } else 
-    {
-        #ifdef ENABLE_DEBUG
-            std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
-        #endif
-    }
+    get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
+
     //std::cout << "q_on_shell=" << q_on_shell << std::endl;
     // rho = 2*q*mu   
     // This is a convecntion dependent parameter that relates the 
@@ -333,11 +344,77 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
 
 gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool coupled, double mu)
 {
-    
+    // See eq (18.19) in Landau
+    #ifdef ENABLE_DEBUG
+        std::cerr << "setup_D_vector_complex()" << std::endl;
+    #endif
+
+    // This is the factor in front of the LS equation.
+    // In some cases it is 2/pi when that is a factor in
+    // the partial wave momentum base normalization.
+    // For now, the code is written without this factor, it will affect the 
+    // rho value when raltiong the T/R matrix to the S-matrix/phase-shifts.
+    double fac = 1.0; // Depends on convention
+
+    gsl_vector_complex* D_vector;
+    double q2_on_shell = q_on_shell*q_on_shell;
+
+    if (coupled)
+    {
+        // If the channel is coupled D is of length 
+        // 2*mom_grid_size_ + 2
+        D_vector = gsl_vector_complex_alloc(2*mom_grid_size_ + 2);
+    } else 
+    {
+        D_vector = gsl_vector_complex_alloc(mom_grid_size_ + 1);
+    }
+
+    for (int i = 0; i < mom_grid_size_; i++)
+    {
+        double p2 = p_grid_[i]*p_grid_[i];
+        //double cutoff_regulator = exp(-gsl_pow_uint(p_grid_[i]/cutoff_Lambda_,6));
+        double el = (2.0*mu)*(fac)*w_grid_[i]*p2/(p2-q2_on_shell); // NO CUTOFF
+        
+        gsl_complex comp_el = gsl_complex_rect(el,0.0);
+        if (coupled)
+        {
+            gsl_vector_complex_set(D_vector,i,comp_el);
+            gsl_vector_complex_set(D_vector,i+ mom_grid_size_+1,comp_el);       
+        } else
+        {
+            gsl_vector_complex_set(D_vector,i,comp_el);
+        }
+    }
+
+    // Add the last element. The first part is the same as in the non-complex case.
+    double sum = 0;
+    for (int i=0; i < mom_grid_size_; i++)
+    {
+        sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
+    }
+    double re_el = -(fac)*2.0*mu*q2_on_shell*sum; // NO CUTOFF
+    double im_el = -2*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
+
+    gsl_complex comp_el = gsl_complex_rect(re_el,im_el);
+
+    if (coupled)
+    {
+        gsl_vector_complex_set(D_vector,mom_grid_size_,comp_el);
+        gsl_vector_complex_set(D_vector,2*mom_grid_size_+1,comp_el);
+    } else
+    {
+        gsl_vector_complex_set(D_vector,mom_grid_size_,comp_el);
+    }
+    return D_vector;
 }
 
 gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix_complex* V_mtx)
 {
+    // F_ij = \delta_ij + D_j V_ij
+
+    // Must be able to scale columns
+    // Do scaling manually since the potential matrix
+    // Anyhow needs to be reconstructed (this will be slow)
 
 }
 
@@ -349,5 +426,21 @@ gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_c
 */
 Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential)
 {
+    // Compute reduced mass mu, which depends on the isospin-prijection.
+    double mu;
+    double q_on_shell;
+    get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
+
+    gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
+
+    double rho = M_PI*q_on_shell*mu; // Depends on convention conncted to the factor 'fac' in D.
+
+    gsl_matrix_complex* pot_V_mtx;
+    if (get_saved_potential) {
+        pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
+    } else {
+        pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
+    }
+
 
 }
