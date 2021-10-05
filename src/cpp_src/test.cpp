@@ -2,6 +2,7 @@
    Test file to be able to run the C++ code
 */
 #include <iostream>
+#include <iomanip> 
 #include "pot_nn_mwpc.h"
 #include "quantum_states.h"
 #include "LS_Solver.h"
@@ -125,17 +126,8 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    double* p_grid;
    double* w_grid;
    gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-   /*
-   for (int i = 0; i < number_of_p_points; i++)
-   {
-      std::cout << p_grid[i] << " ";
-   }
-   std::cout << std::endl;
-   for (int i = 0; i < number_of_p_points; i++)
-   {
-      std::cout << w_grid[i] << " ";
-   }*/
-   std::cout << std::endl;
+
+   
    // Choose terms in the potential, LO WPC
    std::vector<std::string> terms;
    terms.push_back("OPEP"); // To just test elements use just OPEP
@@ -145,8 +137,8 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot);
    //Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
-   Pot.LECs_["C1S0"] = 0;//C1S0;
-   Pot.LECs_["C3S1"] = 0;//C3S1;
+   Pot.LECs_["C1S0"] = C1S0;
+   Pot.LECs_["C3S1"] = C3S1;
    
    std::vector<qs::quantum_channel> chns; // Do not do anythin
    chns.push_back(chn); // Do not do anything
@@ -154,18 +146,16 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
  
    Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true,false);
 
-   std::cout << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
+   std::cout << std::setprecision(16) << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
       "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
-
-   double V_arr[6];
-   Pot.calc_element_V_arr(60,60,true,1,&V_arr[0]);
-   for (int i = 0; i < 6; i++)
-   {
-      std::cout << V_arr[i] << " ";
+  
+   if (chn.coupled==false) {
+      return (abs(rad_to_deg(phases.delta_uncoupled)+3.0653114390925977) < tol);
+   } else {
+      return (abs(rad_to_deg(phases.delta_m)+75.30484869688857) < tol && 
+         abs(rad_to_deg(phases.delta_p)+0.7896139562170525) < tol && 
+         abs(rad_to_deg(phases.epsilon)-1.6389438924401425) < tol);
    }
-   
-
-   return false; // TODO change
 }
 
 void run_tests(qs::quantum_channel chn, unsigned int number_of_p_points,unsigned int ang_int_points,
@@ -175,17 +165,17 @@ void run_tests(qs::quantum_channel chn, unsigned int number_of_p_points,unsigned
    std::cout << "Testing in channel: " << "J=" << chn.J << " S=" << chn.S << " tz=" << chn.tz << 
       " coupled=" << chn.coupled << std::endl << "-------------------------------------------" << std::endl << std::endl;
 
-   std::cout << "Testing potential elements" << std::endl;
-   bool pot_test = test_potential_elements(chn,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,V_arr_correct,tol);
-   std::cout << "Test passed: " << pot_test << std::endl << "---------" << std::endl;
+   //std::cout << "Testing potential elements" << std::endl;
+   //bool pot_test = test_potential_elements(chn,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,V_arr_correct,tol);
+   //std::cout << "Test passed: " << pot_test << std::endl << "---------" << std::endl;
 
    //std::cout << "Testing potential matrix" << std::endl;
    //bool pot_test_mtx = test_potential_matrix(chn);
    //std::cout << "Test passed: " << pot_test_mtx << std::endl << "---------" << std::endl;
 
-   std::cout << "Testing phase shifts" << std::endl;
+   std::cout << "Testing phase shifts:" << std::endl;
    bool test_phase = test_phase_shifts(chn,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,V_arr_correct,tol,Lambda,C1S0,C3S1);
-   std::cout << "Test passed: " << test_phase << std::endl << "---------" << std::endl;
+   std::cout << "Test passed: " << test_phase << std::endl << "-------------------------------------------" << std::endl;
 
    //std::cout << "TEST PASSED: " << (pot_test && pot_test_mtx && test_phase) << std::endl;
    //std::cout << "-----------" << std::endl << "----END----" << std::endl << std::endl;
@@ -207,6 +197,7 @@ int main(int argc, char** argv)
    double T_lab = 10.0; // Lab energy in MeV
    double rel_tol_pot_elements = 1e-4;
 
+   double tol_ps = 1e-11;
    // ----- JUST CHOOSE SOME VALUES TO REPRODUCE PHASE SHIFTS WITH -----
    static double Lambda	= 450; 		  // cut-off for renormalization of LO  [MeV]
    static double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
@@ -225,7 +216,7 @@ int main(int argc, char** argv)
 
    qs::quantum_channel chn_coup = {.J=1, .S=0,.tz=0,.coupled=true};
    double V_arr_correct2[] = {  0.000000000000000000000e+00, 0.000000000000000000000e+00, -1.114898705446752692805e-10, -7.129564851709590453523e-10, -3.897949168142152748363e-09, -3.897949168142152748363e-09};   
-   run_tests(chn_coup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct2[0],rel_tol_pot_elements,Lambda,C1S0,C3S1);
+   run_tests(chn_coup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct2[0],tol_ps,Lambda,C1S0,C3S1);
 
 
    // Test the speed of some calculations
