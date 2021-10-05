@@ -2,6 +2,7 @@
 
 CC = g++
 CFLAGS = -Wall -g
+#CFLAGS = -O3
 #If you want to profile with gprof you need to link with that library 
 
 main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o

@@ -193,7 +193,7 @@ Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
     This function returns the phase shifts in at the desired lab energy T_lab for the channel chn.
     The phase shifts are returned in the Stapp convention
 */
-Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential)
+Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential)
 {
     #ifdef ENABLE_DEBUG
         std::cerr << "solve_in_chn()" << std::endl;
@@ -208,8 +208,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
     } else if (chn.tz == 0)
     {
         mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-        q_on_shell = sqrt(constants::Mn*constants::Mn*T_lab*(T_lab + 2.0*constants::Mp)/
-            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mn));
+        q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
+            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
     } else if (chn.tz == 1)
     {
         mu = constants::Mp/2.0; // pp
@@ -324,3 +324,30 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
 //{
     // Observe! The phase chifts needs to be in the Stapp convention!
 //}
+
+// --------------------------------------------------------
+// Here are methods for sloving LS for the complex T-matrix
+// --------------------------------------------------------
+
+// The method follows Chapter 18 in Landau QM
+
+gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool coupled, double mu)
+{
+    
+}
+
+gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix_complex* V_mtx)
+{
+
+}
+
+
+/*
+    This function is the same as solve_in_chn_R() with the difference that is works with complex types.
+    The potential matrix can be complex and is solvec the LS equation in complex form, thereby
+    obtaining the full of-shell somplex T-matrix.
+*/
+Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential)
+{
+
+}

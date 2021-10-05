@@ -70,7 +70,7 @@ bool test_potential_elements(qs::quantum_channel chn,unsigned int number_of_p_po
       q_on_shell = sqrt(mu*T_lab);
    } else if (chn.tz == 0)
    {
-      mu = constants::Mn*constants::Mn/(constants::Mn+constants::Mp); // np
+      mu = constants::Mp*constants::Mn/(constants::Mn+constants::Mp); // np
       q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
          ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
    } else if (chn.tz == 1)
@@ -146,7 +146,7 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
    Pot.LECs_["C1S0"] = C1S0;
    Pot.LECs_["C3S1"] = C3S1;
-   Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true,true);
+   Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,true,true);
    end = std::clock();
    std::cout << "Time taken to compute phase shifts() is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
    
@@ -190,6 +190,17 @@ void run_speed_tests(qs::quantum_channel chn)
 {
 
 }
+
+// This data type contains information about eigenvalues and
+// eigenvectors of a given matrix.
+typedef struct 
+{
+   gsl_vector_complex* eigenvalues;
+   gsl_matrix_complex* eigenvectors;
+} eigen_t;
+
+eigen_t solve_SE(double mu, double* p, double* w, unsigned int numer_of_grid_points,Potential_mwpc pot);
+
 
 int main(int argc, char** argv)
 {
@@ -309,3 +320,21 @@ int main(int argc, char** argv)
    //solver.solve_in_chn(10,chn,false,false);*/
    return 0;
 }
+
+
+// Implementation
+
+eigen_t solve_SE(double mu, double* p, double* w, unsigned int numer_of_grid_points,Potential_mwpc pot)
+{
+   // Get potential
+
+   // Construct kinetic part
+
+   // Add them up. 
+   // Remember the conventions!
+
+   // Diagonalize the matrix
+
+   // Return
+}
+
