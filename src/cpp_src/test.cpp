@@ -93,7 +93,12 @@ bool test_potential_elements(qs::quantum_channel chn,unsigned int number_of_p_po
 
    double V_arr[6];
    Pot.calc_element_V_arr(q_on_shell,q_on_shell,chn.coupled,chn.J,&V_arr[0]);
-
+   //Pot.calc_element_V_arr(60,60,true,1,&V_arr[0]);
+   //for (int i = 0; i < 6; i++)
+   //{
+   //   std::cout << V_arr[i] << " ";
+   //}
+   std::cout << std::endl;
    bool passed = true;
    for (int i= 0; i < 6; i++)
    {
@@ -138,11 +143,11 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    terms.push_back("C3S1");
 
    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot);
-   Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+   //Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
-   Pot.LECs_["C1S0"] = C1S0;
-   Pot.LECs_["C3S1"] = C3S1;   
-
+   Pot.LECs_["C1S0"] = 0;//C1S0;
+   Pot.LECs_["C3S1"] = 0;//C3S1;
+   
    std::vector<qs::quantum_channel> chns; // Do not do anythin
    chns.push_back(chn); // Do not do anything
    LS_Solver solver = LS_Solver(chns,&Pot,number_of_p_points,scale,true,Lambda,true);
@@ -151,6 +156,14 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
 
    std::cout << "Phases in Stapp convection: " << "delta_p=" << rad_to_deg(phases.delta_p) << " delta_m=" << rad_to_deg(phases.delta_m) << 
       " epsilon=" << rad_to_deg(phases.epsilon) << " delta_uncoupled=" << rad_to_deg(phases.delta_uncoupled) << " deg" << std::endl;
+
+   double V_arr[6];
+   Pot.calc_element_V_arr(60,60,true,1,&V_arr[0]);
+   for (int i = 0; i < 6; i++)
+   {
+      std::cout << V_arr[i] << " ";
+   }
+   
 
    return false; // TODO change
 }
@@ -189,7 +202,7 @@ int main(int argc, char** argv)
    // ---------------------------------
    double scale = 100.0; // Scale of momenutm grid MeV
    unsigned int ang_int_points = 96; // Number of points in angular integration
-   unsigned int number_of_p_points = 10; // Number of momentum-grid points
+   unsigned int number_of_p_points = 2; // Number of momentum-grid points
    unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
    double T_lab = 10.0; // Lab energy in MeV
    double rel_tol_pot_elements = 1e-4;
@@ -210,9 +223,10 @@ int main(int argc, char** argv)
    double V_arr_correct1[] = {1.453716658589179581973e-04, 1.175326792502285721664e-04, 0.000000000000000000000e+00, 0.000000000000000000000e+00, -0.000000000000000000000e+00, -0.000000000000000000000e+00};   
    run_tests(chn_uncoup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct1[0],rel_tol_pot_elements,Lambda,C1S0,C3S1);
 
-   qs::quantum_channel chn_coup = {.J=6, .S=0,.tz=0,.coupled=true};
+   qs::quantum_channel chn_coup = {.J=1, .S=0,.tz=0,.coupled=true};
    double V_arr_correct2[] = {  0.000000000000000000000e+00, 0.000000000000000000000e+00, -1.114898705446752692805e-10, -7.129564851709590453523e-10, -3.897949168142152748363e-09, -3.897949168142152748363e-09};   
    run_tests(chn_coup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct2[0],rel_tol_pot_elements,Lambda,C1S0,C3S1);
+
 
    // Test the speed of some calculations
 

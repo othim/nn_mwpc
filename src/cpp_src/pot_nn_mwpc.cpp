@@ -243,14 +243,15 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
          double tmp_arr[6];
          //std::cout << terms_in_pot_[i].get_spin_structure() << " " << terms_in_pot_[i].get_isovector() << std::endl;
          pwa(qi,qo,coupled,J,A_M,A_P,A_0,A_1,terms_in_pot_[i].get_spin_structure(),terms_in_pot_[i].get_isovector(),&tmp_arr[0]);
-         
+      
          V_uncoupled_S0 += tmp_arr[0];
          V_uncoupled_S1 += tmp_arr[1];
          V_coupled_pp   += tmp_arr[2];
          V_coupled_mm   += tmp_arr[3];
          V_coupled_pm   += tmp_arr[4];
          V_coupled_mp   += tmp_arr[5];
-
+         //std::cout << V_uncoupled_S0 << " " << V_uncoupled_S1 << std::endl;
+      
          #ifdef ENABLE_DEBUG
             end = std::clock();
             std::cout << "Time taken to call pwa is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 
@@ -284,9 +285,11 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
                if (LS_term.S == 0) // S0
                {
                   V_uncoupled_S0 += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  //std::cout << terms_in_pot_[i].get_LEC_element(qi,qo,LECs_) << std::endl;
                } else if (LS_term.S == 1) // S1
                {
                   V_uncoupled_S1 += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  //std::cout << terms_in_pot_[i].get_LEC_element(qi,qo,LECs_) << std::endl;
                }
             }
          }
@@ -315,7 +318,7 @@ void Potential_mwpc::pwa(double qi,double qo, bool coupled, int J,double A_M,dou
    double V_coupled_pm   = 0;
    double V_coupled_mp   = 0;
    double V_coupled_pp   = 0;
-
+   //std::cout << "A_0=" << A_0 << " A_P=" << A_P << " A_M=" << A_M << " A_1=" << A_1 << std::endl;
    if (spin_struct == "tensor")
    {
       // Check which elements that are non-zero by checking if the Channel is
@@ -481,12 +484,13 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
             }
          } else 
          {
-            
             // The matrix is constructed as [[mm,mp],[pm,pp]]
             gsl_matrix_set(matrix_data,i,j,V_arr[3]*rel_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
+            std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
+            std::cout << p_in << " " << p_out << std::endl;
             gsl_matrix_set(matrix_data,i,j+(mom_grid_size_+1),V_arr[5]*rel_fac); //mp
             gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j,V_arr[4]*rel_fac); //pm
             gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j+(mom_grid_size_+1),V_arr[2]*rel_fac); //pp

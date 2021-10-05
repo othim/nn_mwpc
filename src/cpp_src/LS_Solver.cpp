@@ -178,8 +178,10 @@ void print_matrix(gsl_matrix* matrix)
 Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
 {
     Phase_shifts_chn phases;
-    phases.epsilon = asin(sin(2*ps.epsilon)* sin(ps.delta_m - ps.delta_p));
+    phases.epsilon = 0.5*asin(sin(2*ps.epsilon)* sin(ps.delta_m - ps.delta_p));
+    std::cout << phases.epsilon << std::endl;
     phases.delta_m = 0.5*(ps.delta_p + ps.delta_m + asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)));
+    std::cout << tan(2*phases.epsilon)/tan(2*ps.epsilon) << std::endl;
     phases.delta_p = 0.5*(ps.delta_p + ps.delta_m - asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)));
 
     phases.delta_uncoupled = ps.delta_uncoupled;
@@ -274,12 +276,14 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
         R_mm = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
         R_mp = gsl_matrix_get(R_result,2*mom_grid_size_+1,mom_grid_size_);
         R_pp = gsl_matrix_get(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
-        //std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
+        std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
 
         // Compute phase shifts in BB convention in radians
         phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
         phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
         phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        std::cout << "Phase shifts in BB" << std::endl;
+        std::cout << phase_shifts.delta_p << " " << phase_shifts.delta_m << " " << phase_shifts.epsilon << " " << std::endl;
 
         phase_shifts.delta_uncoupled = 0;
     } else 

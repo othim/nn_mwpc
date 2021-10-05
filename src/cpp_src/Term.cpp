@@ -22,7 +22,7 @@ Term::Term(std::string name)
         LS_term_lec_.Li = 0;
         LS_term_lec_.Lo = 0; 
         LS_term_lec_.S = 0;
-        my_LEC_term= &Term::mom_C1S0;
+        my_LEC_term = &Term::mom_C1S0;
         isovector_ = false;
         lecs_in_term_.push_back("C1S0");
     } else if (name == "C3S1")
