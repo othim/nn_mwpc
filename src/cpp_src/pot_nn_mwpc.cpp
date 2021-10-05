@@ -476,24 +476,24 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-               gsl_matrix_set(matrix_data,i,j,V_arr[0]*rel_fac);
+               gsl_matrix_set(matrix_data,j,i,V_arr[0]*rel_fac);
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
-               gsl_matrix_set(matrix_data,i,j,V_arr[1]*rel_fac);
+               gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
             }
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            gsl_matrix_set(matrix_data,i,j,V_arr[3]*rel_fac); //mm
+            gsl_matrix_set(matrix_data,j,i,V_arr[3]*rel_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
-            std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
-            std::cout << p_in << " " << p_out << std::endl;
-            gsl_matrix_set(matrix_data,i,j+(mom_grid_size_+1),V_arr[5]*rel_fac); //mp
-            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j,V_arr[4]*rel_fac); //pm
-            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j+(mom_grid_size_+1),V_arr[2]*rel_fac); //pp
+            //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
+            //std::cout << p_in << " " << p_out << std::endl;
+            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*rel_fac); //mp
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*rel_fac); //pm
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*rel_fac); //pp
          }
       }
    }

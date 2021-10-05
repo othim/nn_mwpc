@@ -154,8 +154,8 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
  
    Phase_shifts_chn phases = solver.solve_in_chn(T_lab,chn,true,false);
 
-   std::cout << "Phases in Stapp convection: " << "delta_p=" << rad_to_deg(phases.delta_p) << " delta_m=" << rad_to_deg(phases.delta_m) << 
-      " epsilon=" << rad_to_deg(phases.epsilon) << " delta_uncoupled=" << rad_to_deg(phases.delta_uncoupled) << " deg" << std::endl;
+   std::cout << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
+      "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
 
    double V_arr[6];
    Pot.calc_element_V_arr(60,60,true,1,&V_arr[0]);
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
    // ---------------------------------
    double scale = 100.0; // Scale of momenutm grid MeV
    unsigned int ang_int_points = 96; // Number of points in angular integration
-   unsigned int number_of_p_points = 2; // Number of momentum-grid points
+   unsigned int number_of_p_points = 100; // Number of momentum-grid points
    unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
    double T_lab = 10.0; // Lab energy in MeV
    double rel_tol_pot_elements = 1e-4;

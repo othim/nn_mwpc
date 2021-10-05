@@ -1,5 +1,5 @@
 #include "LS_Solver.h"
-
+#include <iomanip> 
 //#define ENABLE_DEBUG
 
 // Constructor
@@ -239,8 +239,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
     }
     
     
-    std::cout << "Potential" << std::endl;
-    print_matrix(pot_V_mtx);
+    //std::cout << "Potential" << std::endl;
+    //print_matrix(pot_V_mtx);
    
     // Setup D-vector
     gsl_vector* D_vector;
@@ -280,10 +280,10 @@ Phase_shifts_chn LS_Solver::solve_in_chn(double T_lab, qs::quantum_channel chn, 
 
         // Compute phase shifts in BB convention in radians
         phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
-        phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
-        phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
         std::cout << "Phase shifts in BB" << std::endl;
-        std::cout << phase_shifts.delta_p << " " << phase_shifts.delta_m << " " << phase_shifts.epsilon << " " << std::endl;
+        std::cout <<  std::setprecision(16) << phase_shifts.delta_m << " " << phase_shifts.delta_p << " " << phase_shifts.epsilon << " " << std::endl;
 
         phase_shifts.delta_uncoupled = 0;
     } else 
