@@ -29,11 +29,11 @@ private:
 
     // Function pointer
    
-    double (*my_LEC_term)(double qi, double qo,std::unordered_map<std::string,double> LECs);
+    double (*my_v_alpha_well_def_pw)(double qi, double qo,std::unordered_map<std::string,double> LECs);
 
     // Boolean to indicate if the term is a lec-term
-    bool is_lec_;
-    LS_term LS_term_lec_;
+    bool well_def_pw_;
+    LS_term LS_well_def_pw_;
 
 public:
     std::vector<double> (*my_v_alpha)(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs);
@@ -43,14 +43,14 @@ public:
 
     // Destructor
     ~Term();
-    bool is_lec();
+    bool well_def_pw();
     std::string get_term_name();
     std::string get_spin_structure();
     bool get_isovector();
     LS_term get_LS_term();
     std::vector<std::string> get_lecs_in_term();
     std::vector<double> get_v_alpha(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs);
-    double get_LEC_element(double qi, double qo,std::unordered_map<std::string,double> LECs);
+    double get_v_alpha_well_def_pw(double qi, double qo,std::unordered_map<std::string,double> LECs);
 
     static std::vector<double> v_alpha_OPEP(double qi, double qo, double* z, unsigned int z_len, std::unordered_map<std::string,double> LECs);
     static double mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs);

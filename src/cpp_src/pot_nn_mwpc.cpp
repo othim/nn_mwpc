@@ -63,7 +63,8 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
 
    z_mesh   = gsl_integration_fixed_nodes(int_ang_);
    w_z_mesh = gsl_integration_fixed_weights(int_ang_);
-
+  
+   
    len_z_mesh = N_GLI_PWA_;
 
    // Store some Legendre Polynomials for J = 0,...,J_max
@@ -89,7 +90,7 @@ Potential_mwpc::~Potential_mwpc()
 {
    // Free all memory allocations
    gsl_integration_fixed_free(int_ang_);
-
+  
    for (int i = 0; i < J_max_; i++)
    {
       free(stored_Legendre_polynomials_[i]);
@@ -101,17 +102,7 @@ Potential_mwpc::~Potential_mwpc()
    #endif
 }
 
-/* 
-   ** Some helper functions to opep_get_el **
-   ******************************************
-*/
 
-double Potential_mwpc::pot_OPEP_mom(double qo,double qi, double z)
-{
-	double q2 = qi*qi + qo*qo - 2*qi*qo*z;
-
-	return -(constants::gA*constants::gA/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi));
-}
 /*
    Computes the total isospin factor from \tau_1 \cdot \tau_2 from
    the constraint J+L+T = odd 
@@ -127,33 +118,8 @@ double Potential_mwpc::calc_element_JLS(double qi,double qo, int J, int L, int S
 {
    // TODO implement
    return 0;
-}/*
-double f_int_helper(double z, void* p)
-{
-   // Decode the void* to the parameters
-   struct my_f_params * params = (struct my_f_params *)p;
-   double qi = (params->qi);
-   double qo = (params->qo);
-   int J = (params->J);
-   int l = (params->l);
-   
-   return (params->term)->get_v_alpha(qi,qo,z,params->this_pot->LECs_)*gsl_pow_int(z,l)*gsl_sf_legendre_Pl(J, z);
-}*/
-/*
-double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l,Term* term)
-{
-   // Define function to integrate
-   gsl_function F;
-   F.function = &f_int_helper;
-   struct my_f_params params = {qi, qo, J, l, term, this};
-   F.params = &params;
+}
 
-   double result;
-   // Perform the integration from -1 to 1
-   gsl_integration_fixed(&F,&result,int_ang_);
-
-   return result*M_PI;
-}*/
 double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l, std::vector<double> v_alpha_arr)
 {
    #ifdef ENABLE_DEBUG
@@ -198,7 +164,7 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
    for (std::size_t i = 0; i < terms_in_pot_.size(); i++)
    {  
       //std::cout << terms_in_pot_[i].get_term_name() << std::endl;
-      if (!terms_in_pot_[i].is_lec())
+      if (!terms_in_pot_[i].well_def_pw())
       {
          #ifdef ENABLE_DEBUG
             std::clock_t start,end;
@@ -269,26 +235,26 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
             {
                if (LS_term.Li == J-1 && LS_term.Lo == J-1) // --
                {
-                  V_coupled_mm += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  V_coupled_mm += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
                } else if (LS_term.Li == J+1 && LS_term.Lo == J+1) // ++
                {
-                  V_coupled_pp += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  V_coupled_pp += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
                } else if (LS_term.Li == J-1 && LS_term.Lo == J+1) // -+
                {
-                  V_coupled_mp += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  V_coupled_mp += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
                } else if (LS_term.Li == J-1 && LS_term.Lo == J+1) // +-
                {
-                  V_coupled_pm += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  V_coupled_pm += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
                }
             } else
             {
                if (LS_term.S == 0) // S0
                {
-                  V_uncoupled_S0 += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  V_uncoupled_S0 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
                   //std::cout << terms_in_pot_[i].get_LEC_element(qi,qo,LECs_) << std::endl;
                } else if (LS_term.S == 1) // S1
                {
-                  V_uncoupled_S1 += terms_in_pot_[i].get_LEC_element(qi,qo,LECs_);
+                  V_uncoupled_S1 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
                   //std::cout << terms_in_pot_[i].get_LEC_element(qi,qo,LECs_) << std::endl;
                }
             }

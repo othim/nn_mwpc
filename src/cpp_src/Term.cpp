@@ -9,7 +9,7 @@ Term::Term(std::string name)
     {
         term_name_ = name;
         spin_structure_ = "tensor";
-        is_lec_ = false;
+        well_def_pw_ = false;
         my_v_alpha = &Term::v_alpha_OPEP; // Make my_v_alpha point to the correct function for OPEP
         lecs_in_term_.push_back("gA2");
         isovector_ = true;
@@ -17,25 +17,25 @@ Term::Term(std::string name)
     {
         term_name_ = name;
         spin_structure_ = "none";
-        is_lec_ = true;
-        LS_term_lec_.J = 0;
-        LS_term_lec_.Li = 0;
-        LS_term_lec_.Lo = 0; 
-        LS_term_lec_.S = 0;
-        my_LEC_term = &Term::mom_C1S0;
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 0; 
+        LS_well_def_pw_.S = 0;
+        my_v_alpha_well_def_pw = &Term::mom_C1S0;
         isovector_ = false;
         lecs_in_term_.push_back("C1S0");
     } else if (name == "C3S1")
     {
         term_name_ = name;
         spin_structure_ = "none";
-        is_lec_ = true;
-        LS_term_lec_.J = 1;
-        LS_term_lec_.Li = 0;
-        LS_term_lec_.Lo = 0; 
-        LS_term_lec_.S = 1;
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 1;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 0; 
+        LS_well_def_pw_.S = 1;
         isovector_ = false;
-        my_LEC_term= &Term::mom_C3S1;
+        my_v_alpha_well_def_pw= &Term::mom_C3S1;
         lecs_in_term_.push_back("C3S1");
     } else 
     {
@@ -50,9 +50,9 @@ Term::~Term()
 
 /* Some getters */
 
-bool Term::is_lec()
+bool Term::well_def_pw()
 {
-    return is_lec_;
+    return well_def_pw_;
 }
 
 std::string Term::get_term_name()
@@ -72,7 +72,7 @@ bool Term::get_isovector()
 
 LS_term Term::get_LS_term()
 {
-    return LS_term_lec_;
+    return LS_well_def_pw_;
 }
 
 std::vector<std::string> Term::get_lecs_in_term()
@@ -86,9 +86,9 @@ std::vector<double> Term::get_v_alpha(double qi, double qo, double* z,unsigned i
     return my_v_alpha(qi,qo,z,z_len,LECs);
 }
 
-double Term::get_LEC_element(double qi, double qo,std::unordered_map<std::string,double> LECs)
+double Term::get_v_alpha_well_def_pw(double qi, double qo,std::unordered_map<std::string,double> LECs)
 {
-    return my_LEC_term(qi,qo,LECs);
+    return my_v_alpha_well_def_pw(qi,qo,LECs);
 }
 
 /*

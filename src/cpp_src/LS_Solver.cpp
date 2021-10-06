@@ -437,10 +437,11 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
 
     gsl_matrix_complex* pot_V_mtx;
     if (get_saved_potential) {
-        pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
+        //pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
     } else {
-        pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
+        //pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
     }
 
+        
 
 }
