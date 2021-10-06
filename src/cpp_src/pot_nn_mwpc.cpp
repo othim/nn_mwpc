@@ -674,9 +674,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             // Take element zero and insert it into the matrix
             gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[0]*rel_fac);
             gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[0]*rel_fac);
-            if (i==mom_grid_size_) {
-               std::cout << tmp_arr[0]*rel_fac << std::endl;
-            }
+            
          } else 
          {
             // Take element one and insert it into the matrix

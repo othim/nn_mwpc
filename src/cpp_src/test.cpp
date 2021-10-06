@@ -148,12 +148,27 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    Pot.LECs_["C3S1"] = C3S1;
    Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,true,true);
    end = std::clock();
-   std::cout << "Time taken to compute phase shifts() is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
+   std::cout << "Time taken to compute phase shifts (with R) is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
    
    
    std::cout << std::setprecision(16) << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
       "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
   
+   
+   // Make same test but with T matrix 
+   start = std::clock();
+   Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+   Pot.LECs_["C1S0"] = C1S0;
+   Pot.LECs_["C3S1"] = C3S1;
+   phases = solver.solve_in_chn_T(T_lab,chn,true,true);
+   end = std::clock();
+   std::cout << "Time taken to compute phase shifts (with T) is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
+  
+   std::cout << std::setprecision(16) << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
+      "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
+
+
+
    if (chn.coupled==false) {
       return (abs(rad_to_deg(phases.delta_uncoupled)+3.061426389773196) < tol);
    } else {
@@ -161,6 +176,7 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
          abs(rad_to_deg(phases.delta_p)+0.787703968368532) < tol && 
          abs(rad_to_deg(phases.epsilon)-1.637312987120185) < tol);
    }
+
 }
 
 void run_tests(qs::quantum_channel chn, unsigned int number_of_p_points,unsigned int ang_int_points,

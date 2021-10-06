@@ -193,6 +193,15 @@ Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
 
     return phases;
 }
+void print_vector(gsl_vector* vec)
+{
+   std::cout << "---------" << std::endl;
+   for (std::size_t i = 0; i < vec->size; i++)
+   {
+        std::cout << gsl_vector_get(vec,i) << "\n";
+   }
+   std::cout << "---------" << std::endl;
+}
 
 void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell)
 {
@@ -254,12 +263,10 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     //print_matrix(pot_V_mtx);
    
     // Setup D-vector
-    gsl_vector* D_vector;
-    D_vector = setup_D_vector(q_on_shell,chn.coupled,mu);
-    
+    gsl_vector* D_vector = setup_D_vector(q_on_shell,chn.coupled,mu);
+    //print_vector(D_vector);
     // Setup F-matrix
-    gsl_matrix* F_matrix;
-    F_matrix = setup_F_matrix(chn.coupled,D_vector,pot_V_mtx);
+    gsl_matrix* F_matrix = setup_F_matrix(chn.coupled,D_vector,pot_V_mtx);
     
     // Solve the matrix equation F*R = V
         
@@ -287,7 +294,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         R_mm = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
         R_mp = gsl_matrix_get(R_result,2*mom_grid_size_+1,mom_grid_size_);
         R_pp = gsl_matrix_get(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
-        //std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
+        std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
 
         // Compute phase shifts in BB convention in radians
         phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
@@ -393,7 +400,7 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
     double re_el = -(fac)*2.0*mu*q2_on_shell*sum; // NO CUTOFF
-    double im_el = -2*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
+    double im_el = 0;//-(M_PI/2.0)*2*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
 
     gsl_complex comp_el = gsl_complex_rect(re_el,im_el);
 
@@ -408,17 +415,68 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
     return D_vector;
 }
 
-gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix_complex* V_mtx)
+gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix* V_mtx)
 {
+    #ifdef ENABLE_DEBUG
+        std::cerr << "setup_F_matrix_complex()" << std::endl;
+    #endif
+    
+
+  
+    gsl_matrix_complex* F_mtx;
+    if (coupled)
+    {
+        F_mtx = gsl_matrix_complex_alloc(2*mom_grid_size_ + 2,2*mom_grid_size_ + 2);
+    } else 
+    {
+        F_mtx = gsl_matrix_complex_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
+    }
+
+    // Construct F manually with two loops
     // F_ij = \delta_ij + D_j V_ij
+    for (int i = 0; i < F_mtx->size1; i++)
+    {
+        for (int j = 0; j < F_mtx->size2; j++)
+        {
+            double diag = 0.0;
+            if (i==j) {
+                diag = 1.0;
+            }
+            gsl_complex pot = gsl_complex_rect(gsl_matrix_get(V_mtx, i,j),0);
+            gsl_complex matrix_el = gsl_complex_mul(pot,gsl_vector_complex_get(D_vector,j));
+            gsl_complex plus_id = gsl_complex_add(matrix_el,gsl_complex_rect(diag,0.0));
+            gsl_matrix_complex_set(F_mtx,i,j,plus_id);
+        }
+    }
 
-    // Must be able to scale columns
-    // Do scaling manually since the potential matrix
-    // Anyhow needs to be reconstructed (this will be slow)
-
+    return F_mtx;
 }
 
+void print_matrix_complex(gsl_matrix_complex* matrix)
+{
+   std::cout << "---------" << std::endl;
+   for (std::size_t i = 0; i < matrix->size1; i++)
+   {
+      for (std::size_t j = 0; j < matrix->size1; j++)
+      {
+         std::cout << "(" << GSL_REAL(gsl_matrix_complex_get(matrix,i,j)) << "," << 
+            GSL_IMAG(gsl_matrix_complex_get(matrix,i,j)) << ")";
+      }   
+      std::cout << std::endl;
+   }
+   std::cout << "---------" << std::endl;
+}
 
+void print_vector_complex(gsl_vector_complex* vec)
+{
+   std::cout << "---------" << std::endl;
+   for (std::size_t i = 0; i < vec->size; i++)
+   {
+        std::cout << "(" << GSL_REAL(gsl_vector_complex_get(vec,i)) << "," << 
+        GSL_IMAG(gsl_vector_complex_get(vec,i)) << ") \n";
+   }
+   std::cout << "---------" << std::endl;
+}
 /*
     This function is the same as solve_in_chn_R() with the difference that is works with complex types.
     The potential matrix can be complex and is solvec the LS equation in complex form, thereby
@@ -431,17 +489,73 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     double q_on_shell;
     get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
 
-    gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
-
     double rho = M_PI*q_on_shell*mu; // Depends on convention conncted to the factor 'fac' in D.
 
-    gsl_matrix_complex* pot_V_mtx;
+    gsl_matrix* pot_V_mtx;
     if (get_saved_potential) {
-        //pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
+        pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
     } else {
-        //pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
+        pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
     }
+   
+    gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
+
+    gsl_matrix_complex* F_matrix = setup_F_matrix_complex(chn.coupled,D_vector,pot_V_mtx);
+    
+    //print_vector_complex(D_vector);
+    //print_matrix_complex(F_matrix);
+    // Solve matrix equation F*R = V
+
+    // LU decompose
+    gsl_permutation* perm = gsl_permutation_alloc(F_matrix->size1);
+    int signum;
+    gsl_linalg_complex_LU_decomp(F_matrix,perm,&signum);
+
+    // Invert from LU decompusition
+ 
+    gsl_matrix_complex* inverse = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
+    gsl_linalg_complex_LU_invert(F_matrix,perm,inverse); // Some error here
+
+    gsl_matrix_complex* T_result = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
+
+    gsl_complex alpha = gsl_complex_rect(1.0,0.0);
+    gsl_complex beta  = gsl_complex_rect(0.0,0.0);
+
+    gsl_matrix_complex* pot_complex = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
+    for (int i=0; i < F_matrix->size1; i++)
+    {
+        for (int j=0; j < F_matrix->size2; j++)
+        {
+            gsl_matrix_complex_set(pot_complex,i,j,gsl_complex_rect(gsl_matrix_get(pot_V_mtx,i,j),0.0));
+        }
+    }
+ 
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, inverse, pot_complex, beta, T_result); 
+
+
+    Phase_shifts_chn phase_shifts;
+    if (chn.coupled) 
+    {
+        gsl_complex T_pp,T_mm,T_mp;
+        T_mm = gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_);
+        T_mp = gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_);
+        T_pp = gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
+        std::cout << GSL_REAL(T_mm) << "  " << GSL_REAL(T_mp) << " " << GSL_REAL(T_pp) << std::endl;
 
         
+    } else 
+    {
+        gsl_complex T = gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_);
+        std::cout << GSL_REAL(T) << std::endl;
+    }
 
+    gsl_vector_complex_free(D_vector);
+    gsl_matrix_complex_free(T_result);
+
+    gsl_matrix_free(pot_V_mtx);
+    gsl_matrix_complex_free(F_matrix);
+    gsl_matrix_complex_free(inverse);
+    gsl_permutation_free(perm);
+
+    return phase_shifts;
 }
