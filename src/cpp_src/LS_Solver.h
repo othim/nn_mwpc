@@ -30,6 +30,7 @@
 #include "gsl_integration.h" // GL integration
 #include "gsl_complex.h"
 #include "gsl_complex_math.h"
+#include "gsl_matrix_complex_double.h"
 #include <cmath>
 
 
@@ -44,8 +45,6 @@ private:
    double* p_grid_;
    double* w_grid_;
    std::size_t mom_grid_size_;
-
-   unsigned int J_max_;
 
    double cutoff_Lambda_;
    bool cutoff_enabled_;
@@ -71,6 +70,8 @@ public:
    gsl_vector_complex* setup_D_vector_complex(double q_on_shell, bool coupled, double mu);
    gsl_matrix_complex* setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
    Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential);
+
+   gsl_matrix_complex* T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho);
 
 };
 

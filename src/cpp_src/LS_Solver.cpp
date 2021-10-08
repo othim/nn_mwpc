@@ -259,8 +259,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     }
     
     
-    //std::cout << "Potential" << std::endl;
-    //print_matrix(pot_V_mtx);
+    std::cout << "Potential" << std::endl;
+    print_matrix(pot_V_mtx);
    
     // Setup D-vector
     gsl_vector* D_vector = setup_D_vector(q_on_shell,chn.coupled,mu);
@@ -294,6 +294,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         R_mm = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
         R_mp = gsl_matrix_get(R_result,2*mom_grid_size_+1,mom_grid_size_);
         R_pp = gsl_matrix_get(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
+        std::cout << "R-matrix elements" << std::endl;
         std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
 
         // Compute phase shifts in BB convention in radians
@@ -301,10 +302,14 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
         phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
         //std::cout << "Phase shifts in BB" << std::endl;
-        std::cout << phase_shifts.delta_m << " " << phase_shifts.delta_p << " " << phase_shifts.epsilon << " " << std::endl;
+        //std::cout << phase_shifts.delta_m << " " << phase_shifts.delta_p << " " << phase_shifts.epsilon << " " << std::endl;
 
         phase_shifts.delta_uncoupled = 0;
         phase_shifts = BB_to_Stapp(phase_shifts);
+
+        //std::cout << "T:" << std::endl;
+        //gsl_matrix_complex* T = T_matrix_from_R_matrix(R_result,rho);
+
     } else 
     {
         // on-shell R-matrix is 1x1
@@ -320,6 +325,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_uncoupled = atan(-rho*R);
     }
 
+    
 
     // Delete temporary pointers
     gsl_vector_free(D_vector);
@@ -362,7 +368,8 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
     // For now, the code is written without this factor, it will affect the 
     // rho value when raltiong the T/R matrix to the S-matrix/phase-shifts.
     double fac = 1.0; // Depends on convention
-
+    std::cout << "2mu: " << 2*mu << std::endl;
+    std::cout << "g_on_chell" << q_on_shell << std::endl;
     gsl_vector_complex* D_vector;
     double q2_on_shell = q_on_shell*q_on_shell;
 
@@ -379,7 +386,6 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
     for (int i = 0; i < mom_grid_size_; i++)
     {
         double p2 = p_grid_[i]*p_grid_[i];
-        //double cutoff_regulator = exp(-gsl_pow_uint(p_grid_[i]/cutoff_Lambda_,6));
         double el = (2.0*mu)*(fac)*w_grid_[i]*p2/(p2-q2_on_shell); // NO CUTOFF
         
         gsl_complex comp_el = gsl_complex_rect(el,0.0);
@@ -400,7 +406,8 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
     double re_el = -(fac)*2.0*mu*q2_on_shell*sum; // NO CUTOFF
-    double im_el = -2*(M_PI/2.0)*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
+    //double im_el = -2*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
+    double im_el = M_PI*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
 
     gsl_complex comp_el = gsl_complex_rect(re_el,im_el);
 
@@ -488,7 +495,10 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     double q_on_shell;
     get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
 
-    double rho = M_PI*q_on_shell*mu; // Depends on convention conncted to the factor 'fac' in D.
+    double rho = (2.0/M_PI)*M_PI*q_on_shell*mu; 
+    // Depends on convention conncted to the factor 'fac' in D.
+    // The transformation of T-matrix elements becomes correct when
+    // a factor of 2.0/M_PI is added...
 
     gsl_matrix* pot_V_mtx;
     if (get_saved_potential) {
@@ -500,9 +510,12 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
 
     gsl_matrix_complex* F_matrix = setup_F_matrix_complex(chn.coupled,D_vector,pot_V_mtx);
-    
-    //print_vector_complex(D_vector);
-    //print_matrix_complex(F_matrix);
+    print_matrix(pot_V_mtx);
+    std::cout << "D-vector" << std::endl;
+    print_vector_complex(D_vector);
+    std::cout << std::endl << "F-matrix" << std::endl;
+    print_matrix_complex(F_matrix);
+
     // Solve matrix equation F*R = V
 
     // LU decompose
@@ -536,13 +549,23 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     if (chn.coupled) 
     {
         gsl_complex T_pp,T_mm,T_mp;
-        T_mm = gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_);
-        T_mp = gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_);
-        T_pp = gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
+        T_mm = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
+        T_mp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
+        T_pp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
+        
+        // Correct values, just to test the calculation of phase shifts from T-elements
+        /*
+        T_mm = gsl_complex_rect(3.806699169483742e-06,-1.4527989826039648e-05);
+        T_mp = gsl_complex_rect(-1.0676319790660848e-07,4.312313423841913e-07);
+        T_pp = gsl_complex_rect(2.1377153170276125e-07,-1.565749889370409e-08);
+        */
+        std::cout << "T-matrix elements" << std::endl;
         std::cout << GSL_REAL(T_mm) << "," << GSL_IMAG(T_mm) << std::endl;
         std::cout << GSL_REAL(T_mp) << "," << GSL_IMAG(T_mp) << std::endl;
         std::cout << GSL_REAL(T_pp) << "," << GSL_IMAG(T_pp) << std::endl;
-
+        
+        // Know that this is correct
+        // ----
         // Compute phase shifts in BB convention in radians
         gsl_complex epsilon = gsl_complex_mul(gsl_complex_rect(0.5,0.0),gsl_complex_arctan(gsl_complex_div(
             gsl_complex_mul(gsl_complex_rect(2.0,0.0),T_mp),gsl_complex_sub(T_mm,T_pp))));
@@ -556,6 +579,9 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
         gsl_complex delta_p = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(gsl_complex_add(tmp1,tmp2)));
         gsl_complex delta_m = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(gsl_complex_sub(tmp1,tmp2)));
         
+        // ----
+
+        std::cout << "Printing phase shifts" << std::endl;
         std::cout << "(" << GSL_REAL(delta_m) << "," << GSL_IMAG(delta_m) << ")\n";
         std::cout << "(" << GSL_REAL(delta_p) << "," << GSL_IMAG(delta_p) << ")\n";
         std::cout << "(" << GSL_REAL(epsilon) << "," << GSL_IMAG(epsilon) << ")\n";
@@ -575,4 +601,71 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     gsl_permutation_free(perm);
 
     return phase_shifts;
+}
+
+
+gsl_matrix_complex* LS_Solver::T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho)
+{
+    gsl_matrix_complex* T = gsl_matrix_complex_alloc(R_matrix->size1,R_matrix->size2);
+
+    // Apply the formula
+    // R = T + i*pi*T*\delta(E-H_0)R
+    // in the momentum basis R is expressed (no 2/pi factor in normalization).
+    // This gives T = R(1+i\rhoR)^{-1}.
+
+    // Make the R-matrix complex
+    gsl_matrix_complex* R_complex = gsl_matrix_complex_alloc(R_matrix->size1,R_matrix->size2);
+
+    for (int i = 0; i < R_matrix->size1; i++)
+    {
+        for (int j = 0; j < R_matrix->size2; j++)
+        {
+            gsl_complex R_el = gsl_complex_rect(gsl_matrix_get(R_matrix, i,j),0);
+            gsl_matrix_complex_set(R_complex,i,j,R_el);
+        }
+    }
+
+    gsl_matrix_complex* temp_matrix = gsl_matrix_complex_alloc(R_matrix->size1,R_matrix->size2);
+
+    gsl_matrix_complex_set_identity(temp_matrix);
+    
+    gsl_complex alpha = gsl_complex_rect(0.0,rho);
+    gsl_complex beta  = gsl_complex_rect(1.0,0.0);
+    
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans,alpha,
+        temp_matrix, R_complex,beta, temp_matrix);
+
+    // Now tmp_matrix is (1+i\rho R)
+
+    // Invert tmp_matrix
+    // LU decompose
+    gsl_permutation* perm = gsl_permutation_alloc(temp_matrix->size1);
+    int signum;
+    gsl_linalg_complex_LU_decomp(temp_matrix,perm,&signum);
+
+    // Invert from LU decompusition
+ 
+    gsl_matrix_complex* inverse = gsl_matrix_complex_alloc(temp_matrix->size1,temp_matrix->size2);
+    gsl_linalg_complex_LU_invert(temp_matrix,perm,inverse); // Some error here
+
+    gsl_complex alpha2 = gsl_complex_rect(1.0,0.0);
+    gsl_complex beta2  = gsl_complex_rect(0.0,0.0);
+
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha2, R_complex, inverse, beta2, T); 
+
+    gsl_matrix_complex_free(inverse);
+
+    gsl_matrix_complex_free(R_complex);
+    gsl_matrix_complex_free(temp_matrix);
+    gsl_permutation_free(perm);
+
+    gsl_complex T_pp,T_mm,T_mp;
+    T_mm = gsl_matrix_complex_get(T,mom_grid_size_,mom_grid_size_);
+    T_mp = gsl_matrix_complex_get(T,2*mom_grid_size_+1,mom_grid_size_);
+    T_pp = gsl_matrix_complex_get(T,2*mom_grid_size_+1,2*mom_grid_size_+1);
+    std::cout << GSL_REAL(T_mm) << "," << GSL_IMAG(T_mm) << std::endl;
+    std::cout << GSL_REAL(T_mp) << "," << GSL_IMAG(T_mp) << std::endl;
+    std::cout << GSL_REAL(T_pp) << "," << GSL_IMAG(T_pp) << std::endl;
+
+    return T;
 }

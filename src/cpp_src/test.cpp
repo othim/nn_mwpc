@@ -10,6 +10,17 @@
 #include "gsl_integration.h" 
 #include <cstdio>
 #include <ctime>
+#include "gsl_eigen.h"
+
+// This data type contains information about eigenvalues and
+// eigenvectors of a given matrix.
+typedef struct 
+{
+   gsl_vector_complex* eigenvalues;
+   gsl_matrix_complex* eigenvectors;
+} eigen_t;
+eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,qs::quantum_channel chn, const gsl_matrix* V);
+
 
 double rad_to_deg(double in)
 {
@@ -58,26 +69,11 @@ void print_m(gsl_matrix* matrix)
 
 
 // Returns true if all tests are passed
+/*
 bool test_potential_elements(qs::quantum_channel chn,unsigned int number_of_p_points,unsigned int ang_int_points,
    unsigned int J_max_in_pot,double T_lab,double scale,double* V_arr_correct,double tol)
 {
    // Calculate mass and on-shell momentum
-   double mu;
-   double q_on_shell;
-   if (chn.tz == -1)
-   {
-      mu = constants::Mn/2.0; // nn
-      q_on_shell = sqrt(mu*T_lab);
-   } else if (chn.tz == 0)
-   {
-      mu = constants::Mp*constants::Mn/(constants::Mn+constants::Mp); // np
-      q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
-         ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
-   } else if (chn.tz == 1)
-   {
-      mu = constants::Mp/2.0; // pp
-      q_on_shell = sqrt(mu*T_lab);
-   }
    
 
    // Make grid
@@ -111,11 +107,11 @@ bool test_potential_elements(qs::quantum_channel chn,unsigned int number_of_p_po
    }
    std::cout << std::endl;
    return passed;
-}
+}*/
 
 bool test_potential_matrix(qs::quantum_channel chn)
 {
-
+   return false;
 }
 
 bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,unsigned int ang_int_points,
@@ -127,6 +123,10 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    double* w_grid;
    gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
+   for (int i = 0; i < number_of_p_points; i++)
+   {
+      std::cout << p_grid[i] << " " << w_grid[i] << std::endl;
+   }
    
    // Choose terms in the potential, LO WPC
    std::vector<std::string> terms;
@@ -156,6 +156,7 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
   
    
    // Make same test but with T matrix 
+   
    start = std::clock();
    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
    Pot.LECs_["C1S0"] = C1S0;
@@ -166,9 +167,7 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
   
    std::cout << std::setprecision(16) << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
       "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
-
-
-
+   
    if (chn.coupled==false) {
       return (abs(rad_to_deg(phases.delta_uncoupled)+3.061426389773196) < tol);
    } else {
@@ -176,6 +175,39 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
          abs(rad_to_deg(phases.delta_p)+0.787703968368532) < tol && 
          abs(rad_to_deg(phases.epsilon)-1.637312987120185) < tol);
    }
+
+}
+
+void test_deutron_binding_energy(double Lambda, double C1S0, double C3S1,unsigned int number_of_p_points,double scale,
+   unsigned int J_max_in_pot,unsigned int ang_int_points)
+{
+   // S=1, J=1 coupled=true is the deuteron channel
+   qs::quantum_channel deutron_chn = {.J=1, .S=1,.tz=0,.coupled=true};
+
+   // Make grid
+   double* p_grid;
+   double* w_grid;
+   gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+   
+   // Choose terms in the potential, LO WPC
+   std::vector<std::string> terms;
+   terms.push_back("OPEP"); 
+   terms.push_back("C1S0");
+   terms.push_back("C3S1");
+
+   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot);
+   
+   Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+   Pot.LECs_["C1S0"] = C1S0;
+   Pot.LECs_["C3S1"] = C3S1;
+   gsl_matrix* pot = Pot.get_matrix_no_onshell(deutron_chn,true); // Should it be true here? probably not
+  
+   eigen_t eig_data = solve_SE(p_grid,w_grid,number_of_p_points,deutron_chn,pot);
+
+   // Print eigenvalues
+
+
 
 }
 
@@ -207,15 +239,6 @@ void run_speed_tests(qs::quantum_channel chn)
 
 }
 
-// This data type contains information about eigenvalues and
-// eigenvectors of a given matrix.
-typedef struct 
-{
-   gsl_vector_complex* eigenvalues;
-   gsl_matrix_complex* eigenvectors;
-} eigen_t;
-
-eigen_t solve_SE(double mu, double* p, double* w, unsigned int numer_of_grid_points,Potential_mwpc pot);
 
 
 int main(int argc, char** argv)
@@ -224,7 +247,7 @@ int main(int argc, char** argv)
    // ---------------------------------
    double scale = 100.0; // Scale of momenutm grid MeV
    unsigned int ang_int_points = 96; // Number of points in angular integration
-   unsigned int number_of_p_points = 100; // Number of momentum-grid points
+   unsigned int number_of_p_points = 3; // Number of momentum-grid points
    unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
    double T_lab = 10.0; // Lab energy in MeV
    double rel_tol_pot_elements = 1e-4;
@@ -250,6 +273,10 @@ int main(int argc, char** argv)
    double V_arr_correct2[] = {  0.000000000000000000000e+00, 0.000000000000000000000e+00, -1.114898705446752692805e-10, -7.129564851709590453523e-10, -3.897949168142152748363e-09, -3.897949168142152748363e-09};   
    run_tests(chn_coup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct2[0],tol_ps,Lambda,C1S0,C3S1);
 
+   
+   // Test deuteron binding energy
+   std::cout << "\n\nTesting deuteron binding energy" << std::endl;
+   test_deutron_binding_energy(Lambda,C1S0,C3S1,number_of_p_points,scale,J_max_in_pot,ang_int_points);
 
    // Test the speed of some calculations
 
@@ -340,17 +367,71 @@ int main(int argc, char** argv)
 
 // Implementation
 
-eigen_t solve_SE(double mu, double* p, double* w, unsigned int numer_of_grid_points,Potential_mwpc pot)
+
+eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,qs::quantum_channel chn, const gsl_matrix* V)
 {
-   // Get potential
+   // The potential is assumed to be in a partial wave basis with normalization 
+   // <p'|p> = (pi/2)*\delta(p'-p)/p^2 (as in Landau).
 
-   // Construct kinetic part
-
-   // Add them up. 
-   // Remember the conventions!
+   if (chn.coupled)
+   {
+      if (V->size1 != 2*numer_of_grid_points)
+      {
+         std::cerr << "Error in solve_SE(): Number of grid points do not match potential dimensions" << std::endl;
+      }
+   } else 
+   {
+     if (V->size1 != numer_of_grid_points)
+      {
+         std::cerr << "Error in solve_SE(): Number of grid points do not match potential dimensions" << std::endl;
+      }
+   }
+   // Get reduced mass of system
+   double mu;
+   if (chn.tz == -1)
+   {
+      mu = constants::Mn/2.0; // nn
+   } else if (chn.tz == 0)
+   {
+      mu = constants::Mp*constants::Mn/(constants::Mn+constants::Mp); // np
+   } else if (chn.tz == 1)
+   {
+      mu = constants::Mp/2.0; // pp
+   } else { 
+      std::cout << "Error: unknown isospin" << std::endl;
+   }
+   
+   gsl_matrix* H = gsl_matrix_alloc(V->size1,V->size2);
+   std::cout << V->size1 << std::endl;
+   // Construct Hamiltonian
+   for (int i = 0; i < H->size1; i++)
+   {
+      for (int j=0; j < H->size2; j++)
+      {
+         double p2 = p[j]*p[j];
+         double el = gsl_matrix_get(V,i,j)*p2*w[j];
+         if (i==j) {
+            el += p2/(2.0*mu);
+         }
+         gsl_matrix_set(H,i,j,el);
+      }  
+   }
+   //print_m(H);
 
    // Diagonalize the matrix
+   gsl_vector_complex* eval = gsl_vector_complex_alloc(V->size1);
+   gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(V->size1);
 
-   // Return
+   gsl_eigen_nonsymm(H, eval,ws);
+   
+   for (int i = 0; i < V->size1; i++)
+   {
+      if (GSL_REAL(gsl_vector_complex_get(eval,i)) < 0)
+      {
+         std::cout << "(" << GSL_REAL(gsl_vector_complex_get(eval,i)) << " " << GSL_IMAG(gsl_vector_complex_get(eval,i)) << ")" << std::endl;
+      }
+   }
+
+   eigen_t e;
+   return e;
 }
-

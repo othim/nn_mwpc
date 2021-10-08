@@ -509,10 +509,6 @@ void Potential_mwpc::populate_saved_mtx(qs::quantum_channel chn, bool rel_correc
    #ifdef ENABLE_DEBUG
       std::cerr << "populate_saved_mtx()" << std::endl;
    #endif
-   unsigned int J = chn.J;
-   unsigned int S = chn.S;
-   bool coupled = chn.coupled;
-
 
    clear_saved_matrices(); // Clears the allocated pointers
 
@@ -776,4 +772,98 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
 
    //std::cout << gsl_matrix_get(matrix_saved_sum,3,3) << std::endl;
    return matrix_saved_sum;
+}
+
+gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool rel_correction)
+{
+   #ifdef ENABLE_DEBUG
+      std::cerr << "get_matrix()" << std::endl;
+   #endif
+   double mu;
+   if (chn.tz == -1)
+   {
+      mu = constants::Mn/2.0; // nn
+   } else if (chn.tz == 0)
+   {
+      mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
+   } else if (chn.tz == 1)
+   {
+      mu = constants::Mp/2.0; // pp
+   } else 
+   {
+      #ifdef ENABLE_DEBUG
+         std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
+      #endif
+   }
+
+   // Allocate gsl matrices in the case of coupled and uncoupled channels.
+   // The matrix becomes twise as large in the coupled case
+   // In the construction of the saved matrix the desired on-shell momentum 
+   // that the matrix element will be evaluated on are unknown. These matrix elements needs
+   // to be computed at runtime
+   gsl_matrix* matrix_data;
+   if (chn.coupled) {
+      matrix_data = gsl_matrix_alloc((2*mom_grid_size_),(2*mom_grid_size_));
+   } else {
+      matrix_data = gsl_matrix_alloc(mom_grid_size_,mom_grid_size_);
+   }
+
+   // For each grid point
+   
+   // i: row index, j: column index
+   // These loops populate the matrices everywhere except where
+   // the on-shell part will go later.
+   for (std::size_t i = 0; i < mom_grid_size_; i++)
+   {
+      for (std::size_t j = 0; j < mom_grid_size_; j++)
+      {
+         double V_arr[6]; // Array for data
+         
+         // Outgoing momentum is row index
+         double p_in  = 0;
+         double p_out = 0;
+
+         // Compute relativistic factors
+         double rel_fac = 1.0;
+         if (rel_correction)
+         {
+            double E_rel_in = sqrt(4*mu*mu+p_in*p_in);
+            double E_rel_out = sqrt(4*mu*mu+p_out*p_out);
+            double rel_factor_in = sqrt(2*mu/E_rel_in);
+            double rel_factor_out = sqrt(2*mu/E_rel_out);
+            rel_fac = rel_factor_in*rel_factor_out;
+         }
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/450,6))*exp(-gsl_pow_uint(p_out/450,6));
+         rel_fac *= cutoff_regulator;
+      
+         calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
+     
+         if (!chn.coupled)
+         {
+            if (chn.S==0) 
+            {
+               // Take S=0 element of V_arr and multiply by the relativistic factor
+               gsl_matrix_set(matrix_data,j,i,V_arr[0]*rel_fac);
+            } else if (chn.S==1)
+            {
+               // Take S=1 element of V_arr
+               gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
+            }
+         } else 
+         {
+            // The matrix is constructed as [[mm,mp],[pm,pp]]
+            gsl_matrix_set(matrix_data,j,i,V_arr[3]*rel_fac); //mm
+            // Offsett with mom_grid_size_+1, sinze the one is for the
+            // on-shell part of the matrix that will be added later
+            
+            //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
+            //std::cout << p_in << " " << p_out << std::endl;
+            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*rel_fac); //mp
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*rel_fac); //pm
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*rel_fac); //pp
+         }
+      }
+   }
+   // Return the matrix
+   return matrix_data;
 }
