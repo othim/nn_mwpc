@@ -135,7 +135,7 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    terms.push_back("C1S0");
    terms.push_back("C3S1");
 
-   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot);
+   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
    Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
    
    std::vector<qs::quantum_channel> chns; // Do not do anythin
@@ -169,6 +169,8 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    std::cout << std::setprecision(16) << std::endl << "Phases in Stapp convection (deg): \n" << " delta_m = " << rad_to_deg(phases.delta_m) << "\n delta_p = " << rad_to_deg(phases.delta_p) << 
       "\n epsilon = " << rad_to_deg(phases.epsilon) << "\n delta_uncoupled = " << rad_to_deg(phases.delta_uncoupled) << std::endl << std::endl;
    
+
+
    if (chn.coupled==false) {
       return (abs(rad_to_deg(phases.delta_uncoupled)+3.061426389773196) < tol);
    } else {

@@ -5,7 +5,8 @@ struct my_f_params { double qi; double qo; int J; int l; Term* term; Potential_m
 
 
 // Constructor
-Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, double* w_grid, std::size_t mom_grid_size, unsigned int J_max)
+Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
+   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda)
 {
    // Init constants
    N_GLI_PWA_ = N_GLI_PWA;
@@ -13,6 +14,7 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    w_grid_ = w_grid;
    mom_grid_size_ = mom_grid_size;
    J_max_ = J_max;
+   cutoff_Lambda_ = cutoff_Lambda;
    
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
@@ -427,7 +429,7 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/450,6))*exp(-gsl_pow_uint(p_out/450,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
          rel_fac *= cutoff_regulator;
       
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
@@ -662,7 +664,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/450,6))*exp(-gsl_pow_uint(p_out/450,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
          rel_fac *= cutoff_regulator;
 
          if (S==0)
@@ -734,7 +736,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/450.0,6))*exp(-gsl_pow_uint(p_out/450.0,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
          rel_fac *= cutoff_regulator;
 
          // In this part of the code the symmetry of the potential in momentum is taken
@@ -833,7 +835,7 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/450,6))*exp(-gsl_pow_uint(p_out/450,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
          rel_fac *= cutoff_regulator;
       
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
