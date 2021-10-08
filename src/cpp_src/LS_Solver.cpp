@@ -259,8 +259,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     }
     
     
-    std::cout << "Potential" << std::endl;
-    print_matrix(pot_V_mtx);
+    //std::cout << "Potential" << std::endl;
+    //print_matrix(pot_V_mtx);
    
     // Setup D-vector
     gsl_vector* D_vector = setup_D_vector(q_on_shell,chn.coupled,mu);
@@ -368,8 +368,8 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
     // For now, the code is written without this factor, it will affect the 
     // rho value when raltiong the T/R matrix to the S-matrix/phase-shifts.
     double fac = 1.0; // Depends on convention
-    std::cout << "2mu: " << 2*mu << std::endl;
-    std::cout << "g_on_chell" << q_on_shell << std::endl;
+    //std::cout << "2mu: " << 2*mu << std::endl;
+    //std::cout << "g_on_chell" << q_on_shell << std::endl;
     gsl_vector_complex* D_vector;
     double q2_on_shell = q_on_shell*q_on_shell;
 
@@ -510,11 +510,14 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
 
     gsl_matrix_complex* F_matrix = setup_F_matrix_complex(chn.coupled,D_vector,pot_V_mtx);
+    
+    /*
     print_matrix(pot_V_mtx);
     std::cout << "D-vector" << std::endl;
     print_vector_complex(D_vector);
     std::cout << std::endl << "F-matrix" << std::endl;
     print_matrix_complex(F_matrix);
+    */
 
     // Solve matrix equation F*R = V
 
@@ -559,11 +562,12 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
         T_mp = gsl_complex_rect(-1.0676319790660848e-07,4.312313423841913e-07);
         T_pp = gsl_complex_rect(2.1377153170276125e-07,-1.565749889370409e-08);
         */
+        /*
         std::cout << "T-matrix elements" << std::endl;
         std::cout << GSL_REAL(T_mm) << "," << GSL_IMAG(T_mm) << std::endl;
         std::cout << GSL_REAL(T_mp) << "," << GSL_IMAG(T_mp) << std::endl;
         std::cout << GSL_REAL(T_pp) << "," << GSL_IMAG(T_pp) << std::endl;
-        
+        */
         // Know that this is correct
         // ----
         // Compute phase shifts in BB convention in radians
@@ -578,18 +582,34 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
         
         gsl_complex delta_p = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(gsl_complex_add(tmp1,tmp2)));
         gsl_complex delta_m = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(gsl_complex_sub(tmp1,tmp2)));
-        
         // ----
 
-        std::cout << "Printing phase shifts" << std::endl;
+        /*
+        std::cout << "Printing phase shifts in BB from T:" << std::endl;
         std::cout << "(" << GSL_REAL(delta_m) << "," << GSL_IMAG(delta_m) << ")\n";
         std::cout << "(" << GSL_REAL(delta_p) << "," << GSL_IMAG(delta_p) << ")\n";
         std::cout << "(" << GSL_REAL(epsilon) << "," << GSL_IMAG(epsilon) << ")\n";
-        //phase_shifts.delta_p = 
+        */
+
+        phase_shifts.epsilon = GSL_REAL(epsilon);
+        phase_shifts.delta_p = GSL_REAL(delta_p);
+        phase_shifts.delta_m = GSL_REAL(delta_m);
+        //std::cout << "Phase shifts in BB" << std::endl;
+        //std::cout << phase_shifts.delta_m << " " << phase_shifts.delta_p << " " << phase_shifts.epsilon << " " << std::endl;
+
+        phase_shifts.delta_uncoupled = 0;
+        phase_shifts = BB_to_Stapp(phase_shifts);
+
     } else 
     {
         gsl_complex T = gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_);
-        std::cout << GSL_REAL(T) << std::endl;
+        //std::cout << GSL_REAL(T) << std::endl;
+        phase_shifts.epsilon = 0;
+        phase_shifts.delta_p = 0;
+        phase_shifts.delta_m = 0;
+
+        gsl_complex tmp_c = gsl_complex_sub(gsl_complex_rect(1.0,0.0),gsl_complex_mul(gsl_complex_rect(0.0,M_PI*rho),T));
+        phase_shifts.delta_uncoupled = GSL_REAL(gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(tmp_c)));
     }
 
     gsl_vector_complex_free(D_vector);

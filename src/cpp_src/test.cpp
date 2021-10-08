@@ -123,11 +123,12 @@ bool test_phase_shifts(qs::quantum_channel chn,unsigned int number_of_p_points,u
    double* w_grid;
    gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
+   /*
    for (int i = 0; i < number_of_p_points; i++)
    {
       std::cout << p_grid[i] << " " << w_grid[i] << std::endl;
    }
-   
+   */
    // Choose terms in the potential, LO WPC
    std::vector<std::string> terms;
    terms.push_back("OPEP"); // To just test elements use just OPEP
@@ -247,7 +248,7 @@ int main(int argc, char** argv)
    // ---------------------------------
    double scale = 100.0; // Scale of momenutm grid MeV
    unsigned int ang_int_points = 96; // Number of points in angular integration
-   unsigned int number_of_p_points = 3; // Number of momentum-grid points
+   unsigned int number_of_p_points = 100; // Number of momentum-grid points
    unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
    double T_lab = 10.0; // Lab energy in MeV
    double rel_tol_pot_elements = 1e-4;
