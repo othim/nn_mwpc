@@ -438,23 +438,22 @@ gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_c
         F_mtx = gsl_matrix_complex_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
     }
 
-    // Construct F manually with two loops
+    // Construct F manually with two loops. These are very costly,
+    // would like to have a better solution
     // F_ij = \delta_ij + D_j V_ij
     for (int i = 0; i < F_mtx->size1; i++)
     {
         for (int j = 0; j < F_mtx->size2; j++)
         {
-            double diag = 0.0;
+            gsl_complex matrix_el = gsl_complex_mul(gsl_complex_rect(gsl_matrix_get(V_mtx, i,j),0),
+                gsl_vector_complex_get(D_vector,j));
             if (i==j) {
-                diag = 1.0;
+                matrix_el = gsl_complex_add(matrix_el,gsl_complex_rect(1.0,0.0));
             }
-            gsl_complex pot = gsl_complex_rect(gsl_matrix_get(V_mtx, i,j),0);
-            gsl_complex matrix_el = gsl_complex_mul(pot,gsl_vector_complex_get(D_vector,j));
-            gsl_complex plus_id = gsl_complex_add(matrix_el,gsl_complex_rect(diag,0.0));
-            gsl_matrix_complex_set(F_mtx,i,j,plus_id);
+            gsl_matrix_complex_set(F_mtx,i,j,matrix_el);
         }
     }
-
+    
     return F_mtx;
 }
 

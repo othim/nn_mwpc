@@ -371,20 +371,19 @@ int main(int argc, char** argv)
 // Implementation
 
 
-eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,qs::quantum_channel chn, const gsl_matrix* V)
+eigen_t solve_SE(double* p, double* w, unsigned int number_of_grid_points,qs::quantum_channel chn, const gsl_matrix* V)
 {
    // The potential is assumed to be in a partial wave basis with normalization 
    // <p'|p> = (pi/2)*\delta(p'-p)/p^2 (as in Landau).
-
    if (chn.coupled)
    {
-      if (V->size1 != 2*numer_of_grid_points)
+      if (V->size1 != 2*number_of_grid_points)
       {
          std::cerr << "Error in solve_SE(): Number of grid points do not match potential dimensions" << std::endl;
       }
    } else 
    {
-     if (V->size1 != numer_of_grid_points)
+     if (V->size1 != number_of_grid_points)
       {
          std::cerr << "Error in solve_SE(): Number of grid points do not match potential dimensions" << std::endl;
       }
@@ -405,27 +404,50 @@ eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,qs::qua
    }
    
    gsl_matrix* H = gsl_matrix_alloc(V->size1,V->size2);
-   std::cout << V->size1 << std::endl;
+   
    // Construct Hamiltonian
    for (int i = 0; i < H->size1; i++)
    {
       for (int j=0; j < H->size2; j++)
       {
-         double p2 = p[j]*p[j];
-         double el = gsl_matrix_get(V,i,j)*p2*w[j];
+         // This is to still use the same momenta
+         int l = j;
+         if (!(j<number_of_grid_points))
+         {
+            l = j-number_of_grid_points;
+         }
+         double p2 = p[l]*p[l];
+         if (i==0) {
+            //std::cout << p2 << std::endl;
+         }
+         //double el = gsl_matrix_get(V,i,j)*p[l]*p[k]*sqrt(w[j]*w[k]);
+         double el = gsl_matrix_get(V,i,j)*p2*w[l];
          if (i==j) {
             el += p2/(2.0*mu);
          }
          gsl_matrix_set(H,i,j,el);
-      }  
+      }
    }
    //print_m(H);
 
    // Diagonalize the matrix
    gsl_vector_complex* eval = gsl_vector_complex_alloc(V->size1);
    gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(V->size1);
+   gsl_eigen_nonsymm(H,eval,ws);
+   
+   // Use a test matrix
+   /* finds eigenvalues to this...
+   gsl_matrix* H_test = gsl_matrix_alloc(2,2);
+   gsl_matrix_set(H_test,0,0,1);
+   gsl_matrix_set(H_test,0,1,0);
+   gsl_matrix_set(H_test,1,0,0);
+   gsl_matrix_set(H_test,1,1,1);
 
-   gsl_eigen_nonsymm(H, eval,ws);
+   eval = gsl_vector_complex_alloc(2);
+   gsl_eigen_nonsymm_workspace* ws_test = gsl_eigen_nonsymm_alloc(2);
+   gsl_eigen_nonsymm(H_test,eval,ws_test);
+   */
+   
    
    for (int i = 0; i < V->size1; i++)
    {
