@@ -822,8 +822,8 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
          double V_arr[6]; // Array for data
          
          // Outgoing momentum is row index
-         double p_in  = 0;
-         double p_out = 0;
+         double p_in  = p_grid_[j];
+         double p_out = p_grid_[i];
 
          // Compute relativistic factors
          double rel_fac = 1.0;

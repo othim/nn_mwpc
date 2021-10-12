@@ -204,10 +204,16 @@ void test_deutron_binding_energy(double Lambda, double C1S0, double C3S1,unsigne
    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
    Pot.LECs_["C1S0"] = C1S0;
    Pot.LECs_["C3S1"] = C3S1;
-   gsl_matrix* pot = Pot.get_matrix_no_onshell(deutron_chn,true); // Should it be true here? probably not
-  
+   gsl_matrix* pot = Pot.get_matrix_no_onshell(deutron_chn,true);
+   
+   //std::cout << "Printing potential" << std::endl;
+   //print_m(pot);
+   std::clock_t start, end;   
+   start = std::clock();
    eigen_t eig_data = solve_SE(p_grid,w_grid,number_of_p_points,deutron_chn,pot);
-
+   end = std::clock();
+   std::cout << "Time to solve_SE: " << (double)(end-start)*1.0e6/(double)CLOCKS_PER_SEC<< " us" << std::endl;
+   
    // Print eigenvalues
 
 
@@ -412,15 +418,18 @@ eigen_t solve_SE(double* p, double* w, unsigned int number_of_grid_points,qs::qu
       {
          // This is to still use the same momenta
          int l = j;
+         int k = i;
          if (!(j<number_of_grid_points))
          {
             l = j-number_of_grid_points;
          }
-         double p2 = p[l]*p[l];
-         if (i==0) {
-            //std::cout << p2 << std::endl;
+         if (!(i<number_of_grid_points))
+         {
+            k = i-number_of_grid_points;
          }
-         //double el = gsl_matrix_get(V,i,j)*p[l]*p[k]*sqrt(w[j]*w[k]);
+         double p2 = p[l]*p[l];
+         //double el = gsl_matrix_get(V,i,j)*p[l]*p[k]*sqrt(w[l]*w[k]);
+         
          double el = gsl_matrix_get(V,i,j)*p2*w[l];
          if (i==j) {
             el += p2/(2.0*mu);
@@ -428,6 +437,7 @@ eigen_t solve_SE(double* p, double* w, unsigned int number_of_grid_points,qs::qu
          gsl_matrix_set(H,i,j,el);
       }
    }
+   //std::cout << "Hamiltonian matrix" << std::endl;
    //print_m(H);
 
    // Diagonalize the matrix
@@ -448,7 +458,7 @@ eigen_t solve_SE(double* p, double* w, unsigned int number_of_grid_points,qs::qu
    gsl_eigen_nonsymm(H_test,eval,ws_test);
    */
    
-   
+   std::cout << "All negetive eigenvalues in deuteron channel: " << std::endl;
    for (int i = 0; i < V->size1; i++)
    {
       if (GSL_REAL(gsl_vector_complex_get(eval,i)) < 0)
