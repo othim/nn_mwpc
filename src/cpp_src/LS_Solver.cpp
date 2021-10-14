@@ -93,7 +93,6 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     for (int i = 0; i < mom_grid_size_; i++)
     {
         double p2 = p_grid_[i]*p_grid_[i];
-        //double cutoff_regulator = exp(-gsl_pow_uint(p_grid_[i]/cutoff_Lambda_,6));
         double el = (2.0*mu)*(fac)*w_grid_[i]*p2/(p2-q2_on_shell); // NO CUTOFF
 
         if (coupled)

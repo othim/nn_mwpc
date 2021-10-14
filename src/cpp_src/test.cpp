@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <ctime>
 #include "gsl_eigen.h"
+#include "wigxjpf.h"
 
 // This data type contains information about eigenvalues and
 // eigenvectors of a given matrix.
@@ -286,6 +287,53 @@ int main(int argc, char** argv)
    // Test deuteron binding energy
    std::cout << "\n\nTesting deuteron binding energy" << std::endl;
    test_deutron_binding_energy(Lambda,C1S0,C3S1,number_of_p_points,scale,J_max_in_pot,ang_int_points);
+
+   
+   // Test wigxjpf
+   // ------------
+
+   double val6j;
+
+   wig_table_init(2*100, 9);
+   wig_temp_init(2*100);
+
+   std::clock_t start, end;   
+   start = std::clock();
+   val6j = wig3jj(2*  1 , 2*  2 , 2*  1 ,
+                  2*  0 , 2*  1 , 2*  -1 );
+   end = std::clock();
+   std::cout << "Time to compute wiegner symbol: " << 1.0e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl ;
+ 
+   wig_temp_free();
+   wig_table_free();
+
+   std::cout << val6j << std::endl;
+
+
+   int size = 100;
+
+   gsl_matrix* gsl_m = gsl_matrix_alloc(size,size);
+   for (int i=0; i < size; i++)
+   {
+      for (int j=0; j < size; j++)
+      {
+         double r = rand();
+         gsl_matrix_set(gsl_m,i,j,r);
+      }
+   }
+
+    
+   // Diagonalize the matrix
+   start = std::clock();
+
+   gsl_vector_complex* eval = gsl_vector_complex_alloc(size);
+   gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(size);
+   gsl_eigen_nonsymm(gsl_m,eval,ws);
+   
+   end = std::clock();
+   std::cout << "Time to diag matrix: " << 1.0e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl ;
+ 
+   
 
    // Test the speed of some calculations
 
