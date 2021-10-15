@@ -375,8 +375,8 @@ int main(int argc, char** argv)
  
    // Compute observables
    // -------------------
-
-   compute_observables(chn_coup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct1[0],1.0e-6,Lambda,C1S0,C3S1);
+    qs::quantum_channel chn_obs = {.J=1, .S=1,.tz=0,.coupled=true};
+   compute_observables(chn_obs,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct1[0],1.0e-6,Lambda,C1S0,C3S1);
 
    // Test the speed of some calculations
 

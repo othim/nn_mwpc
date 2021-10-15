@@ -53,6 +53,7 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,
     std::vector<std::complex<double>*> T_vec = T_from_phase_shifts(phase_shifts_vec,chns_vec,rho_T);
     
     // Call get_M_Matrix_T
+    //return std::complex<double>(0,0);
     return get_M_matrix_T(chns_vec,T_vec,q_on_shell,s,mo,mi,cos_theta,l_max);
 }
 
@@ -92,14 +93,17 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
     wig_temp_init(2*100);
 
     // Precompute some spherical harmonics for the given cos_theta
-    double* sph_arr; // Not including coplex e^{im\phi} phase. But we set \phi = 0 anyway!
+    double* sph_arr = (double*) malloc(gsl_sf_legendre_array_n(l_max)*sizeof(double)); // Not including coplex e^{im\phi} phase. But we set \phi = 0 anyway!
 
     gsl_sf_legendre_array(GSL_SF_LEGENDRE_SPHARM,l_max,cos_theta,sph_arr);
 
     std::complex<double> result = 0;
+    
+    
     // Sum over channels, j-sum
     for (std::size_t i = 0; i < chns_vec.size(); i++) //TODO
     {
+        //std::cout << "i=" << i << std::endl;
         qs::quantum_channel current_chn = chns_vec[i];
         unsigned int J = current_chn.J;
         // Sum over the correct s-values
@@ -107,13 +111,13 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
         {
             // Compute (lo,li) pairs for these quantum numbers
             std::vector<lo_li> Ls = get_ls(J,s); 
-            
+            //std::cout << "Ls-len: " << Ls.size() << std::endl;
             // Loop over allowed pairs (lo,li)
             for (std::size_t j = 0; j < Ls.size(); j++)
             {   
                 unsigned int li = Ls[j].li;
                 unsigned int lo = Ls[j].lo;
-                
+                std::cout << "li:" << li << " lo:" << lo << std::endl; 
                 // Check if mi and mo are compatible with channel
                 if (!(abs(mi-mo) > lo || abs(mi) > current_chn.S || abs(mi) > J))
                 {
@@ -124,6 +128,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
 
                     double wig2 = wig3jj(2*  li , 2*  s , 2*  J ,
                                          2*  0 , 2*  mi , 2*  -mi );
+                    
                     // Take correct T-matrix element 
                     std::complex<double> T_el;
 
@@ -147,11 +152,12 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                         }
                     }
                     result += std::pow(imag_u,(li-lo)) * (std::complex<double>) (2*J+1)*sqrt(2*li+1)*y_lm*wig1*wig2*T_el;
+                    //std::cout << "Result" << result << std::endl;
                 } // end if
             } // end loop over (lo,li)
         } // end S=s
     } // end for chn
-
+    free(sph_arr);
     // Add factor in front 
     result *= (imag_u) * (std::complex<double>) (-sqrt(M_PI)/q_on_shell);
     // Return

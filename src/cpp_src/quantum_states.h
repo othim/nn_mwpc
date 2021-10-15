@@ -1,9 +1,16 @@
 /*
     This file contains some data structures to easily handle
     and construct quantum states in NN systems.
+
+    Functions that are handy for constructing states are implemented in the 
+    quantum_states.cpp file.
 */
 #if !defined(QUANTUM_STATES_H)
 #define QUANTUM_STATES_H 1
+
+#include <iostream>
+#include <vector>
+#include <cmath>
 
 // This is the possible quantum channels if [T,H]=0.
 namespace qs 
@@ -20,10 +27,36 @@ namespace qs
             return a.J < b.J;
         }
     };
+
+    struct quantum_NN_state
+    {
+        unsigned int J; unsigned int L; unsigned int S; unsigned int T; int Tz; int pi;
+    };
 };
 
 struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; double delta_uncoupled;};
 
 struct lo_li {int lo; int li;};
+
+
+/*
+*   ---------------------------------------------------------------
+*   Functions that are used to manipulate these data structures and 
+*   construct quantum states.
+*   ---------------------------------------------------------------
+*/
+/*
+    This function creates the possible discrete quantum states for the NN-system
+    that is expressed in the basis
+    |p> x |j,l,s,mj,t,tz>, where the last part of the state is the discrete part.
+    The Puli principle gives that (-1)^{j+l+t} = -1
+*/
+std::vector<qs::quantum_states> get_states_NN(unsigned int J_max, unsigned int J_min, int Tz_min,
+    int Tz_max, bool print);
+
+/*
+*   This function groups the states into quantum channels 
+*/
+std::vector<qs::quntum_channels> get_channels(std::vector<qs::quantum_states> states);
 
 #endif
