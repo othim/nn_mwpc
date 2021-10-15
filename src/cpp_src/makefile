@@ -8,10 +8,10 @@ LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/
 #CFLAGS = -O3
 #If you want to profile with gprof you need to link with that library 
 
-main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o
-	$(CC) $(CFLAGS2) -o main $(LDFLAGS) test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o -lgsl -lcblas -lgslcblas -lwigxjpf -lm  
+main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o
+	$(CC) $(CFLAGS2) -o main $(LDFLAGS) test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o -lgsl -lcblas -lgslcblas -lwigxjpf -lm  
 
-run: main 
+run: main
 	./main
 
 test.o: test.cpp pot_nn_mwpc.h
@@ -29,5 +29,8 @@ LS_Solver.o: LS_Solver.h
 quantum_states.o: quantum_states.h
 	$(CC) $(CFLAGS) -c quantum_states.cpp
 
+scattering.o: scattering.h
+	$(CC) $(CFLAGS) -c scattering.cpp
+
 clean:
-	rm main pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o
+	rm main pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o scattering.o

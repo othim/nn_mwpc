@@ -24,5 +24,6 @@ namespace qs
 
 struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; double delta_uncoupled;};
 
-struct lo_li {int lo, int li};
+struct lo_li {int lo; int li;};
+
 #endif

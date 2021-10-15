@@ -12,6 +12,7 @@
 #include <ctime>
 #include "gsl_eigen.h"
 #include "wigxjpf.h"
+#include "scattering.h"
 
 // This data type contains information about eigenvalues and
 // eigenvectors of a given matrix.
@@ -214,11 +215,50 @@ void test_deutron_binding_energy(double Lambda, double C1S0, double C3S1,unsigne
    eigen_t eig_data = solve_SE(p_grid,w_grid,number_of_p_points,deutron_chn,pot);
    end = std::clock();
    std::cout << "Time to solve_SE: " << (double)(end-start)*1.0e6/(double)CLOCKS_PER_SEC<< " us" << std::endl;
+}
+
+void compute_observables(qs::quantum_channel chn,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double T_lab,double scale,double* V_arr_correct,double tol,
+   double Lambda, double C1S0, double C3S1)
+{
+   // Make grid
+   double* p_grid;
+   double* w_grid;
+   gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+   // Choose terms in the potential, LO WPC
+   std::vector<std::string> terms;
+   terms.push_back("OPEP"); // To just test elements use just OPEP
+   terms.push_back("C1S0");
+   terms.push_back("C3S1");
+
+   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+   Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
    
-   // Print eigenvalues
+   std::vector<qs::quantum_channel> chns; // Do not do anythin
+   chns.push_back(chn); // Do not do anything
+   LS_Solver solver = LS_Solver(chns,&Pot,number_of_p_points,scale,true,Lambda,true);
+   
+   std::clock_t start, end;   
+   start = std::clock();
+   Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+   Pot.LECs_["C1S0"] = C1S0;
+   Pot.LECs_["C3S1"] = C3S1;
+   Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,true,true);
 
+   std::vector<Phase_shifts_chn> phases_vec;
+   phases_vec.push_back(phases);
+   unsigned int s = 1;
+   unsigned int mo = 0;
+   unsigned int mi = 0;
+   double cos_theta = 0.0;
+   unsigned int l_max = 30;
 
+   double q_on_shell = 68.4935;
+   double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
 
+   std::complex<double> m = get_M_matrix_p(chns,phases_vec,s,mo,mi,cos_theta,q_on_shell,rho_T,l_max);
+   std::cout << "M-matrix emement: " << m << std::endl;
 }
 
 void run_tests(qs::quantum_channel chn, unsigned int number_of_p_points,unsigned int ang_int_points,
@@ -333,7 +373,10 @@ int main(int argc, char** argv)
    end = std::clock();
    std::cout << "Time to diag matrix: " << 1.0e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl ;
  
-   
+   // Compute observables
+   // -------------------
+
+   compute_observables(chn_coup,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct1[0],1.0e-6,Lambda,C1S0,C3S1);
 
    // Test the speed of some calculations
 
