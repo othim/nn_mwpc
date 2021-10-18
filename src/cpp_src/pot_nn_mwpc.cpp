@@ -33,7 +33,7 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    // Initialize all LECs to zero
    for (std::size_t i = 0; i < LEC_names_.size(); i++)
    {
-      LECs_.insert( std::make_pair<std::string,double> (LEC_names_[i],0.0) );
+      LECs_.insert( std::make_pair (LEC_names_[i],0.0) );
    }
 
    // Update list of LECs that are in this instancs of the potential 

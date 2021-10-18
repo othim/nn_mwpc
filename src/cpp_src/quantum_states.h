@@ -10,7 +10,11 @@
 
 #include <iostream>
 #include <vector>
-#include <cmath>
+#include <map>
+#include <unordered_map>
+#include <list>
+#include <utility>
+#include <cstdlib>
 
 // This is the possible quantum channels if [T,H]=0.
 namespace qs 
@@ -36,8 +40,63 @@ namespace qs
 
 struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; double delta_uncoupled;};
 
-struct lo_li {int lo; int li;};
+struct lo_li {unsigned int lo; unsigned int li;};
 
+struct q_chn {unsigned int J; unsigned int S; unsigned int T; int Tz; int pi; };
+
+struct comp_chn
+{
+    bool operator() (q_chn a, q_chn b) const 
+    {
+        return std::make_tuple(a.J,a.S, a.T,a.Tz,a.pi) < std::make_tuple(b.J,b.S, b.T,b.Tz,b.pi);
+    }
+};
+
+struct in_out_state 
+{ unsigned int J; unsigned int Li; unsigned int Lo; unsigned int S; 
+    unsigned int T; int Tz; int pi;
+    
+    /*
+    bool const operator<(const in_out_state &f, const in_out_state &s) const
+    {
+        if (f.S < s.S) {
+            return true;
+        } else if (f.S == s.S && f.J < s.J)
+        {
+            return true;
+        } else if (f.S == s.S && f.J == s.J && f.pi < s.pi)
+        {
+            return true;
+        } else 
+        {
+            return false;
+        }     
+    }*/
+};
+
+/*
+bool ios_comp(const in_out_state &f, const in_out_state &s) 
+{
+    if (f.S < s.S)
+    {
+        return true;
+    } else
+    {
+        if (f.J < s.J)
+        {
+            return true;
+        } else 
+        {
+            if (f.pi < s.pi)
+            {
+                return true;
+            } else
+            {
+                return false;
+            }
+        }
+    }
+} */
 
 /*
 *   ---------------------------------------------------------------
@@ -51,12 +110,12 @@ struct lo_li {int lo; int li;};
     |p> x |j,l,s,mj,t,tz>, where the last part of the state is the discrete part.
     The Puli principle gives that (-1)^{j+l+t} = -1
 */
-std::vector<qs::quantum_states> get_states_NN(unsigned int J_max, unsigned int J_min, int Tz_min,
+std::vector<qs::quantum_NN_state> get_states_NN(unsigned int J_max, unsigned int J_min, int Tz_min,
     int Tz_max, bool print);
 
 /*
 *   This function groups the states into quantum channels 
 */
-std::vector<qs::quntum_channels> get_channels(std::vector<qs::quantum_states> states);
+std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> states,bool print);
 
 #endif

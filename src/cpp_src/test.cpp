@@ -375,13 +375,30 @@ int main(int argc, char** argv)
  
    // Compute observables
    // -------------------
-    qs::quantum_channel chn_obs = {.J=1, .S=1,.tz=0,.coupled=true};
+
+   // Construct the quantum states
+   std::cout << "Constructing quantum states:" << std::endl;
+   unsigned int J_max = 6;
+   unsigned int J_min = 0;
+   int Tz_min = 0;
+   int Tz_max = 0;
+   bool print = true;
+
+   // Construct the quantum states
+   std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
+   
+   // Construct the quantum scattering channels from the states
+   std::vector<qs::quantum_channel> chns = get_channels(states, true);
+
+   // Use the quantum states as imput to the compute obsevable code 
+   qs::quantum_channel chn_obs = {.J=1, .S=1,.tz=0,.coupled=true};
    compute_observables(chn_obs,number_of_p_points,ang_int_points,J_max_in_pot,T_lab,scale,&V_arr_correct1[0],1.0e-6,Lambda,C1S0,C3S1);
 
    // Test the speed of some calculations
 
    // -----------------
    // ------OLD--------
+
    /*
    qs::quantum_channel chn2= {.J=1, .S=0,.tz=0,.coupled=true};
    std::vector<qs::quantum_channel> chns;

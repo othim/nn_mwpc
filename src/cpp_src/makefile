@@ -1,8 +1,8 @@
 
 
 CC = g++
-CFLAGS2 = -Wall -g 
-CFLAGS  = -Wall -g -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+CFLAGS2 = -Wall -g -std=c++11 
+CFLAGS  = -Wall -g -std=c++11 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
 LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/
 
 #CFLAGS = -O3
