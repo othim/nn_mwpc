@@ -42,7 +42,8 @@ struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; double 
 
 struct lo_li {unsigned int lo; unsigned int li;};
 
-struct q_chn {unsigned int J; unsigned int S; unsigned int T; int Tz; int pi; };
+// For key in map of in_out_state
+struct q_chn {unsigned int J; unsigned int S; unsigned int T; int Tz; int pi;};
 
 struct comp_chn
 {
@@ -52,51 +53,11 @@ struct comp_chn
     }
 };
 
+// Possible bra ket state
 struct in_out_state 
 { unsigned int J; unsigned int Li; unsigned int Lo; unsigned int S; 
-    unsigned int T; int Tz; int pi;
-    
-    /*
-    bool const operator<(const in_out_state &f, const in_out_state &s) const
-    {
-        if (f.S < s.S) {
-            return true;
-        } else if (f.S == s.S && f.J < s.J)
-        {
-            return true;
-        } else if (f.S == s.S && f.J == s.J && f.pi < s.pi)
-        {
-            return true;
-        } else 
-        {
-            return false;
-        }     
-    }*/
+    unsigned int T; int Tz; int pi;    
 };
-
-/*
-bool ios_comp(const in_out_state &f, const in_out_state &s) 
-{
-    if (f.S < s.S)
-    {
-        return true;
-    } else
-    {
-        if (f.J < s.J)
-        {
-            return true;
-        } else 
-        {
-            if (f.pi < s.pi)
-            {
-                return true;
-            } else
-            {
-                return false;
-            }
-        }
-    }
-} */
 
 /*
 *   ---------------------------------------------------------------
