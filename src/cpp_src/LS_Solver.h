@@ -73,6 +73,11 @@ public:
 
    gsl_matrix_complex* T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho);
 
+  
+
 };
+
+void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell);
+
 
 #endif

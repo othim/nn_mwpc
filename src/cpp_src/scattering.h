@@ -12,6 +12,7 @@
 */
 #include "quantum_states.h"
 #include "gsl_sf_legendre.h"
+#include "Constants.h"
 #include "wigxjpf.h"
 #include <vector>
 #include <complex>
@@ -43,6 +44,28 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,st
 */
 std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,std::vector<std::complex<double>*>T_on_shell_vec, double q_on_shell, unsigned int s, int mo, int mi, double cos_theta,unsigned int l_max);
 
-double compute_Saclay_amplitudes();
 
-double compute_observebles();
+/*
+    This function computes the Saclay amplitudes as defined in:
+    Formalism of nucleon-nucleon elastic scattering experiments. 
+    Journal de Physique, 1978, 39 (1), pp.1-32.
+    This is done by first computing all
+*/
+std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
+    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell,unsigned int l_max);
+/*
+    This function computes observables from Saclay amplitudes.
+    The observables are specified as follows.
+
+    Eg I_0000 <-> obs="I 0000"
+       C_nn00 <-> obs="C nn00"
+       C_llll <-> obs="C llll"
+       etc.
+    This follows the notation in Table III in 
+    Formalism of nucleon-nucleon elastic scattering experiments. 
+    Journal de Physique, 1978, 39 (1), pp.1-32.
+*/
+double compute_observable(std::vector<std::complex<double> > sac_amp,std::string obs);
+
+double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
+    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,double rho_T,unsigned int l_max);

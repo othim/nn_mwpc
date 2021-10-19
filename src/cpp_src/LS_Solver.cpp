@@ -293,8 +293,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         R_mm = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
         R_mp = gsl_matrix_get(R_result,2*mom_grid_size_+1,mom_grid_size_);
         R_pp = gsl_matrix_get(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
-        std::cout << "R-matrix elements" << std::endl;
-        std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
+        //std::cout << "R-matrix elements" << std::endl;
+        //std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
 
         // Compute phase shifts in BB convention in radians
         phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;

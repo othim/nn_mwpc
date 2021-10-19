@@ -108,7 +108,7 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
             }
             
             // Chreate a channel and append it to the list of channels
-            qs::quantum_channel chn = {.J = key.J, .S = key.S, .tz = key.Tz, coupled = coup};
+            qs::quantum_channel chn = {.J = key.J, .S = key.S, .tz = key.Tz, .coupled = coup};
             chns.push_back(chn);
 
             std::cout << "Channel " << j << ": J=" << key.J << " S=" << key.S << " T=" << key.T << 

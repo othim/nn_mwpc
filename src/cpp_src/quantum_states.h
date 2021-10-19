@@ -28,7 +28,7 @@ namespace qs
     {
         bool operator() (quantum_channel a, quantum_channel b) const 
         {
-            return a.J < b.J;
+            return std::make_tuple(a.J,a.S,a.tz,a.coupled) < std::make_tuple(b.J,b.S,b.tz,b.coupled);
         }
     };
 
