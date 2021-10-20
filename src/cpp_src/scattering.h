@@ -42,7 +42,7 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,st
     The T-matrix elements are in the form [Tmm, Tmp, Tpp] if coupled and if uncoupled only Tmm
     is non-zero.
 */
-std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,std::vector<std::complex<double>*>T_on_shell_vec, double q_on_shell, unsigned int s, int mo, int mi, double cos_theta,unsigned int l_max);
+std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, unsigned int s, int mo, int mi, double cos_theta,unsigned int l_max);
 
 
 /*

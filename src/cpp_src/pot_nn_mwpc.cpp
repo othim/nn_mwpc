@@ -211,7 +211,7 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
          double tmp_arr[6];
          //std::cout << terms_in_pot_[i].get_spin_structure() << " " << terms_in_pot_[i].get_isovector() << std::endl;
          pwa(qi,qo,coupled,J,A_M,A_P,A_0,A_1,terms_in_pot_[i].get_spin_structure(),terms_in_pot_[i].get_isovector(),&tmp_arr[0]);
-      
+         
          V_uncoupled_S0 += tmp_arr[0];
          V_uncoupled_S1 += tmp_arr[1];
          V_coupled_pp   += tmp_arr[2];
@@ -250,14 +250,16 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
                }
             } else
             {
-               if (LS_term.S == 0) // S0
+               if (LS_term.Li == J) // Li=Lo=J for uncoupled
                {
-                  V_uncoupled_S0 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
-                  //std::cout << terms_in_pot_[i].get_LEC_element(qi,qo,LECs_) << std::endl;
-               } else if (LS_term.S == 1) // S1
-               {
-                  V_uncoupled_S1 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
-                  //std::cout << terms_in_pot_[i].get_LEC_element(qi,qo,LECs_) << std::endl;
+                  if (LS_term.S == 0) // S0
+                  {
+                     V_uncoupled_S0 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                     
+                  } else if (LS_term.S == 1) // S1
+                  {
+                     V_uncoupled_S1 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                  }
                }
             }
          }
@@ -294,12 +296,10 @@ void Potential_mwpc::pwa(double qi,double qo, bool coupled, int J,double A_M,dou
       if (!coupled)
       {
          // OPEP uncoupled interactions
-         V_uncoupled_S0    = 2.0 * (-(qo*qo+qi*qi)*A_0 + 2.0*qo*qi*A_1);
+         V_uncoupled_S0 = 2.0 * (-(qo*qo+qi*qi)*A_0 + 2.0*qo*qi*A_1);
+         V_uncoupled_S1 = 2.0 * ((qo*qo+qi*qi)*A_0 - 2.0*qo*qi*(1.0/(2.0*J+1.0))*((double)J*A_P + (double)(J+1.0)*A_M));
          
-         if (J!=0) {
-            V_uncoupled_S1 = 2.0 * ((qo*qo+qi*qi)*A_0 - 2.0*qo*qi*(1.0/(2.0*J+1.0))*(J*A_P + (J+1)*A_M));
-         }
-      } else
+      } if (coupled || J == 0)
       {
          V_coupled_pp = (2.0/(2.0*J+1.0)) * (-(qo*qo+qi*qi)*A_P + 2.0*qo*qi*A_0);
          if (J!= 0)
@@ -445,10 +445,18 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
                gsl_matrix_set(matrix_data,j,i,V_arr[0]*rel_fac);
+               //std::cout << "Pot el S0: " << V_arr[0]*rel_fac << std::endl;
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
-               gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
+               if (chn.J != 0)
+               {
+                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
+               } else // For J=0,S=1,L=1 case
+               {
+                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*rel_fac); // Take pp element to get L=1
+               }
+               
             }
          } else 
          {
@@ -667,7 +675,12 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
          rel_fac *= cutoff_regulator;
 
-         if (S==0)
+         if (J == 0 && S == 1) // 3P_0 case
+         {
+            gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[2]*rel_fac);
+            gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[2]*rel_fac);
+         }
+         else if (S==0)
          {
             // Take element zero and insert it into the matrix
             gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[0]*rel_fac);
@@ -675,7 +688,6 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             
          } else 
          {
-            // Take element one and insert it into the matrix
             gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[1]*rel_fac);
             gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[1]*rel_fac);
          }
@@ -776,6 +788,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
    return matrix_saved_sum;
 }
 
+
 gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool rel_correction)
 {
    #ifdef ENABLE_DEBUG
@@ -849,8 +862,15 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
-               gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
+               if (chn.J != 0)
+               {
+                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
+               } else // For J=0,S=1,L=1 case
+               {
+                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*rel_fac); // Take pp element to get L=1
+               }
             }
+
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]

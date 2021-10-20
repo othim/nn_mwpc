@@ -34,19 +34,19 @@ std::vector<std::complex<double>*> T_from_phase_shifts(std::vector<Phase_shifts_
             
             T[0] = (std::complex<double>)(fac*(std::cos(two_eps)*std::exp(imag_u * 2.0* dm ) - 1.0)); // Tmm
             T[1] = (std::complex<double>)(fac*(imag_u*std::sin(two_eps)*std::exp(imag_u*(dm+dp)))); // Tmp
-            T[2] = (std::complex<double>)(fac*(std::cos(two_eps)*std::exp(imag_u * 2.0* dm ) - 1.0)); // Tpp
+            T[2] = (std::complex<double>)(fac*(std::cos(two_eps)*std::exp(imag_u * 2.0* dp ) - 1.0)); // Tpp
         
         }
         T_vec.push_back(&T[0]);
     }
     
-    /*
-    std::cout << "-------" << std::endl;
+    
+    /*std::cout << "-------" << std::endl;
     for (int i = 0; i < T_vec.size(); i++)
     {
        std::cout << T_vec[i][0] << " " << T_vec[i][1] << " " <<  T_vec[i][2] << std::endl;
-    }*/
-
+    }
+    std::cout << "-------" << std::endl;*/
     return T_vec;
 }
 
@@ -143,9 +143,9 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                 if (!(abs(mi-mo) > lo || abs(mi) > current_chn.S || abs(mi) > J))
                 {
                     // Compute Y_lm and wiegner 3j symbols
-                    double y_lm = sph_arr[gsl_sf_legendre_array_index(lo, mi-mo)];
+                    double y_lm = sph_arr[gsl_sf_legendre_array_index(lo, -(mi-mo))];
                     double wig1 = wig3jj(2*  lo , 2*  s , 2*  J ,
-                                         2*  mi-mo , 2*  mo , 2*  mi );
+                                         2*  (mi-mo) , 2*  mo , -2*  mi );
 
                     double wig2 = wig3jj(2*  li , 2*  s , 2*  J ,
                                          2*  0 , 2*  mi , 2*  -mi );
@@ -153,7 +153,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                     // Take correct T-matrix element 
                     std::complex<double> T_el;
 
-                    if (!(Ls.size() == 1))
+                    if ((Ls.size() == 1))
                     {
                         T_el = T_on_shell_vec[i][0]; // Uncoupled case
                     } else
@@ -172,7 +172,14 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                             T_el = T_on_shell_vec[i][1]; // Tmp
                         }
                     }
-                    result += std::pow(imag_u,(li-lo)) * (std::complex<double>) (2*J+1)*sqrt(2*li+1)*y_lm*wig1*wig2*T_el;
+                    /*std::cout << "T_el: " << T_el << std::endl;
+                    std::cout << "y_lm: " << y_lm << std::endl;
+                    std::cout << "wig1: " <<  wig1 << std::endl;
+                    std::cout << "wig2: " << wig2 << std::endl;*/
+                    
+                    std::complex<double> add = std::pow(imag_u,(li-lo)) * (std::complex<double>) (2.0*J+1)*sqrt(2*li+1)*y_lm*wig1*wig2*T_el;
+                    //std::cout << "add: " << add << std::endl;
+                    result += add;
                     //std::cout << "Result" << result << std::endl;
                 } // end if
             } // end loop over (lo,li)
