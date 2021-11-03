@@ -190,6 +190,8 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
     // Add factor in front 
     result *= (imag_u) * (std::complex<double>) (-sqrt(M_PI)/q_on_shell);
     // Return
+
+
     return result;
 }
 
