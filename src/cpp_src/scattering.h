@@ -11,13 +11,15 @@
     Department of Physics, Chalmers
 */
 #include "quantum_states.h"
+#include "physics_helpers.h"
 #include "gsl_sf_legendre.h"
+#include "gsl_blas.h"
 #include "Constants.h"
 #include "wigxjpf.h"
 #include <vector>
 #include <complex>
 #include <iostream>
-
+#include "gsl_matrix.h"
 
 /*
     This function computes the M-matrix elements from phase shifts.
@@ -49,7 +51,8 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,st
     This function computes the Saclay amplitudes as defined in:
     Formalism of nucleon-nucleon elastic scattering experiments. 
     Journal de Physique, 1978, 39 (1), pp.1-32.
-    This is done by first computing all
+    This is done by first computing all relevant M-matrix elements and then 
+    forming the amplitudes as certain combinations of them.
 */
 std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
     std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell,unsigned int l_max);
@@ -69,3 +72,22 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
 
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
     std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,double rho_T,unsigned int l_max);
+
+/* 
+ * This function gives the M-matrix for the given on shell energy
+ * and cm scattering angle
+ */ 
+gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
+    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, double theta,unsigned int l_max);
+
+/*
+ * This function computes the observable trace as in 
+ * Formalism of nucleon-nucleon elastic scattering experiments. 
+ * Journal de Physique, 1978, 39 (1), pp.1-32.
+ */ 
+ double get_observables(gsl_matrix_complex* sigma_i_1, gsl_matrix_complex* sigma_i_2,
+        gsl_matrix_complex* sigma_o_1, gsl_matrix_complex* sigma_o_2,
+        gsl_matrix_complex* M_matrix);
+
+
+

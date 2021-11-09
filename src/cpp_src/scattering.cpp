@@ -186,6 +186,9 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
         } // end S=s
     } // end for chn
     free(sph_arr);
+    wig_temp_free();
+    wig_table_free();
+
 
     // Add factor in front 
     result *= (imag_u) * (std::complex<double>) (-sqrt(M_PI)/q_on_shell);
@@ -382,4 +385,89 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
     double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b);
 
     return sigma*constants::MeVm2_to_mbarn; // Convert to milli barn
+}
+
+gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
+    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, double theta,unsigned int l_max)
+{
+    gsl_matrix_complex* M = gsl_matrix_complex_alloc(4,4);
+    
+    // The M-matrix in the basis |+->_1 x |+->_2 is as follows
+    // 1:- - + +
+    // 2:- + - +  2  1
+    //   * * * *  -  -
+    //   * * * *  +  -
+    //   * * * *  -  +
+    //   * * * *  +  +
+    // These matrix elements M_(-,+) can be calculated from
+    // the function get_M_matrix_T with the insetion of apropriate 
+    // Clebsh-Gordan coefficients.
+    
+    // Compute the basis change matrix
+
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            // Calculate indices
+            int m1r = (int)(2*((int)i / (int)2 - 1)); // -1 or +1
+            int m1c = (int)(2*((int)j / (int)2 - 1)); // - || -
+                
+            int m2r = (int)(2*((int)i % (int)2 - 1)); // - || -
+            int m2c = (int)(2*((int)j % (int)2 - 1)); // - || -
+                     
+            // Calculate the matrix elements 
+            gsl_complex el = gsl_complex_rect(0.0,0.0);
+
+            for (int S = 0; S < 2; S++) // S =0,1
+            {
+                // Note that this is with a factor 2.
+                int Mi = m1r + m2r; // Row is out states
+                int Mo = m1c + m2c; // Column is in states
+                
+                if (Mi > S*2 || Mo > S*2)
+                {
+                    continue;
+                }
+                std::complex<double> el_tmp = get_M_matrix_T(chns_vec, T_on_shell_vec, q_on_shell,
+                        S, (int)((double)Mo/2.0), (int)((double)Mi/2.0), std::cos(theta), l_max);
+
+                gsl_complex M_el = gsl_complex_rect(std::real(el_tmp),std::imag(el_tmp));
+                gsl_complex tmp = gsl_complex_mul(gsl_complex_rect(
+                        CG_coeff(2*S, Mi, 1, 1, m1r,m2r)*
+                        CG_coeff(2*S, Mo, 1, 1, m1c,m2c),0.0),M_el);
+                el = gsl_complex_add(el,tmp);
+            }            
+            gsl_matrix_complex_set(M,i,j,el);     
+        }
+    }
+
+
+    return M;
+}
+
+double get_observables(gsl_matrix_complex* sigma_i_1, gsl_matrix_complex* sigma_i_2,
+        gsl_matrix_complex* sigma_o_1, gsl_matrix_complex* sigma_o_2,
+        gsl_matrix_complex* M_matrix)
+{
+    // Set up tensor products of the sigma-matrices 
+    gsl_matrix_complex* in_tensor_prod  = kronecker_product(sigma_i_1, sigma_i_2);
+    gsl_matrix_complex* out_tensor_prod = kronecker_product(sigma_o_1, sigma_o_2);
+    
+    // Multiply the matrices
+    gsl_complex alpha = gsl_complex_rect(1.0,0.0);
+    gsl_complex beta  = gsl_complex_rect(0.0,0.0);
+
+    // sigma_in M sigma_out M^dagger -> out_tensor_prod
+    gsl_blas_zgemm(CblasNoTrans, CblasConjTrans, alpha, out_tensor_prod,M_matrix, beta, out_tensor_prod);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans,   alpha, M_matrix,out_tensor_prod, beta, out_tensor_prod);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans,   alpha, in_tensor_prod,out_tensor_prod, beta, out_tensor_prod);
+    
+
+    // Take the trace
+    gsl_complex t = trace(out_tensor_prod);
+    std::cout << GSL_REAL(t) << " " << GSL_IMAG(t) << std::endl;
+
+    // Return 
+    return GSL_REAL(t)/4.0; // The normalization factor
 }
