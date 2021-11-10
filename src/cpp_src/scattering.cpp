@@ -434,8 +434,8 @@ gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
 
                 gsl_complex M_el = gsl_complex_rect(std::real(el_tmp),std::imag(el_tmp));
                 gsl_complex tmp = gsl_complex_mul(gsl_complex_rect(
-                        CG_coeff(2*S, Mi, 1, 1, m1r,m2r)*
-                        CG_coeff(2*S, Mo, 1, 1, m1c,m2c),0.0),M_el);
+                        ph::CG_coeff(2*S, Mi, 1, 1, m1r,m2r)*
+                        ph::CG_coeff(2*S, Mo, 1, 1, m1c,m2c),0.0),M_el);
                 el = gsl_complex_add(el,tmp);
             }            
             gsl_matrix_complex_set(M,i,j,el);     
@@ -451,8 +451,8 @@ double get_observables(gsl_matrix_complex* sigma_i_1, gsl_matrix_complex* sigma_
         gsl_matrix_complex* M_matrix)
 {
     // Set up tensor products of the sigma-matrices 
-    gsl_matrix_complex* in_tensor_prod  = kronecker_product(sigma_i_1, sigma_i_2);
-    gsl_matrix_complex* out_tensor_prod = kronecker_product(sigma_o_1, sigma_o_2);
+    gsl_matrix_complex* in_tensor_prod  = ph::kronecker_product(sigma_i_1, sigma_i_2);
+    gsl_matrix_complex* out_tensor_prod = ph::kronecker_product(sigma_o_1, sigma_o_2);
     
     // Multiply the matrices
     gsl_complex alpha = gsl_complex_rect(1.0,0.0);
@@ -465,7 +465,7 @@ double get_observables(gsl_matrix_complex* sigma_i_1, gsl_matrix_complex* sigma_
     
 
     // Take the trace
-    gsl_complex t = trace(out_tensor_prod);
+    gsl_complex t = ph::trace(out_tensor_prod);
     std::cout << GSL_REAL(t) << " " << GSL_IMAG(t) << std::endl;
 
     // Return 
