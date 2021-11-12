@@ -159,7 +159,7 @@ Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
     return phases;
 }
 
-void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell)
+void LS_Solver::get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell)
 {
     if (chn.tz == -1)
     {

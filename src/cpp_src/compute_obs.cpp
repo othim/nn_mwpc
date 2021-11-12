@@ -122,7 +122,8 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
       start = std::clock();
       for (auto chn : chns)
       {
-         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(Tl, chn,true);
+         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
          Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
          gsl_matrix_free(pot_V_mtx);
          phases_vec.push_back(phases);
@@ -142,7 +143,7 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
       // lab energy
       
 
-      get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
+      LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
    
       rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
 
