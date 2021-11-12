@@ -15,12 +15,30 @@
 #include "physics_helpers.h"
 
 
+/*
+ * Function declarations
+ */
+
+void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double scale,
+   double Lambda, double C1S0, double C3S1);
+
 int main(int argc, char** argv)
 {
-    // Define constants
+    // ------ CONSTANTS TO CHANGE ------
+    // ---------------------------------
+    double scale = 100.0; // Scale of momenutm grid MeV
+    unsigned int ang_int_points = 96; // Number of points in angular integration
+    unsigned int number_of_p_points = 100; // Number of momentum-grid points
+    unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
+    
+    // ----- JUST CHOOSE SOME VALUES TO REPRODUCE PHASE SHIFTS WITH -----
+    static double Lambda	= 450; 		  // cut-off for renormalization of LO  [MeV]
+    static double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    static double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
     
     // Do precomputations
-
+    ph::physics_helpers_init();
     // ---------------   
     
     // Construct the quantum states
@@ -37,7 +55,8 @@ int main(int argc, char** argv)
     std::cout << "Contruction scattering channels..." << std::endl;
     std::vector<qs::quantum_channel> chns = get_channels(states, true);   
     compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
-
+    
+    ph::physics_helpers_free();
     return 0;
 }
 
@@ -50,7 +69,7 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
    // Make grid
    double* p_grid;
    double* w_grid;
-   gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+   ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
    // Choose terms in the potential, LO WPC
    std::vector<std::string> terms;

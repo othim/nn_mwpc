@@ -11,14 +11,13 @@ LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, Potential_mwpc* 
     #endif
     // Init variables
     pot_V_ = pot_V;
-    channels_ = channels;
     mom_grid_size_ = mom_grid_size;
     cutoff_enabled_ = cutoff_enabled;
     cutoff_Lambda_ = cutoff_Lambda;
     relcorr_enabled_ = relcorr_enabled;
     
     // Make GL-grid
-    gauss_legendre_inf_mesh(mom_grid_size_,mom_grid_scale,&p_grid_,&w_grid_);
+    ph::gauss_legendre_inf_mesh(mom_grid_size_,mom_grid_scale,&p_grid_,&w_grid_);
 }
 
 // Destructor
@@ -26,38 +25,6 @@ LS_Solver::~LS_Solver()
 {
     delete p_grid_;
     delete w_grid_;
-}
-
-/*
-    This function creates a GL-grid on the interval [0,\infty) with the scale <scale>
-*/
-void LS_Solver::gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w)
-{
-    #ifdef ENABLE_DEBUG
-        std::cout << "gauss_legendre_inf_mesh()" << std::endl;
-    #endif
-    // Make grid from -1 to 1
-
-    const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
-    gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Numper_of_points, -1.0, 1.0, 0, 0);
-
-    double* p_grid = gsl_integration_fixed_nodes(int_ang_);
-    double* w_grid = gsl_integration_fixed_weights(int_ang_);
-
-    // Make transformation
-    double pi_4 = M_PI/4.0;
-
-    for (int i = 0; i < Numper_of_points; i++)
-    {
-        double x = p_grid[i];
-        p_grid[i] = scale*tan(pi_4*(x+1));
-        w_grid[i] = (scale*pi_4/(cos(pi_4*(x+1))*cos(pi_4*(x+1))))*w_grid[i];
-    }
-
-    // ???
-    *p = p_grid;
-    *w = w_grid;
-   
 }
 
 gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu)

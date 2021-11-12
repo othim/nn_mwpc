@@ -31,6 +31,7 @@
 #include "gsl_complex.h"
 #include "gsl_complex_math.h"
 #include "gsl_matrix_complex_double.h"
+#include "physics_helpers.h"
 #include <cmath>
 
 
@@ -38,9 +39,6 @@ class LS_Solver
 {
 private:
    Potential_mwpc* pot_V_;
-
-   // TODO REMOVE NOT USED
-   std::vector<qs::quantum_channel> channels_;
 
    double* p_grid_;
    double* w_grid_;
