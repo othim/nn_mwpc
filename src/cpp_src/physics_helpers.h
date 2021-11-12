@@ -73,13 +73,20 @@ typedef struct
  */
 eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,qs::quantum_channel chn, const gsl_matrix* V);
 
-
+/*
+ * Converts radians to degrees
+ */
 double rad_to_deg(double in);
 
+/*
+ * Functions to print gsl matrices
+ */
+
 void print_m(gsl_matrix* matrix);
+void print_v(gsl_vector* vec);
 
 void print_m_complex(gsl_matrix_complex* matrix);
-
+void print_v_complex(gsl_vector_complex* vec);
 }
 #endif
 

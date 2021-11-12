@@ -38,7 +38,8 @@
 class LS_Solver
 {
 private:
-   Potential_mwpc* pot_V_;
+   //Potential_mwpc* pot_V_;
+   //gsl_matrix* potential_matrix_;
 
    double* p_grid_;
    double* w_grid_;
@@ -55,19 +56,19 @@ private:
 
 public:
 
-   LS_Solver(std::vector<qs::quantum_channel> channels, Potential_mwpc* pot_V, unsigned int mom_grid_size=100,
+   LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size=100,
       double mom_grid_scale=100.0, bool cutoff_enabled_ = true, double cutoff_Lambda_ = 450.0, bool relcorr_enabled = true);
 
    ~LS_Solver();
    void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);
 
    // Returns an array of phase shifts in the convention: ...
-   Phase_shifts_chn solve_in_chn_R(double T_lab, qs::quantum_channel chn, bool rel_correction, bool get_saved_potential);
+   Phase_shifts_chn solve_in_chn_R(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
 
    gsl_vector_complex* setup_D_vector_complex(double q_on_shell, bool coupled, double mu);
    gsl_matrix_complex* setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
-   Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential);
+   Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
    gsl_matrix_complex* T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho);
 

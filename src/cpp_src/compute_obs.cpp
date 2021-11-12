@@ -54,8 +54,12 @@ int main(int argc, char** argv)
     // Construct the quantum scattering channels from the states
     std::cout << "Contruction scattering channels..." << std::endl;
     std::vector<qs::quantum_channel> chns = get_channels(states, true);   
+    
+    // Computing observables
     compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
     
+    
+
     ph::physics_helpers_free();
     return 0;
 }
@@ -89,7 +93,7 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
    end = std::clock();
     std::cout << "Time to compute save matrices: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
    
-   LS_Solver solver = LS_Solver(chns,&Pot,number_of_p_points,scale,true,Lambda,true);
+   LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
    
    
    start = std::clock();
@@ -118,7 +122,9 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
       start = std::clock();
       for (auto chn : chns)
       {
-         Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,true,true);
+         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(Tl, chn,true);
+         Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+         gsl_matrix_free(pot_V_mtx);
          phases_vec.push_back(phases);
       }
 

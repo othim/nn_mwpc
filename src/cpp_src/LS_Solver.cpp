@@ -3,14 +3,13 @@
 //#define ENABLE_DEBUG
 
 // Constructor
-LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, Potential_mwpc* pot_V, unsigned int mom_grid_size,
+LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size,
     double mom_grid_scale, bool cutoff_enabled, double cutoff_Lambda, bool relcorr_enabled)
 {
     #ifdef ENABLE_DEBUG
         std::cout << "LS_Solver()" << std::endl;
     #endif
     // Init variables
-    pot_V_ = pot_V;
     mom_grid_size_ = mom_grid_size;
     cutoff_enabled_ = cutoff_enabled;
     cutoff_Lambda_ = cutoff_Lambda;
@@ -159,15 +158,6 @@ Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
 
     return phases;
 }
-void print_vector(gsl_vector* vec)
-{
-   std::cout << "---------" << std::endl;
-   for (std::size_t i = 0; i < vec->size; i++)
-   {
-        std::cout << gsl_vector_get(vec,i) << "\n";
-   }
-   std::cout << "---------" << std::endl;
-}
 
 void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell)
 {
@@ -196,7 +186,7 @@ void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double
     This function returns the phase shifts in at the desired lab energy T_lab for the channel chn.
     The phase shifts are returned in the Stapp convention
 */
-Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential)
+Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
 {
     #ifdef ENABLE_DEBUG
         std::cerr << "solve_in_chn()" << std::endl;
@@ -214,17 +204,6 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     // Used in this code see the README.md file.
     double rho = (M_PI/2.0)*2.0*q_on_shell*mu;
 
-    
-    // Get potential matrix with the correct on-shell momentum
-    // The size of the matrix depends on if the channels is coupled or not
-    gsl_matrix* pot_V_mtx;
-    if (get_saved_potential) {
-        pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
-    } else {
-        pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
-    }
-    
-    
     //std::cout << "Potential" << std::endl;
     //print_matrix(pot_V_mtx);
    
@@ -297,7 +276,6 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     gsl_vector_free(D_vector);
     gsl_matrix_free(R_result);
 
-    gsl_matrix_free(pot_V_mtx);
     gsl_matrix_free(F_matrix);
     gsl_matrix_free(inverse);
     gsl_permutation_free(perm);
@@ -423,37 +401,12 @@ gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_c
     return F_mtx;
 }
 
-void print_matrix_complex(gsl_matrix_complex* matrix)
-{
-   std::cout << "---------" << std::endl;
-   for (std::size_t i = 0; i < matrix->size1; i++)
-   {
-      for (std::size_t j = 0; j < matrix->size1; j++)
-      {
-         std::cout << "(" << GSL_REAL(gsl_matrix_complex_get(matrix,i,j)) << "," << 
-            GSL_IMAG(gsl_matrix_complex_get(matrix,i,j)) << ")";
-      }   
-      std::cout << std::endl;
-   }
-   std::cout << "---------" << std::endl;
-}
-
-void print_vector_complex(gsl_vector_complex* vec)
-{
-   std::cout << "---------" << std::endl;
-   for (std::size_t i = 0; i < vec->size; i++)
-   {
-        std::cout << "(" << GSL_REAL(gsl_vector_complex_get(vec,i)) << "," << 
-        GSL_IMAG(gsl_vector_complex_get(vec,i)) << ") \n";
-   }
-   std::cout << "---------" << std::endl;
-}
 /*
     This function is the same as solve_in_chn_R() with the difference that is works with complex types.
     The potential matrix can be complex and is solvec the LS equation in complex form, thereby
     obtaining the full of-shell somplex T-matrix.
 */
-Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn, bool rel_correction,bool get_saved_potential)
+Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
 {
     // Compute reduced mass mu, which depends on the isospin-prijection.
     double mu;
@@ -465,13 +418,6 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     // The transformation of T-matrix elements becomes correct when
     // a factor of 2.0/M_PI is added...
 
-    gsl_matrix* pot_V_mtx;
-    if (get_saved_potential) {
-        pot_V_mtx = pot_V_->get_saved_matrix(q_on_shell,chn,rel_correction);
-    } else {
-        pot_V_mtx = pot_V_->get_matrix(q_on_shell,chn,rel_correction);
-    }
-   
     gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
 
     gsl_matrix_complex* F_matrix = setup_F_matrix_complex(chn.coupled,D_vector,pot_V_mtx);
@@ -580,7 +526,6 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     gsl_vector_complex_free(D_vector);
     gsl_matrix_complex_free(T_result);
 
-    gsl_matrix_free(pot_V_mtx);
     gsl_matrix_complex_free(F_matrix);
     gsl_matrix_complex_free(inverse);
     gsl_permutation_free(perm);

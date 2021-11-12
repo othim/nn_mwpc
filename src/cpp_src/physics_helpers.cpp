@@ -253,6 +253,15 @@ void ph::print_m(gsl_matrix* matrix)
    std::cout << "---------" << std::endl;
 }
 
+void print_v(gsl_vector* vec)
+{
+   std::cout << "---------" << std::endl;
+   for (std::size_t i = 0; i < vec->size; i++)
+   {
+        std::cout << gsl_vector_get(vec,i) << "\n";
+   }
+   std::cout << "---------" << std::endl;
+}
 
 void ph::print_m_complex(gsl_matrix_complex* matrix)
 {
@@ -265,6 +274,17 @@ void ph::print_m_complex(gsl_matrix_complex* matrix)
          std::cout << "(" <<  GSL_REAL(el) << "," << GSL_IMAG(el) << ") ";
       }   
       std::cout << std::endl;
+   }
+   std::cout << "---------" << std::endl;
+}
+
+void print_v_complex(gsl_vector_complex* vec)
+{
+   std::cout << "---------" << std::endl;
+   for (std::size_t i = 0; i < vec->size; i++)
+   {
+        std::cout << "(" << GSL_REAL(gsl_vector_complex_get(vec,i)) << "," << 
+        GSL_IMAG(gsl_vector_complex_get(vec,i)) << ") \n";
    }
    std::cout << "---------" << std::endl;
 }
