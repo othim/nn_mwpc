@@ -30,6 +30,8 @@ private:
     
     double* p_grid_;
     int p_grid_length_;    
+    double cutoff_Lambda_;
+
 pubilc:
 
     Potential_ext(double* p_grid, int p_grid_length, void (*f)(double qi,double qo, bool coupled, int J, double* V_arr));
