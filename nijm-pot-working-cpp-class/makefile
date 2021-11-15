@@ -16,7 +16,7 @@ SRCFORT_77_FILES := $(shell find ./ -regex [^\#]*\\.f$)
 OBJFORT_90_FILES := $(patsubst %.f90,%.o,$(shell find ./ -regex [^\#]*\\.f90$)) #$(SRCFORT_F90_FILES:./Potentials/chp/%.f90=%.o)
 OBJFORT_77_FILES := $(patsubst %.f,%.o,$(shell find ./ -regex [^\#]*\\.f$))
 #CPPFLAGS := -Wall -O2 -std=c++11 
-#LDFLAGS := -lblas -llapack -lm
+LDFLAGS := -lgfortran -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/
 CPPFLAGS := -Wall -O2 -ggdb -std=c++11 
 # Stop compilation on warning-encounter (good for neat code but not necessary)
 #CPPFLAGS += -Werror
