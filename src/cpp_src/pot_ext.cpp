@@ -8,10 +8,13 @@ Potential_ext::Potential_ext(double* p_grid, int p_grid_length, double cutoff_La
     my_element_V_arr = f; 
 
     p_grid_ = p_grid;
-    p_grid_length_ = p_grid_length;
+    mom_grid_size_ = p_grid_length;
     cutoff_Lambda_ = cutoff_Lambda;
 }
 
+Potential_ext::~Potential_ext()
+{
+}
 
 gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn)
 {
@@ -125,5 +128,5 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
    return matrix_data;
 }
     
-gsl_matrix*  Potential_ext::get_matrix_no_on_shell(qs::quantum_channel chn)
-{}
+//gsl_matrix*  Potential_ext::get_matrix_no_on_shell(qs::quantum_channel chn)
+//{}

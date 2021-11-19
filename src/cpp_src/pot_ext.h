@@ -18,6 +18,7 @@
 #include "gsl_matrix.h"
 #include <iostream>
 #include <cmath>
+#include "gsl_pow_int.h"
 
 class Potential_ext
 {
@@ -29,12 +30,12 @@ private:
     void (*my_element_V_arr)(double qi,double qo, bool coupled, int J, double* V_arr);
     
     double* p_grid_;
-    int p_grid_length_;    
+    int mom_grid_size_;    
     double cutoff_Lambda_;
 
-pubilc:
+public:
 
-    Potential_ext(double* p_grid, int p_grid_length, void (*f)(double qi,double qo, bool coupled, int J, double* V_arr));
+    Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, void (*f)(double qi,double qo, bool coupled, int J, double* V_arr));
     ~Potential_ext();
     /*
      * This function returns the potential matrix
@@ -46,5 +47,5 @@ pubilc:
      * on-shell point.
      */
     gsl_matrix*  get_matrix_no_on_shell(qs::quantum_channel chn);
-}
+};
 #endif

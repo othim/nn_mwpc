@@ -13,8 +13,43 @@
 #include <ctime>
 #include "scattering.h"
 #include "physics_helpers.h"
+#include "pot_ext.h"
+/*
+ * This function can be called if this file is linked with 
+ * the .o files from the fortran libray compiled.
+ */
+extern "C" {
+    void nijmegen_fort_interface(double *qi,
+			  double *qo,
+			  int *coup,
+			  int *S,
+			  int *J,
+			  int *T,
+			  int *Tz,
+			  double *pot);
+}
 
+// This function is not complete!!!
+void nijm_correct_arg(double qi, double qo, bool coupled, int J, double* V_arr)
+{
+    int Tz = 0; // Assume np case
+    int S = 0;
+    if (coupled) {
+        S = 1;
+    } else { 
+        S = 0;
+    }
+    // L + S + T = odd, which becomes
+    // equivalent to J + T = odd 
+    int T = (J+1)%2;
+    int coup = (int)coupled; 
+    nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
+    double factor = M_PI/2.0;
+    for (int i = 0; i < 6; i++) {
+        V_arr[i] = factor*V_arr[i];
+    }
+}
 /*
  * Function declarations
  */
@@ -23,8 +58,35 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
    unsigned int J_max_in_pot,double scale,
    double Lambda, double C1S0, double C3S1);
 
+void create_ext_pot();
+
+void test_f()
+{
+
+    double V_arr[6];
+    double qo = 1;
+    double qi = 1;
+    int S = 1;
+    int J = 0;
+    int T = 0;
+    int Tz = 0; // np
+
+    
+    int coup = 0;
+    nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
+     
+    std::cout << "my_f" << std::endl;
+
+    for (int i = 0; i < 6; i++)
+    {
+        std::cout << V_arr[i] << " "; 
+    }
+}
 int main(int argc, char** argv)
 {
+    test_f();
+    int a = 0;
+    std::cin >> a;
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
@@ -43,7 +105,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    unsigned int J_max = 30;
+    unsigned int J_max = 5;
     unsigned int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -83,6 +145,12 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
 
    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
    
+   Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, 450.0, &nijm_correct_arg);
+
+   gsl_matrix* m = nijmegen.get_matrix(10.0,chns[0]);
+   std::cout << "Printing potential" << std::endl;
+   ph::print_m(m);
+
    std::cout << "Populate saves matrices..." << std::endl;
 
    start = std::clock();
@@ -123,25 +191,21 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
       for (auto chn : chns)
       {
          LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+         
          gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
+         //gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+         
          Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
          gsl_matrix_free(pot_V_mtx);
          phases_vec.push_back(phases);
       }
 
-      /*std::cout << "Phase shifts (deg) (Stapp):" << std::endl;
-      for (int i = 0; i < phases_vec.size(); i++)
-      {
-         std::cout << "Channel " << i << ": " << rad_to_deg(phases_vec[i].delta_m) << " " << rad_to_deg(phases_vec[i].delta_p) << " " << rad_to_deg(phases_vec[i].epsilon) << 
-            " " << rad_to_deg(phases_vec[i].delta_uncoupled) << std::endl;
-      }*/
       end = std::clock();
       std::cout << "Time to compute phase shifts: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
    
       // Now all the pahse shifts in the relevent channels are known.
       // Now we can compute the total cross section for some on_shell
       // lab energy
-      
 
       LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
    
@@ -149,9 +213,21 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
 
       start = std::clock();
       double cross_section = compute_total_cross_section(chns,phases_vec,q_on_shell,rho_T,30);
+      
+      // Compute defferential cross section 
+      // ----------------------------------
+      
+      // Get the Saclay amplitudes
+      
+      // Get the M-matrix 
+      
+      // Compute observable from the M-matrix
+
+      // ---------------------------------- 
       end = std::clock();
       std::cout << "Time to compute cross section: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
    
       std::cout << Tl << "\t \t" << cross_section << std::endl;
    } 
 }
+
