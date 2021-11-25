@@ -60,6 +60,8 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
 
 void create_ext_pot();
 
+void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale);
+
 void test_f()
 {
 
@@ -118,14 +120,44 @@ int main(int argc, char** argv)
     std::vector<qs::quantum_channel> chns = get_channels(states, true);   
     
     // Computing observables
-    compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
-    
+    //compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
+    compute_1S0(chns, number_of_p_points,scale);
     
 
     ph::physics_helpers_free();
     return 0;
 }
 
+
+void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale)
+{
+   double* p_grid;
+   double* w_grid;
+   ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+    double Lambda = 450.0;
+   Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, 450.0, &nijm_correct_arg);
+
+   LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+
+    double mu;
+    double q_on_shell;
+    qs::quantum_channel chn = chns[0]; // 1S0 channel
+
+    for (int E = 1; E < 301; E++)
+    {
+        double T_lab = (double)E;
+
+         LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+         
+         //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
+         gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+         
+         Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,pot_V_mtx);
+         gsl_matrix_free(pot_V_mtx);
+         std::cout << T_lab << "   " << phases.delta_uncoupled*180.0/M_PI << std::endl;
+    }
+}
 
 void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
    unsigned int J_max_in_pot,double scale,
@@ -151,7 +183,7 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
    std::cout << "Printing potential" << std::endl;
    ph::print_m(m);
 
-   std::cout << "Populate saves matrices..." << std::endl;
+   std::cout << "Populate saved matrices..." << std::endl;
 
    start = std::clock();
    for (auto chn : chns)
