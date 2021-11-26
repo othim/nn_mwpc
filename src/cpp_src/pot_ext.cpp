@@ -82,34 +82,41 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
       
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
+         //std::cout << chn.coupled << " " << chn.J << std::endl;
          my_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
          // ---------------------------------------------------
-         /*std::cout << "Rel fac: " << rel_fac << std::endl;
-         for (int i= 0; i < 6; i++)
+         //std::cout << "Rel fac: " << rel_fac << std::endl;
+         /*for (int i= 0; i < 6; i++)
          {
             std::cout << V_arr[i] << " ";
-         }*/
+         }
+         std::cout << std::endl;*/
          if (!chn.coupled)
          {
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
                gsl_matrix_set(matrix_data,j,i,V_arr[0]*cutoff_regulator);
-               //std::cout << "Pot el S0: " << V_arr[0]*rel_fac << std::endl;
+              // std::cout << "Pot el S0: " << std::endl;
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
                   gsl_matrix_set(matrix_data,j,i,V_arr[1]*cutoff_regulator);
+                //  std::cout << "1" << std::endl;
                } else // For J=0,S=1,L=1 case
                {
                   gsl_matrix_set(matrix_data,j,i,V_arr[2]*cutoff_regulator); // Take pp element to get L=1
+
+                  //std::cout << "2" << std::endl;
                }
                
             }
          } else 
          {
+             
+            //std::cout << "3" << std::endl;
             // The matrix is constructed as [[mm,mp],[pm,pp]]
             gsl_matrix_set(matrix_data,j,i,V_arr[3]*cutoff_regulator); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
