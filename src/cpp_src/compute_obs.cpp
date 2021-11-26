@@ -4,6 +4,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include "pot_nn_mwpc.h"
 #include "quantum_states.h"
 #include "LS_Solver.h"
@@ -45,7 +46,7 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int J, double* V_arr)
     int coup = (int)coupled; 
     nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
-    double factor = M_PI/2.0;
+    double factor = (M_PI/2.0);
     for (int i = 0; i < 6; i++) {
         V_arr[i] = factor*V_arr[i];
     }
@@ -60,7 +61,8 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
 
 void create_ext_pot();
 
-void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale);
+void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
+   unsigned int J_max_in_pot);
 
 void test_f()
 {
@@ -86,9 +88,9 @@ void test_f()
 }
 int main(int argc, char** argv)
 {
-    test_f();
-    int a = 0;
-    std::cin >> a;
+   // test_f();
+    //int a = 0;
+    //std::cin >> a;
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
@@ -120,8 +122,8 @@ int main(int argc, char** argv)
     std::vector<qs::quantum_channel> chns = get_channels(states, true);   
     
     // Computing observables
-    //compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
-    compute_1S0(chns, number_of_p_points,scale);
+    // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
+    compute_1S0(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
     
 
     ph::physics_helpers_free();
@@ -129,13 +131,33 @@ int main(int argc, char** argv)
 }
 
 
-void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale)
+void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
+   unsigned int J_max_in_pot)
 {
    double* p_grid;
    double* w_grid;
    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
     double Lambda = 450.0;
+
+   std::vector<std::string> terms;
+   terms.push_back("OPEP"); // To just test elements use just OPEP
+   terms.push_back("C1S0");
+   terms.push_back("C3S1");
+
+   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+ 
+   for (auto chn : chns)
+   {
+      Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+   }
+
+    double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+
    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, 450.0, &nijm_correct_arg);
 
    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
@@ -143,20 +165,27 @@ void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     double mu;
     double q_on_shell;
     qs::quantum_channel chn = chns[0]; // 1S0 channel
-
+    
+    // Open a file
+    std::ofstream myfile;
+    myfile.open("../../data/out_1S0.txt");
     for (int E = 1; E < 301; E++)
     {
         double T_lab = (double)E;
 
          LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
          
-         //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
-         gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
+         
+         ph::print_m(pot_V_mtx);
+         //gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
          
          Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,pot_V_mtx);
          gsl_matrix_free(pot_V_mtx);
          std::cout << T_lab << "   " << phases.delta_uncoupled*180.0/M_PI << std::endl;
+         myfile << T_lab << "   " <<  phases.delta_uncoupled*180.0/M_PI << "\n"; 
     }
+    myfile.close();
 }
 
 void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
