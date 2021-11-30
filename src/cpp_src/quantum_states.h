@@ -79,4 +79,5 @@ std::vector<qs::quantum_NN_state> get_states_NN(unsigned int J_max, unsigned int
 */
 std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> states,bool print);
 
+
 #endif
