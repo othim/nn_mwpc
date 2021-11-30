@@ -129,3 +129,34 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
     // Return the list of qs::quantum_channel
     return chns;
 }
+
+
+std::string quantum_channel_to_string(qs::quantum_channel chn)
+{
+    char LS[9] = {'S','P','D','F','G','H','I','K','L'};
+    if (chn.J > 8)
+    {
+        std::cout << "J to high in quantum_chennal_to_string" << std::endl;
+        
+        std::string s;
+        return s;
+    }
+    int s = (int)(2*chn.S + 1);
+    std::string s_s = std::to_string(s);
+    std::string s_j = std::to_string(chn.J);
+    
+    // For L
+    std::string s_LS;
+    if (chn.coupled)
+    {
+        s_LS = std::string(1,LS[chn.J-1]) + "-" + std::string(1,LS[chn.J+1]);       
+    } else if (!chn.coupled && chn.T == 1 && chn.J == 0 && chn.S == 1) // 3P0
+    {
+        s_LS = "P";
+    } else
+    {
+        s_LS = LS[chn.J];  
+    }
+
+    return s_s + s_LS + s_j;
+}

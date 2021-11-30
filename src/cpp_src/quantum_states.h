@@ -15,7 +15,7 @@
 #include <list>
 #include <utility>
 #include <cstdlib>
-
+#include <string>
 // This is the possible quantum channels if [T,H]=0.
 namespace qs 
 {
@@ -37,6 +37,7 @@ namespace qs
         int J; int L; int S; int T; int Tz; int pi;
 
     };
+
 };
 
 struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; double delta_uncoupled;};
@@ -78,5 +79,6 @@ std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, int Tz_min
 */
 std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> states,bool print);
 
+std::string quantum_channel_to_string(qs::quantum_channel chn); 
 
 #endif

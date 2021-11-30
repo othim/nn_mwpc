@@ -49,4 +49,4 @@ pot_ext.o: pot_ext.h
 
 
 clean:
-	rm main pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o pot_ext.o
+	rm main pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o pot_ext.o compute_obs.o

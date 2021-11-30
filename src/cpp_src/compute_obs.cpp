@@ -36,7 +36,7 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
     int coup = (int)coupled;
     nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
-    // Convention factor
+    // Convention factor not needed for 1S0
     double factor = (M_PI/2.0);
     /*
     for (int i = 0; i < 6; i++)
@@ -75,11 +75,11 @@ void test_f()
     nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
      
     std::cout << "my_f" << std::endl;
-
+    
     for (int i = 0; i < 6; i++)
     {
         std::cout << V_arr[i] << " "; 
-    }
+    } 
 }
 int main(int argc, char** argv)
 {
@@ -129,18 +129,18 @@ int main(int argc, char** argv)
 void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot)
 {
-   double* p_grid;
-   double* w_grid;
-   ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    double* p_grid;
+    double* w_grid;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
     double Lambda = 5000.0;
 
-   std::vector<std::string> terms;
-   terms.push_back("OPEP"); // To just test elements use just OPEP
-   terms.push_back("C1S0");
-   terms.push_back("C3S1");
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
   
-   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
 /* 
    for (auto chn : chns)
    {
@@ -153,33 +153,118 @@ void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
 
-   Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
 
-   LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
 
     double mu;
     double q_on_shell;
-    qs::quantum_channel chn = chns[0]; // 1S0 channel
     
-    // Open a file
-    std::ofstream myfile;
-    myfile.open("../../data/out_1S0.txt");
-    for (int E = 1; E < 301; E++)
-    {
-        double T_lab = (double)E;
 
-         LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    for (int c_i = 8; c_i < chns.size(); c_i++)
+    {
+    
+        qs::quantum_channel chn = chns[c_i]; // 1S0 channel
+        // Open a file
+        std::ofstream myfile;
+        std::string filename = "../../data/out_" + quantum_channel_to_string(chn) + ".txt"; 
+        myfile.open(filename);
+        std::cout << "File_name: " << filename << std::endl; 
+        
+
+        // Read in the correct file of data
+        std::string data = "../../data/np_" + quantum_channel_to_string(chn) + "_nijm1.txt";   
+        
+        // Open file
+        std::ifstream infile(data);
+        if (infile.is_open())
+        {
+            std::cout << "OK" << std::endl;
+        } else
+        {
+            std::cout << "Failed" << std::endl;
+        }
+        double D_energies[300];
+        double D_delta_uncoupled[300];
+        double D_delta_m[300];
+        double D_delta_p[300];
+        double D_eps[300];
+
+        if (!chn.coupled)
+        {
+            double E, d;
+            int i = 0;
+            while(infile >> E >> d)
+            {
+                D_energies[i] = E;
+                D_delta_uncoupled[i] = d;
+                i++;
+            }
+        } else
+        {
+            double E, dp, dm, e;
+            int i = 0;
+            while(infile >> E >> dm >> dp >> e)
+            {
+                D_energies[i] = E;
+                D_delta_m[i] = dm;
+                D_delta_p[i] = dp;
+                D_eps[i] = e;
+                i++;
+            }
+        }
+
+
+        std::cout << "E_lab d-uncoup \t dm \t dp \t eps " << std::endl; 
+        double error = 0;
+        double error_m = 0;
+        double error_p = 0;
+        double error_eps = 0;
+
+        for (int E = 1; E < 301; E++)
+        {
+            double T_lab = (double)E;
+
+            LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
          
-         //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
-         //ph::print_m(pot_V_mtx);
-         gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+            //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
+            //ph::print_m(pot_V_mtx);
+            gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
          
-         Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,pot_V_mtx);
-         gsl_matrix_free(pot_V_mtx);
-         std::cout << T_lab << "   " << phases.delta_uncoupled*180.0/M_PI << std::endl;
-         myfile << T_lab << "   " <<  phases.delta_uncoupled*180.0/M_PI << "\n"; 
+            Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,pot_V_mtx);
+            gsl_matrix_free(pot_V_mtx);
+         
+            //std::cout << T_lab << "   " << phases.delta_uncoupled*180.0/M_PI << 
+            //    "   " << phases.delta_m*180.0/M_PI << "   " << phases.delta_p*180.0/M_PI<< "   " << 
+            //    phases.epsilon*180.0/M_PI << std::endl;
+            
+            //myfile << T_lab << "   " << phases.delta_uncoupled*180.0/M_PI << 
+            //    "   " << phases.delta_m*180.0/M_PI << "   " << phases.delta_p*180.0/M_PI << "   " << 
+            //    phases.epsilon*180.0/M_PI << "\n"; 
+            if (!chn.coupled)
+            {
+                std::cout << T_lab << "   " << std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]) << std::endl;
+                error += std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]); 
+            } else 
+            {
+
+                double em = std::abs(phases.delta_m*180.0/M_PI- D_delta_m[E-1]);         
+                double ep = std::abs(phases.delta_p*180.0/M_PI- D_delta_p[E-1]);         
+                double eps = std::abs(phases.epsilon*180.0/M_PI- D_eps[E-1]);         
+                std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
+                error_m += em;
+                error_p += ep;
+                error_eps += eps;
+            } 
+        
+        }
+        std::cout << "Errors: " << error/300 << "   " << error_m/300 << "   " << error_p/300 << "   " << error_eps  << std::endl;
+        
+        myfile.close();
+        double a;
+        std::cout << "One channel done" << std::endl;
+        std::cin >> a;
     }
-    myfile.close();
 }
 
 void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
