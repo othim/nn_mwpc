@@ -1,20 +1,20 @@
 #include "quantum_states.h"
 
 
-std::vector<qs::quantum_NN_state> get_states_NN(unsigned int J_max, unsigned int J_min, int Tz_min,
+std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, int Tz_min,
     int Tz_max, bool print)
 {
     std::vector<qs::quantum_NN_state> states;
 
     for (int Tz = Tz_min; Tz < Tz_max+1; Tz ++)
     {
-        for (unsigned int J = J_min; J < (J_max + 1); J++)
+        for (int J = J_min; J < (J_max + 1); J++)
         {
-            for (unsigned int S = 0; S < 2; S++)
+            for (int S = 0; S < 2; S++)
             {
-                for (unsigned int L = std::abs(int(J-S)); L < J+S+1; L++)
+                for (int L = std::abs(int(J-S)); L < J+S+1; L++)
                 {
-                    for (unsigned int T = std::abs(Tz); T < 2; T++)
+                    for (int T = std::abs(Tz); T < 2; T++)
                     {
                         if ( (L+S+T) % 2 != 0) // Pauli principle
                         {
@@ -108,7 +108,7 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
             }
             
             // Chreate a channel and append it to the list of channels
-            qs::quantum_channel chn = {.J = key.J, .S = key.S, .tz = key.Tz, .coupled = coup};
+            qs::quantum_channel chn = {.J = key.J, .S = key.S, .T = key.T, .Tz = key.Tz, .coupled = coup};
             chns.push_back(chn);
 
             std::cout << "Channel " << j << ": J=" << key.J << " S=" << key.S << " T=" << key.T << 

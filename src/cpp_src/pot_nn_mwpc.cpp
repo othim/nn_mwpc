@@ -361,13 +361,13 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
       std::cerr << "get_matrix()" << std::endl;
    #endif
    double mu;
-   if (chn.tz == -1)
+   if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
-   } else if (chn.tz == 0)
+   } else if (chn.Tz == 0)
    {
       mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-   } else if (chn.tz == 1)
+   } else if (chn.Tz == 1)
    {
       mu = constants::Mp/2.0; // pp
    } else 
@@ -592,13 +592,13 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
    bool coupled = chn.coupled;
 
    double mu;
-   if (chn.tz == -1)
+   if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
-   } else if (chn.tz == 0)
+   } else if (chn.Tz == 0)
    {
       mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-   } else if (chn.tz == 1)
+   } else if (chn.Tz == 1)
    {
       mu = constants::Mp/2.0; // pp
    } else 
@@ -795,13 +795,13 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
       std::cerr << "get_matrix()" << std::endl;
    #endif
    double mu;
-   if (chn.tz == -1)
+   if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
-   } else if (chn.tz == 0)
+   } else if (chn.Tz == 0)
    {
       mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-   } else if (chn.tz == 1)
+   } else if (chn.Tz == 1)
    {
       mu = constants::Mp/2.0; // pp
    } else 

@@ -156,13 +156,13 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
    }
    // Get reduced mass of system
    double mu;
-   if (chn.tz == -1)
+   if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
-   } else if (chn.tz == 0)
+   } else if (chn.Tz == 0)
    {
       mu = constants::Mp*constants::Mn/(constants::Mn+constants::Mp); // np
-   } else if (chn.tz == 1)
+   } else if (chn.Tz == 1)
    {
       mu = constants::Mp/2.0; // pp
    } else { 

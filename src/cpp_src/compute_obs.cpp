@@ -31,43 +31,9 @@ extern "C" {
 }
 
 // This function is not complete!!!
-void nijm_correct_arg(double qi, double qo, bool coupled, int J, double* V_arr)
+void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
 {
-    // Here we need to compute the quantum numbers
-    // S, T, Tz=0 (assumed np case).
-    // We need to pay attention to the special case
-    // 3P0 channel where S=1, Li=Lo=1, J=0
-    
-    int T = 0;
-    int S = 0;
-    int Tz = 0; // Assumed
-    int coup = (int)coupled; 
-    
-    // The different cases. S is basically indication of
-    // coupled or uncoupled EXCEPT for 3P0.
-    // T is computed from the Pauli principle
-    // L+S+T = odd
-    if (!coupled && J > 0) {
-        S = 0;
-        // J = L -> J + S + T = odd 
-        T = (J + S + 1)%2;
-    } else if (!coupled && J==0) { // 3P0
-        S = 1; 
-        // L = J + 1 -> J+1+S+T = odd
-        T = (J+S)%2;
-    } else if (coupled) {
-        S = 1;
-        // L = J +- 1 -> J odd -> L even
-        // L+S+T = odd -> J+S+T= even
-        T = (J+S)%2;
-    }
-    S = 0;
-    T = 1;
-    coup = 0;
-    // 1S0 and 3P0 is not distinguishable in the 
-    // coupled, J basis... Maybe should just go to the other basis
-    // std::cout << "T=" << T << " S=" << S << " J=" << J << " coup=" << coup << std::endl;
-
+    int coup = (int)coupled;
     nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
     // Convention factor
@@ -138,8 +104,8 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    unsigned int J_max = 5;
-    unsigned int J_min = 0;
+    int J_max = 5;
+    int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
     bool print = true;

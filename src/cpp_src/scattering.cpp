@@ -53,8 +53,8 @@ std::vector<std::complex<double>*> T_from_phase_shifts(std::vector<Phase_shifts_
 
 
 std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<Phase_shifts_chn> phase_shifts_vec, unsigned int s, int mo, int mi, 
-        double cos_theta, double q_on_shell,double rho_T,unsigned int l_max)
+    std::vector<Phase_shifts_chn> phase_shifts_vec, int s, int mo, int mi, 
+        double cos_theta, double q_on_shell,double rho_T,int l_max)
 {
     #ifdef DEGUB_SCATTERING
         std::cout << "get_M_matrix_p()" << std::endl;
@@ -73,7 +73,7 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,
     Computes the (lo,li) pairs that are possible from
     the quantum numbers J and S.
 */
-std::vector<lo_li> get_ls(unsigned int J, unsigned int S, bool coupled)
+std::vector<lo_li> get_ls(int J, int S, bool coupled)
 {
     //std::cout << J << " " << S << " " << coupled << std::endl;
     std::vector<lo_li> elements;
@@ -104,7 +104,7 @@ std::vector<lo_li> get_ls(unsigned int J, unsigned int S, bool coupled)
 }
 
 std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell,unsigned int s, int mo, int mi, double cos_theta,unsigned int l_max)
+    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell,int s, int mo, int mi, double cos_theta,int l_max)
 { 
     const std::complex<double> imag_u(0.0,1.0);  
     // Move to some constructor-ish
@@ -124,7 +124,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
     {
         //std::cout << "i=" << i << std::endl;
         qs::quantum_channel current_chn = chns_vec[i];
-        unsigned int J = current_chn.J;
+        int J = current_chn.J;
         bool coupled = current_chn.coupled;
         // Sum over the correct s-values
         if (current_chn.S == s)
@@ -135,8 +135,8 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
             // Loop over allowed pairs (lo,li)
             for (std::size_t j = 0; j < Ls.size(); j++)
             {   
-                unsigned int li = Ls[j].li;
-                unsigned int lo = Ls[j].lo;
+                int li = Ls[j].li;
+                int lo = Ls[j].lo;
                 //std::cout << "li:" << li << " lo:" << lo << std::endl; 
 
                 // Check if mi and mo are compatible with channel
@@ -200,21 +200,21 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
 
 
 std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell, double rho_T, unsigned int l_max)
+    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell, double rho_T, int l_max)
 {
     // Compute M-matrix elements
     std::complex<double> M_pp = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)1,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_00 = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_pm = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)1,(int)-1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)-1,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_s =
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)0,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)0,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_p0 = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)1,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_0p = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)0,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
     
     // Compute Saclay amplitudes as in eq 2.14 in 
     // Formalism of nucleon-nucleon elastic scattering experiments. 
@@ -366,18 +366,18 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
 }
 
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
-    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,double rho_T,unsigned int l_max)
+    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,double rho_T,int l_max)
 {
     double theta = 0.0;
     // Compute M-matrix elements
     std::complex<double> M_pp = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)1,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_00 = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_pm = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)1,(int)1,(int)-1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)-1,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_s =
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(unsigned int)0,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)0,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
  
     std::complex<double> a = (1.0/2.0) * (M_pp + M_00 - M_pm);
     std::complex<double> b = (1.0/2.0) * (M_pp + M_s + M_pm);
@@ -388,7 +388,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
 }
 
 gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, double theta,unsigned int l_max)
+    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, double theta,int l_max)
 {
     gsl_matrix_complex* M = gsl_matrix_complex_alloc(4,4);
     

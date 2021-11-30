@@ -35,7 +35,7 @@
     are general spin projections. The amplitude, f, is related to the
     T-matrix as f = -(2 pi)^2 \mu T(on shell). See Taylor.
 */
-std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,std::vector<Phase_shifts_chn> phase_shifts_vec, unsigned int s, int mo, int mi, double cos_theta, double q_on_shell,double rho_T,unsigned int l_max);
+std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,std::vector<Phase_shifts_chn> phase_shifts_vec, int s, int mo, int mi, double cos_theta, double q_on_shell,double rho_T,int l_max);
 
 /*
     This function is the same as get_M_matrix_p but computes the M-matrix directly from 
@@ -44,7 +44,7 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,st
     The T-matrix elements are in the form [Tmm, Tmp, Tpp] if coupled and if uncoupled only Tmm
     is non-zero.
 */
-std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, unsigned int s, int mo, int mi, double cos_theta,unsigned int l_max);
+std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, int s, int mo, int mi, double cos_theta,int l_max);
 
 
 /*
@@ -55,7 +55,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,st
     forming the amplitudes as certain combinations of them.
 */
 std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell,unsigned int l_max);
+    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell,int l_max);
 /*
     This function computes observables from Saclay amplitudes.
     The observables are specified as follows.
@@ -71,14 +71,14 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
 double compute_observable(std::vector<std::complex<double> > sac_amp,std::string obs);
 
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
-    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,double rho_T,unsigned int l_max);
+    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,double rho_T,int l_max);
 
 /* 
  * This function gives the M-matrix for the given on shell energy
  * and cm scattering angle
  */ 
 gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, double theta,unsigned int l_max);
+    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, double theta,int l_max);
 
 /*
  * This function computes the observable trace as in 

@@ -2,7 +2,8 @@
 
 
 
-Potential_ext::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, void (*f)(double qi,double qo, bool coupled, int J, double* V_arr))
+Potential_ext::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
+        void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr))
 {
     // Set the function opinter to the correct function
     my_element_V_arr = f; 
@@ -19,13 +20,13 @@ Potential_ext::~Potential_ext()
 gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn)
 {
    double mu;
-   if (chn.tz == -1)
+   if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
-   } else if (chn.tz == 0)
+   } else if (chn.Tz == 0)
    {
       mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-   } else if (chn.tz == 1)
+   } else if (chn.Tz == 1)
    {
       mu = constants::Mp/2.0; // pp
    } else 
@@ -83,7 +84,7 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
       
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          //std::cout << chn.coupled << " " << chn.J << std::endl;
-         my_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
+         my_element_V_arr(p_in,p_out,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
          // ---------------------------------------------------
          //std::cout << "Rel fac: " << rel_fac << std::endl;
          /*for (int i= 0; i < 6; i++)

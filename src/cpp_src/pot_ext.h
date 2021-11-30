@@ -27,7 +27,7 @@ private:
      * Function pointer to the function that computes the matrix elements of
      * the potential.
      */ 
-    void (*my_element_V_arr)(double qi,double qo, bool coupled, int J, double* V_arr);
+    void (*my_element_V_arr)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr);
     
     double* p_grid_;
     int mom_grid_size_;    
@@ -35,7 +35,7 @@ private:
 
 public:
 
-    Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, void (*f)(double qi,double qo, bool coupled, int J, double* V_arr));
+    Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr));
     ~Potential_ext();
     /*
      * This function returns the potential matrix
