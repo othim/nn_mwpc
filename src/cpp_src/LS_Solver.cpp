@@ -91,6 +91,24 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     return D_vector;
 }
 
+gsl_matrix * my_diag_alloc(const gsl_vector * X)
+{
+        gsl_matrix * mat = gsl_matrix_alloc(X->size, X->size);
+        gsl_vector_view diag = gsl_matrix_diagonal(mat);
+        gsl_matrix_set_all(mat, 0.0); //or whatever number you like
+        gsl_vector_memcpy(&diag.vector, X);
+        return mat;
+}
+
+int my_scale_columns(gsl_matrix* a, const gsl_vector* b)
+{
+    gsl_matrix* m_diag = my_diag_alloc(b);
+
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, a, m_diag, 0.0, a); 
+
+    return 0;
+}
+
 gsl_matrix* LS_Solver::setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx)
 {
     #ifdef ENABLE_DEBUG
@@ -119,7 +137,12 @@ gsl_matrix* LS_Solver::setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_ma
     // Compute the matrix elements according to (18.22) in Landau
     
     // Scale V by D
+    // OLD
+    // ---
     gsl_matrix_scale_columns(V_copy, D_vector);
+    // ---
+    //my_scale_columns(V_copy, D_vector);
+
     // Add V D to F
     gsl_matrix_add(F_mtx,V_copy);
     gsl_matrix_free(V_copy);
