@@ -94,37 +94,42 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
     // If print
     // Just want the vector of quantum_channels
     std::vector<qs::quantum_channel> chns;
-
-    if (print)
-    {
+    
+    if (print) {
         std::cout << std::endl << "Conserved quantum numbers: J,S,T,Tz,pi" << std::endl;
-        int j = 0;
-        for (auto it = channels.begin(); it != channels.end();++it)
-        {
-            q_chn key = (*it).first;
-            bool coup = false;
-            if ((*it).second.size() >1) {
-                coup = true;
-            }
-            
-            // Chreate a channel and append it to the list of channels
-            qs::quantum_channel chn = {.J = key.J, .S = key.S, .T = key.T, .Tz = key.Tz, .coupled = coup};
-            chns.push_back(chn);
+    }
+    int j = 0;
+    for (auto it = channels.begin(); it != channels.end();++it)
+    {
+        q_chn key = (*it).first;
+        bool coup = false;
+        if ((*it).second.size() >1) {
+            coup = true;
+        }
+        
+        // Chreate a channel and append it to the list of channels
+        qs::quantum_channel chn = {.J = key.J, .S = key.S, .T = key.T, .Tz = key.Tz, .coupled = coup};
+        chns.push_back(chn);
+        if (print) {
 
             std::cout << "Channel " << j << ": J=" << key.J << " S=" << key.S << " T=" << key.T << 
                 " Tz=" << key.Tz << " pi=" << key.pi << " coup=" << coup << std::endl;
-
-            for (int i=0; i < (*it).second.size(); i++)
-            {
-                in_out_state sm = (*it).second[i];
-                std::cout << "   (J=" << sm.J << " Li=" << sm.Li << " Lo=" << sm.Lo 
-                    << " S=" << sm.S << " T=" << sm.T << 
-                        " Tz=" << sm.Tz << " pi=" << sm.pi << ")" << std::endl;
-            }
-            std::cout << std::endl;
-            j++;
         }
-         std::cout << "Done printing" << std::endl;
+        for (int i=0; i < (*it).second.size(); i++)
+        {
+            in_out_state sm = (*it).second[i];
+            if (print) {
+            std::cout << "   (J=" << sm.J << " Li=" << sm.Li << " Lo=" << sm.Lo 
+                << " S=" << sm.S << " T=" << sm.T << 
+                    " Tz=" << sm.Tz << " pi=" << sm.pi << ")" << std::endl;
+            }
+        }
+        std::cout << std::endl;
+        j++;
+    }
+    if (print)
+    {
+        std::cout << "Done printing" << std::endl;
     }
     // Return the list of qs::quantum_channel
     return chns;

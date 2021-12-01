@@ -4,14 +4,14 @@ CC = g++
 
 
 # For mac
-#CFLAGS2 = -Wall -ggdb -std=c++11
-#CFLAGS  = -Wall -ggdb -std=c++11 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
-#LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/ 
+CFLAGS2 = -Wall -ggdb -std=c++11
+CFLAGS  = -Wall -ggdb -std=c++11 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/ 
 
 # For Linux
-CFLAGS2 = -Wall -ggdb -std=c++11
-CFLAGS  = -Wall -ggdb -std=c++11 -I/net/home/toliver/wigxjpf-1.11/inc/ -I/net/home/toliver/phd/nn_mwpc/src/cpp_src/gsl-2.7/gsl 
-LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib # -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/ 
+#CFLAGS2 = -Wall -ggdb -std=c++11
+#CFLAGS  = -Wall -ggdb -std=c++11 -I/net/home/toliver/wigxjpf-1.11/inc/ -I/net/home/toliver/phd/nn_mwpc/src/cpp_src/gsl-2.7/gsl 
+#LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib # -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/ 
 
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 NN_MWPC_FILES = compute_obs.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
