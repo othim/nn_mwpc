@@ -36,8 +36,6 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
     int coup = (int)coupled;
     nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
-    // Convention factor not needed for 1S0
-    double factor = (M_PI/2.0);
 /*    
     for (int i = 0; i < 6; i++)
     {
@@ -52,9 +50,8 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
  * Function declarations
  */
 
-void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
-   unsigned int J_max_in_pot,double scale,
-   double Lambda, double C1S0, double C3S1);
+void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double scale);
 
 void create_ext_pot();
 
@@ -120,9 +117,10 @@ int main(int argc, char** argv)
     
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
-    check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
     
-
+    //check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+    
+    check_observables(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot);
     ph::physics_helpers_free();
     return 0;
 }
@@ -269,92 +267,121 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     }
 }
 
-void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
-   unsigned int J_max_in_pot,double scale,
-   double Lambda, double C1S0, double C3S1)
+void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double scale)
 {
-   std::clock_t start, end;   
-   // Make grid
-   double* p_grid;
-   double* w_grid;
-   ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    std::clock_t start, end;   
+    // Make grid
+    double* p_grid;
+    double* w_grid;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
-   // Choose terms in the potential, LO WPC
-   std::vector<std::string> terms;
-   terms.push_back("OPEP"); // To just test elements use just OPEP
-   terms.push_back("C1S0");
-   terms.push_back("C3S1");
+    // Choose terms in the potential, LO WPC
+    /*
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
 
-   Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
    
-   Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, 450.0, &nijm_correct_arg);
+    std::cout << "Populate saved matrices..." << std::endl;
 
-   gsl_matrix* m = nijmegen.get_matrix(10.0,chns[0]);
-   std::cout << "Printing potential" << std::endl;
-   ph::print_m(m);
-
-   std::cout << "Populate saved matrices..." << std::endl;
-
-   start = std::clock();
-   for (auto chn : chns)
-   {
-      Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
-   }
-   end = std::clock();
+    start = std::clock();
+    for (auto chn : chns)
+    {
+        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+    end = std::clock();
     std::cout << "Time to compute save matrices: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
-   
-   LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
-   
-   
-   start = std::clock();
-   Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
-   Pot.LECs_["C1S0"] = C1S0;
-   Pot.LECs_["C3S1"] = C3S1;
-   
-   unsigned int len = 7;
-   double energies[7] = {10.0,20.0,30.0,50.0,80.0,100.0,150.0};
-
   
+    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+    */
+    // Construct potential and LS-Solver 
+    double Lambda = 5000.0;
+    int l_max = 30;
+    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
    
-   double q_on_shell;
-   double mu;
-   double rho_T;
+    double q_on_shell;
+    double mu;
+    double rho_T;
    
    
-   std::cout << "Solving LS equation..." << std::endl;
-   std::cout << "Tlab (MeV)   |   cross section (mb)" << std::endl;   
-   for (int i = 0; i < len; i++)
-   {
-      double Tl = energies[i];
-      
-      std::vector<Phase_shifts_chn> phases_vec;
-
-      start = std::clock();
-      for (auto chn : chns)
-      {
-         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    std::cout << "Solving LS equation..." << std::endl;
+    std::cout << "Tlab (MeV)   |   cross section (mb)" << std::endl;   
+    
+    const int len = 1;
+    double energies[len] = {10.0};
+    
+    for (int i = 0; i < len; i++)
+    {
+        double Tl = energies[i];
+        // Compute all the phase shifts in the channels
+        std::vector<Phase_shifts_chn> phases_vec;
+        start = std::clock();
+        for (auto chn : chns)
+        {
+            LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
          
-         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
-         //gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+            //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
+            gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
          
-         Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
-         gsl_matrix_free(pot_V_mtx);
-         phases_vec.push_back(phases);
-      }
+            Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+            gsl_matrix_free(pot_V_mtx);
+            phases_vec.push_back(phases);
+        }
+        
+        // Compute the observables
+        std::string obs_string = "I 0000";
+        std::cout << "Observable: " << obs_string << std::endl;
 
-      end = std::clock();
-      std::cout << "Time to compute phase shifts: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
-   
+        for (int ang = 1; ang < 86*2+1; ang++)
+        {
+            double angle = (double)ang/2.0;
+            
+            // Get Saclay amplitudes
+            std::vector<std::complex<double> > saclay_amplitudes;
+
+            LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
+
+            rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+            saclay_amplitudes = compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
+
+            // Compute the observable from the amplitudes
+
+            double obs = compute_observable(saclay_amplitudes, obs_string);
+            std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
+                " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
+            std::cout << angle << "   " << obs << " mb" << std::endl;
+            
+
+            /*
+            // With the M-matrix
+            double obs_M;
+            if (obs_string == "I 0000")
+            {
+                gsl_matrix_complex* M_matrix = get_M_matrix(chns, phases_vec, q_on_shell, angle*M_PI/180.0, rho_T, l_max);
+                gsl_matrix_complex* eig = gsl_matrix_complex_alloc(2,2);
+                gsl_matrix_complex_set_identity(eig);
+                ph::print_m_complex(eig);
+                ph::print_m_complex(M_matrix);
+                obs_M = get_observables(eig,eig,eig,eig,M_matrix); 
+            }            
+            std::cout << angle << "   " << obs_M << " mb" << std::endl; */
+        }
       // Now all the pahse shifts in the relevent channels are known.
       // Now we can compute the total cross section for some on_shell
       // lab energy
 
-      LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
+      //LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
    
-      rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+      //rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
 
-      start = std::clock();
-      double cross_section = compute_total_cross_section(chns,phases_vec,q_on_shell,rho_T,30);
+      //start = std::clock();
+      //double cross_section = compute_total_cross_section(chns,phases_vec,q_on_shell,rho_T,30);
       
       // Compute defferential cross section 
       // ----------------------------------
@@ -366,10 +393,10 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
       // Compute observable from the M-matrix
 
       // ---------------------------------- 
-      end = std::clock();
-      std::cout << "Time to compute cross section: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
+     // end = std::clock();
+      //std::cout << "Time to compute cross section: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
    
-      std::cout << Tl << "\t \t" << cross_section << std::endl;
+      //std::cout << Tl << "\t \t" << cross_section << std::endl;
    } 
 }
 

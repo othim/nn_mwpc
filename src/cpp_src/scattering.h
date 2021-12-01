@@ -55,7 +55,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,st
     forming the amplitudes as certain combinations of them.
 */
 std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell,int l_max);
+    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell,double rho_T, int l_max);
 /*
     This function computes observables from Saclay amplitudes.
     The observables are specified as follows.
@@ -78,7 +78,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
  * and cm scattering angle
  */ 
 gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, double theta,int l_max);
+    std::vector<Phase_shifts_chn> phase_shifts_vec, double q_on_shell, double theta, double rho_T, int l_max);
 
 /*
  * This function computes the observable trace as in 

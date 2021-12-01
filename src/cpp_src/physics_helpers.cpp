@@ -105,7 +105,8 @@ double ph::CG_coeff(int J_2, int M_2, int j1_2, int j2_2, int m1_2, int m2_2)
 
     double wig = wig3jj(j1_2 , j2_2 , J_2 ,
                         m1_2 , m2_2 , -M_2 );
-
+    std::cout << "wig" << wig << std::endl;
+    std::cout << m1_2+ m2_2 + M_2 << std::endl;
     return std::pow(-1.0,j1_2/2.0+j2_2/2.0+M_2/2.0)*std::sqrt(J_2 + 1)*wig;
 } 
 
