@@ -9,6 +9,7 @@
 #define QUANTUM_STATES_H 1
 
 #include <iostream>
+#include <cmath>
 #include <vector>
 #include <map>
 #include <unordered_map>
