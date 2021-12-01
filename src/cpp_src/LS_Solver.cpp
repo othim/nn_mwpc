@@ -160,9 +160,9 @@ gsl_matrix* LS_Solver::setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_ma
     // Scale V by D
     // OLD
     // ---
-    gsl_matrix_scale_columns(V_copy, D_vector);
+    //gsl_matrix_scale_columns(V_copy, D_vector);
     // ---
-    //my_scale_columns(V_copy, D_vector);
+    my_scale_columns(V_copy, D_vector);
 
     // Add V D to F
     gsl_matrix_add(F_mtx,V_copy);

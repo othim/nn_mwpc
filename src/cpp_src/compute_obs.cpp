@@ -38,13 +38,15 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
 
     // Convention factor not needed for 1S0
     double factor = (M_PI/2.0);
-    /*
+/*    
     for (int i = 0; i < 6; i++)
     {
         std::cout << V_arr[i] << " ";        
         // V_arr[i] = factor*V_arr[i];
     }
-    std::cout << std::endl;*/
+    std::cout << std::endl;
+    double a;
+    std::cin >> a;*/
 }
 /*
  * Function declarations
@@ -56,7 +58,7 @@ void compute_observables(std::vector<qs::quantum_channel> chns,unsigned int numb
 
 void create_ext_pot();
 
-void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
+void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot);
 
 void test_f()
@@ -90,7 +92,7 @@ int main(int argc, char** argv)
     // ---------------------------------
     double scale = 200.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 96; // Number of points in angular integration
-    unsigned int number_of_p_points = 200; // Number of momentum-grid points
+    unsigned int number_of_p_points = 100; // Number of momentum-grid points
     unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
     
     // ----- JUST CHOOSE SOME VALUES TO REPRODUCE PHASE SHIFTS WITH -----
@@ -118,7 +120,7 @@ int main(int argc, char** argv)
     
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
-    compute_1S0(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+    check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
     
 
     ph::physics_helpers_free();
@@ -126,7 +128,7 @@ int main(int argc, char** argv)
 }
 
 
-void compute_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
+void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot)
 {
     double* p_grid;
