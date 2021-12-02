@@ -118,13 +118,12 @@ int main(int argc, char** argv)
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
     
-    //check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+    check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
     
-    check_observables(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot);
+    //check_observables(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot);
     ph::physics_helpers_free();
     return 0;
 }
-
 
 void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot)
@@ -161,7 +160,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     double q_on_shell;
     
 
-    for (int c_i = 8; c_i < chns.size(); c_i++)
+    for (int c_i = 0; c_i < chns.size(); c_i++)
     {
     
         qs::quantum_channel chn = chns[c_i]; // 1S0 channel
@@ -247,10 +246,9 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
                 error += std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]); 
             } else 
             {
-
-                double em = std::abs(phases.delta_m*180.0/M_PI- D_delta_m[E-1]);         
-                double ep = std::abs(phases.delta_p*180.0/M_PI- D_delta_p[E-1]);         
-                double eps = std::abs(phases.epsilon*180.0/M_PI- D_eps[E-1]);         
+                double em = std::abs(phases.delta_m*180.0/M_PI - D_delta_m[E-1]);         
+                double ep = std::abs(phases.delta_p*180.0/M_PI   - D_delta_p[E-1]);         
+                double eps = std::abs(phases.epsilon*180.0/M_PI  - D_eps[E-1]);         
                 std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
                 error_m += em;
                 error_p += ep;
