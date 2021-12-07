@@ -163,9 +163,11 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                     // elements of positive m
                     double y_lm;
                     if (-(mi-mo)<0) {
-                        y_lm = std::pow(-1,-(mi-mo))*sph_arr[gsl_sf_legendre_array_index(lo, (mi-mo))];
+                        y_lm = gsl_sf_legendre_sphPlm(lo,(mi-mo), cos_theta);
+                        //y_lm = std::pow(-1,-(mi-mo))*sph_arr[gsl_sf_legendre_array_index(lo, (mi-mo))];
                     } else {
-                        y_lm = sph_arr[gsl_sf_legendre_array_index(lo, -(mi-mo))];
+                        y_lm = std::pow(-1, -(mi-mo))*gsl_sf_legendre_sphPlm(lo,-(mi-mo),cos_theta);
+                        //y_lm = sph_arr[gsl_sf_legendre_array_index(lo, -(mi-mo))];
                     }
 
                     double wig1 = wig3jj(2*  lo , 2*  s , 2*  J ,

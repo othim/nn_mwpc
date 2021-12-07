@@ -118,16 +118,19 @@ int main(int argc, char** argv)
     
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
-    
-    //check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+    if (std::string(argv[1]) == "phase") {
+        check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+    }
     std::complex<double> a =( -1.70140, 8.83681);
     std::complex<double> e = (0.00069, 0.00306);
     std::cout << std::real(std::conj(a)*e) << std::endl;
     
     // Check observables
-    check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"I 0000");
-    //check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P n000");
-    
+    if (std::string(argv[1]) == "DSG") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"I 0000");
+    } else if (std::string(argv[1]) == "PB") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P n000");
+    }
     ph::physics_helpers_free();
     return 0;
 }
@@ -382,8 +385,12 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             phases_vec.push_back(phases);
         }
         
+        std::ofstream myfile;
+        std::string filename = "../../data/out_" + obs_string2 + "_" + std::to_string((int)Tl) + ".txt"; 
+        myfile.open(filename);
+
         // Compute the observables
-        std::cout << "Angle \t obs \t \t abs. rel. error" << std::endl;    
+        std::cout << "Angle \t obs \t correct \t abs. rel. error" << std::endl;    
 
         double errors[180];
         double mean_error = 0;
@@ -407,9 +414,11 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             
             //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
             errors[ang-1] = std::abs((D_obs[ang-1] - obs)/D_obs[ang-1]);
-            std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
-                " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
-            std::cout << angle << "\t" << obs << "\t \t" << errors[ang-1]  << std::endl;
+            //std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
+            //    " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
+            
+            std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
+            myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
             mean_error += errors[ang-1];
 
             /*
@@ -428,7 +437,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         }
         std::cout << "Mean absolute relative error: " << mean_error/180.0  << std::endl;
         std::cout << "Maximum error: " << *(std::max_element(errors, errors + 180)) << std::endl;
-      // Now all the pahse shifts in the relevent channels are known.
+        myfile.close();
+        // Now all the pahse shifts in the relevent channels are known.
       // Now we can compute the total cross section for some on_shell
       // lab energy
 
