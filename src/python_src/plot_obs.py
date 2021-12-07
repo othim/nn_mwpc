@@ -1,0 +1,35 @@
+
+import numpy as np
+import matplotlib.pyplot as plt
+import subprocess
+import sys
+
+# Read the data from the file names
+
+obs_string = sys.argv[1]
+
+path = '../../data/out_' + obs_string
+
+DSG_10  = np.loadtxt(path + '_10.txt')
+DSG_50  = np.loadtxt(path + '_50.txt')
+DSG_200 = np.loadtxt(path + '_200.txt')
+
+fig,ax = plt.subplots(2,1)
+ax[0].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,1],'b')
+ax[0].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,2],'r')
+ax[1].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,3])
+ax[0].set_title('10 MeV')
+
+fig,ax = plt.subplots(2,1)
+ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,1],'b')
+ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,2],'r')
+ax[1].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,3])
+ax[0].set_title('50 MeV')
+
+fig,ax = plt.subplots(2,1)
+ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,1],'b')
+ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,2],'r')
+ax[1].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,3])
+ax[0].set_title('200 MeV')
+
+plt.show()

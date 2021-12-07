@@ -16,10 +16,67 @@
    Department of Physics, Chalmers
 */
 
+#ifndef LS_SOLVER_H
+#define LS_SOLVER_H
+
+#include "pot_nn_mwpc.h"
+#include "gsl_matrix.h"
+#include "gsl_sf_trig.h"
+#include "gsl_blas.h"
+#include "gsl_vector.h"
+#include "gsl_linalg.h"
+#include "quantum_states.h"
+#include "gsl_permutation.h"
+#include "gsl_integration.h" // GL integration
+#include "gsl_complex.h"
+#include "gsl_complex_math.h"
+#include "gsl_matrix_complex_double.h"
+#include <cmath>
+#include "physics_helpers.h"
+
 class LS_Solver
 {
 private:
+   Potential_mwpc* pot_V_;
+
+   // TODO REMOVE NOT USED
+   std::vector<qs::quantum_channel> channels_;
+
+   double* p_grid_;
+   double* w_grid_;
+   std::size_t mom_grid_size_;
+
+   double cutoff_Lambda_;
+   bool cutoff_enabled_;
+
+   bool relcorr_enabled_;
+
+   gsl_vector*  setup_D_vector(double q_on_shell, bool coupled, double mu);
+   gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx);
+  
 
 public:
 
+   LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size=100,
+      double mom_grid_scale=100.0, bool cutoff_enabled_ = true, double cutoff_Lambda_ = 450.0, bool relcorr_enabled = true);
+
+   ~LS_Solver();
+   void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);
+
+   // Returns an array of phase shifts in the convention: ...
+   Phase_shifts_chn solve_in_chn_R(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
+
+
+   gsl_vector_complex* setup_D_vector_complex(double q_on_shell, bool coupled, double mu);
+   gsl_matrix_complex* setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
+   Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
+   
+
+   gsl_matrix_complex* T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho);
+
+  
+
+    static void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell);
 };
+
+#endif
