@@ -253,12 +253,12 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             if (!chn.coupled)
             {
                 std::cout << T_lab << "   " << std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]) << std::endl;
-                error += std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]); 
+                error += std::abs((phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1])/D_delta_uncoupled[E-1]); 
             } else 
             {
-                double em = std::abs(phases.delta_m*180.0/M_PI - D_delta_m[E-1]);         
-                double ep = std::abs(phases.delta_p*180.0/M_PI   - D_delta_p[E-1]);         
-                double eps = std::abs(phases.epsilon*180.0/M_PI  - D_eps[E-1]);         
+                double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
+                double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
+                double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
                 std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
                 error_m += em;
                 error_p += ep;
@@ -269,9 +269,9 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
         std::cout << "Errors: " << error/300 << "   " << error_m/300 << "   " << error_p/300 << "   " << error_eps  << std::endl;
         
         myfile.close();
-        double a;
-        std::cout << "One channel done" << std::endl;
-        std::cin >> a;
+        //double a;
+        //std::cout << "One channel done" << std::endl;
+        //std::cin >> a;
     }
 }
 
@@ -413,12 +413,16 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             double obs = compute_observable(saclay_amplitudes, obs_string);
             
             //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
-            errors[ang-1] = std::abs((D_obs[ang-1] - obs)/D_obs[ang-1]);
-            //std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
-            //    " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
+            if (D_obs[ang-1] != 0) {
+                errors[ang-1] = std::abs((D_obs[ang-1] - obs)/D_obs[ang-1]);
+            } else {
+                errors[ang-1] = 0;
+            }
+            std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
+                " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
             
-            std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
-            myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
+            //std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
+            //myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
             mean_error += errors[ang-1];
 
             /*
