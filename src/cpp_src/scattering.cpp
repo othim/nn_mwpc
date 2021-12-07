@@ -3,7 +3,7 @@
 
 /*
     This function computes the on-shell T-matrix elements from a vector of
-    phase shifts. Phase shifts are in the Stapp convention
+    phase shifts. Phase shifts are in the Stapp convention.
 */
 std::vector<std::complex<double>*> T_from_phase_shifts(std::vector<Phase_shifts_chn> phases, std::vector<qs::quantum_channel> chns_vec,double rho_T)
 {
