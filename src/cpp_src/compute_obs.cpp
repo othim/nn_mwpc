@@ -15,6 +15,7 @@
 #include "scattering.h"
 #include "physics_helpers.h"
 #include "pot_ext.h"
+#include <algorithm>
 /*
  * This function can be called if this file is linked with 
  * the .o files from the fortran libray compiled.
@@ -50,8 +51,8 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
  * Function declarations
  */
 
-void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
-   unsigned int J_max_in_pot,double scale);
+void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double scale, std::string obs_string);
 
 void create_ext_pot();
 
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 5;
+    int J_max = 9;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -118,9 +119,15 @@ int main(int argc, char** argv)
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
     
-    check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+    //check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+    std::complex<double> a =( -1.70140, 8.83681);
+    std::complex<double> e = (0.00069, 0.00306);
+    std::cout << std::real(std::conj(a)*e) << std::endl;
     
-    //check_observables(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot);
+    // Check observables
+    check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"I 0000");
+    //check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P n000");
+    
     ph::physics_helpers_free();
     return 0;
 }
@@ -265,8 +272,18 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     }
 }
 
-void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
-   unsigned int J_max_in_pot,double scale)
+
+
+void check_observable(std::string observable, double energy, Potential_ext& pot, LS_Solver& LS_Solver)
+{
+
+
+} 
+
+
+
+void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
+   unsigned int J_max_in_pot,double scale,std::string obs_string)
 {
     std::clock_t start, end;   
     // Make grid
@@ -298,6 +315,15 @@ void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number
     Pot.LECs_["C3S1"] = C3S1;
     */
     // Construct potential and LS-Solver 
+
+    // Compute the observables
+    std::string obs_string2;
+
+    if (obs_string == "I 0000") {
+        obs_string2 = "DSG";
+    } else if (obs_string == "P n000") {
+        obs_string2 = "PB";
+    }
     double Lambda = 5000.0;
     int l_max = 30;
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
@@ -307,12 +333,8 @@ void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number
     double mu;
     double rho_T;
    
-   
-    std::cout << "Solving LS equation..." << std::endl;
-    std::cout << "Tlab (MeV)   |   cross section (mb)" << std::endl;   
-    
-    const int len = 1;
-    double energies[len] = {10.0};
+    const int len = 3;
+    double energies[len] = {10.0, 50.0, 200.0};
     
     for (int i = 0; i < len; i++)
     {
@@ -320,6 +342,34 @@ void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number
         // Compute all the phase shifts in the channels
         std::vector<Phase_shifts_chn> phases_vec;
         start = std::clock();
+        std::cout << std::endl << "Testing " + obs_string2 + " with T_lab=" << Tl << " MeV" << std::endl << std::endl;  
+    
+        // Read in the correct file of data
+        std::string data = "../../data/np_" + obs_string2 + "_" + std::to_string((int)Tl) + "_nijm1.txt";   
+        
+        // Open file
+        std::ifstream infile(data);
+        if (infile.is_open())
+        {
+            std::cout << "File" + data + " loaded: OK" << std::endl;
+        } else
+        {
+            std::cout << "File" + data + ": Failed" << std::endl;
+        }
+
+        // Read and save the data to arrays
+        double D_theta[180];
+        double D_obs[180];
+        double theta, obs;
+        int k = 0;
+        while(infile >> theta >> obs)
+        {
+            D_theta[k] = theta;
+            D_obs[k] = obs;
+            k++;
+            //std::cout << obs << std::endl;
+        }
+        
         for (auto chn : chns)
         {
             LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
@@ -333,13 +383,16 @@ void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number
         }
         
         // Compute the observables
-        std::string obs_string = "I 0000";
-        std::cout << "Observable: " << obs_string << std::endl;
+        std::cout << "Angle \t obs \t \t abs. rel. error" << std::endl;    
 
-        for (int ang = 1; ang < 86*2+1; ang++)
+        double errors[180];
+        double mean_error = 0;
+        for (int ang = 1; ang < 181; ang++)
         {
-            double angle = (double)ang/2.0;
-            
+            double angle = (double)ang;
+            if (ang == 90) {
+                angle = 90.01;
+            }
             // Get Saclay amplitudes
             std::vector<std::complex<double> > saclay_amplitudes;
 
@@ -351,10 +404,13 @@ void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number
             // Compute the observable from the amplitudes
 
             double obs = compute_observable(saclay_amplitudes, obs_string);
+            
+            //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
+            errors[ang-1] = std::abs((D_obs[ang-1] - obs)/D_obs[ang-1]);
             std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
                 " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
-            std::cout << angle << "   " << obs << " mb" << std::endl;
-            
+            std::cout << angle << "\t" << obs << "\t \t" << errors[ang-1]  << std::endl;
+            mean_error += errors[ang-1];
 
             /*
             // With the M-matrix
@@ -370,6 +426,8 @@ void check_observables(std::vector<qs::quantum_channel> chns,unsigned int number
             }            
             std::cout << angle << "   " << obs_M << " mb" << std::endl; */
         }
+        std::cout << "Mean absolute relative error: " << mean_error/180.0  << std::endl;
+        std::cout << "Maximum error: " << *(std::max_element(errors, errors + 180)) << std::endl;
       // Now all the pahse shifts in the relevent channels are known.
       // Now we can compute the total cross section for some on_shell
       // lab energy
