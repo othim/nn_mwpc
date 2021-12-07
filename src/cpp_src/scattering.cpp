@@ -257,7 +257,9 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
     std::complex<double> e = (imag_u/std::sqrt(2))*(M_p0 - M_0p);  
     
     double fac = std::sqrt(constants::MeVm2_to_mbarn);
-    //std::cout << "M_pp: " << M_pp*fac << "M_10: " << M_p0*fac << " M_01:" << M_0p*fac << std::endl;
+    
+    //std::cout << "M_00: " << M_00*fac << " M_pm: " << M_pm*fac << " M_s: " << M_s*fac << std::endl;
+    //std::cout << "M_pp: " << M_pp*fac << " M_10: " << M_p0*fac << " M_01:" << M_0p*fac << std::endl;
     
     std::vector<std::complex<double> > sac_amp;
     
@@ -280,121 +282,121 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
     std::complex<double> d = sac_amp[3];
     std::complex<double> e = sac_amp[4];
     
-   
+    double DSG = (1.0/2.0)*(std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
+            + std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e));
     if (obs == "I 0000" || obs == "C nnnn")
     {
-        return (1.0/2.0)*(std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
-            + std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e));
+        return DSG;
     } else if (obs == "C nn00" || obs == "A 00nn")
     {
-        return (1.0/2.0)*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
+        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
             + std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e);
     } else if (obs == "D n0n0" || obs == "D 0n0n")
     {
-        return (1.0/2.0)*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
+        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
             - std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e);
     } else if (obs == "K 0nn0" || obs == "K n00n")
     {
-        return (1.0/2.0)*std::abs(a)*std::abs(a) - std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
+        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) - std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
             - std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e);
     } else if (obs == "C llll" || obs == "C mmmm")
     {
-        return (1.0/2.0)*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
+        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
             + std::abs(d)*std::abs(d) - std::abs(e)*std::abs(e);
     } else if (obs == "P n000" || obs == "P 0n00" || obs == "A 00n0" || obs == "A 000n" 
         || obs == "C nnn0" || obs == "C nn0n" || obs == "M n0nn" || obs == "N 0nnn")
     {
-        return std::real(std::conj(a)*e);
+        return std::real(std::conj(a)*e)/DSG;
     } else if (obs == "C lllm" || obs == "C llml" || obs == "C lmmm" || obs == "C mlmm")
     {
-        return std::imag(std::conj(a)*e);
+        return std::imag(std::conj(a)*e)/DSG;
     } else if (obs == "C lmll" || obs == "C mlll" || obs == "C mmlm" || "C mmml")
     {
-        return -std::imag(std::conj(a)*e);
+        return -std::imag(std::conj(a)*e)/DSG;
     } else if (obs == "C lnl0" || obs == "C mnm0" || obs == "C nl0l" || obs == "C nm0m" ||
         obs == "M m0mn" || obs == "N 0lnl" || obs == "N 0mnm")
     {
-        return std::real(std::conj(b)*e);
+        return std::real(std::conj(b)*e)/DSG;
     } else if (obs == "D l0m0" || obs == "D 0l0m" || obs == "C nlnm" || obs == "C lnmn")
     {
-        return std::imag(std::conj(b)*e);
+        return std::imag(std::conj(b)*e)/DSG;
     } else if (obs == "D m0l0" || obs == "D 0m0l" || obs == "C mnln" || obs == "C nmnl")
     {
-        return -std::imag(std::conj(b)*e);
+        return -std::imag(std::conj(b)*e)/DSG;
     } else if (obs == "C nll0" || obs == "C nmm0" || obs == "C ln0l" || obs == "C mn0m" 
         || obs =="M l0nl" || obs == "M m0nm" || obs == "N 0lln" || obs =="N 0mmn")
     {
-        return std::real(std::conj(c)*e);
+        return std::real(std::conj(c)*e)/DSG;
     } else if (obs == "K 0lm0" || obs == "K l00m" || obs == "C nlmn" || obs == "C lnnm")
     {
-            return std::imag(std::conj(c)*e);
+            return std::imag(std::conj(c)*e)/DSG;
     } else if (obs == "K m00l" || obs == "K 0ml0" || obs == "C mnnl" || obs == "C nmln")
     {
-        return -std::imag(std::conj(c)*e);
+        return -std::imag(std::conj(c)*e)/DSG;
     } else if (obs == "C lln0" || obs == "C ll0n" || obs =="M n0ll" || obs == "N 0nll")
     {
-            return -std::real(std::conj(d)*e); // OBS
+            return -std::real(std::conj(d)*e)/DSG; // OBS
     } else if (obs == "C mmn0" || obs == "C mm0n" || obs == "M n0mm" || obs == "N 0nmm")
     {
-            return std::real(std::conj(d)*e); // OBS
+            return std::real(std::conj(d)*e)/DSG; // OBS
     } else if (obs == "C lm00" || obs == "C ml00" || obs == "C mlnn" || obs == "C lmnn")
     {
-        return std::imag(std::conj(d)*e);
+        return std::imag(std::conj(d)*e)/DSG;
     } else if (obs == "A 00lm" || obs == "A 00ml" || obs == "C nnml" || obs == "C nnlm")
     {
-            return -std::imag(std::conj(d)*e);
+            return -std::imag(std::conj(d)*e)/DSG;
     } else if (obs == "D m0m0" || obs == "D 0m0m" || obs == "C nlnl" || obs == "C lnln")
     {
-        return std::real(std::conj(a)*b + std::conj(c)*d);
+        return std::real(std::conj(a)*b + std::conj(c)*d)/DSG;
     } else if (obs =="C mnl0" || obs == "C nm0l")
     {
-        return std::imag(std::conj(a)*b + std::conj(c)*d);
+        return std::imag(std::conj(a)*b + std::conj(c)*d)/DSG;
     } else if (obs == "M l0mn" || obs == "N 0lnm")
     {
-        return -std::imag(std::conj(a)*b + std::conj(c)*d);
+        return -std::imag(std::conj(a)*b + std::conj(c)*d)/DSG;
     } else if (obs == "D l0l0" || obs == "D 0l0l" || obs == "C nmnm" || obs == "C mnmn")
     {
-        return std::real(std::conj(a)*b - std::conj(c)*d);
+        return std::real(std::conj(a)*b - std::conj(c)*d)/DSG;
     } else if (obs == "C lnm0" || obs == "C nl0m")
     {
-        return -std::imag(std::conj(a)*b - std::conj(c)*d);
+        return -std::imag(std::conj(a)*b - std::conj(c)*d)/DSG;
     } else if (obs == "M m0ln" || obs == "N 0mnl")
     {
-        return std::imag(std::conj(a)*b - std::conj(c)*d);
+        return std::imag(std::conj(a)*b - std::conj(c)*d)/DSG;
     } else if (obs == "K 0mm0" || obs == "K m00m" || obs == "C nlln" || obs == "C lnnl")
     {
-        return std::real(std::conj(a)*c + std::conj(b)*d);
+        return std::real(std::conj(a)*c + std::conj(b)*d)/DSG;
 
     } else if (obs == "C nlm0" || obs == "C ln0m")
     {
-        return -std::imag(std::conj(a)*c - std::conj(b)*d);
+        return -std::imag(std::conj(a)*c - std::conj(b)*d)/DSG;
     } else if (obs == "M m0nl" || obs == "N 0mln")
     {
-        return std::imag(std::conj(a)*c - std::conj(b)*d);
+        return std::imag(std::conj(a)*c - std::conj(b)*d)/DSG;
     } else if (obs == "C mm00" || obs == "A 00mm")
     {
-        return std::real(std::conj(a)*d + std::conj(b)*c);
+        return std::real(std::conj(a)*d + std::conj(b)*c)/DSG;
     } else if (obs == "C nnll" || obs == "C llnn")
     {
-        return -std::real(std::conj(a)*d + std::conj(b)*c);
+        return -std::real(std::conj(a)*d + std::conj(b)*c)/DSG;
     } else if (obs == "C lmn0" || obs == "C ml0n")
     {
-        return -std::imag(std::conj(a)*d + std::conj(b)*c);
+        return -std::imag(std::conj(a)*d + std::conj(b)*c)/DSG;
     } else if (obs =="M n0lm" || obs == "N 0nml") 
     {
-        return std::imag(std::conj(a)*d + std::conj(b)*c);
+        return std::imag(std::conj(a)*d + std::conj(b)*c)/DSG;
     } else if (obs == "C ll00" || obs == "A 00ll")
     {
-        return -std::real(std::conj(a)*d - std::conj(b)*c);
+        return -std::real(std::conj(a)*d - std::conj(b)*c)/DSG;
     } else if (obs == "C mmnn" || obs == "C nnmm")
     {
-        return std::real(std::conj(a)*d - std::conj(b)*c);
+        return std::real(std::conj(a)*d - std::conj(b)*c)/DSG;
     } else if (obs == "C mln0" || obs == "C lm0n")
     {
-        return -std::imag(std::conj(a)*d - std::conj(b)*c);
+        return -std::imag(std::conj(a)*d - std::conj(b)*c)/DSG;
     } else if (obs == "M n0ml" || obs == "N 0nlm")
     {
-        return std::imag(std::conj(a)*d - std::conj(b)*c);
+        return std::imag(std::conj(a)*d - std::conj(b)*c)/DSG;
     }           
 }
 

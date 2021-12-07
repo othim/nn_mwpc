@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     //std::cin >> a;
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
-    double scale = 200.0; // Scale of momenutm grid MeV
+    double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 96; // Number of points in angular integration
     unsigned int number_of_p_points = 100; // Number of momentum-grid points
     unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
@@ -241,6 +241,8 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
          
             Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,pot_V_mtx);
+            //Phase_shifts_chn phases = solver.solve_in_chn_T(T_lab,chn,pot_V_mtx);
+            
             gsl_matrix_free(pot_V_mtx);
          
             //std::cout << T_lab << "   " << phases.delta_uncoupled*180.0/M_PI << 
@@ -380,7 +382,9 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
             gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
          
-            Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+            //Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+            Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+            
             gsl_matrix_free(pot_V_mtx);
             phases_vec.push_back(phases);
         }
@@ -398,7 +402,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         {
             double angle = (double)ang;
             if (ang == 90) {
-                angle = 90.01;
+                angle = 90.001;
             }
             // Get Saclay amplitudes
             std::vector<std::complex<double> > saclay_amplitudes;
@@ -418,11 +422,11 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             } else {
                 errors[ang-1] = 0;
             }
-            std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
-                " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
+            //std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
+            //    " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
             
-            //std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
-            //myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
+            std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
+            myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
             mean_error += errors[ang-1];
 
             /*
