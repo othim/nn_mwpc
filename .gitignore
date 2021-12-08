@@ -5,6 +5,5 @@
 !*/
 
 .DS_Store
-data/
 *.o
 *.a
