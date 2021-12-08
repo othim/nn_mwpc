@@ -284,25 +284,30 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
     
     double DSG = (1.0/2.0)*(std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
             + std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e));
+    
+    std::cout << "<" << obs << ">" << std::endl;
+
+    //return (std::real(std::conj(a)*d + std::conj(b)*c))/DSG;
     if (obs == "I 0000" || obs == "C nnnn")
     {
+        //std::cout << "hello" << std::endl;
         return DSG;
     } else if (obs == "C nn00" || obs == "A 00nn")
     {
-        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
-            + std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e);
+        return (1.0/(2.0*DSG))*(std::abs(a)*std::abs(a) - std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
+            + std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e));
     } else if (obs == "D n0n0" || obs == "D 0n0n")
     {
-        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
-            - std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e);
+        return (1.0/(2.0*DSG))*(std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) - std::abs(c)*std::abs(c)
+            - std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e));
     } else if (obs == "K 0nn0" || obs == "K n00n")
     {
-        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) - std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
-            - std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e);
+        return (1.0/(2.0*DSG))*(std::abs(a)*std::abs(a) - std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
+            - std::abs(d)*std::abs(d) + std::abs(e)*std::abs(e));
     } else if (obs == "C llll" || obs == "C mmmm")
     {
-        return (1.0/(2.0*DSG))*std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
-            + std::abs(d)*std::abs(d) - std::abs(e)*std::abs(e);
+        return (1.0/(2.0*DSG))*(std::abs(a)*std::abs(a) + std::abs(b)*std::abs(b) + std::abs(c)*std::abs(c)
+            + std::abs(d)*std::abs(d) - std::abs(e)*std::abs(e));
     } else if (obs == "P n000" || obs == "P 0n00" || obs == "A 00n0" || obs == "A 000n" 
         || obs == "C nnn0" || obs == "C nn0n" || obs == "M n0nn" || obs == "N 0nnn")
     {
@@ -310,7 +315,7 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
     } else if (obs == "C lllm" || obs == "C llml" || obs == "C lmmm" || obs == "C mlmm")
     {
         return std::imag(std::conj(a)*e)/DSG;
-    } else if (obs == "C lmll" || obs == "C mlll" || obs == "C mmlm" || "C mmml")
+    } else if (obs == "C lmll" || obs == "C mlll" || obs == "C mmlm" || obs == "C mmml")
     {
         return -std::imag(std::conj(a)*e)/DSG;
     } else if (obs == "C lnl0" || obs == "C mnm0" || obs == "C nl0l" || obs == "C nm0m" ||
@@ -372,10 +377,11 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
         return -std::imag(std::conj(a)*c - std::conj(b)*d)/DSG;
     } else if (obs == "M m0nl" || obs == "N 0mln")
     {
-        return std::imag(std::conj(a)*c - std::conj(b)*d)/DSG;
+        return (std::imag(std::conj(a)*c - std::conj(b)*d))/DSG;
     } else if (obs == "C mm00" || obs == "A 00mm")
     {
-        return std::real(std::conj(a)*d + std::conj(b)*c)/DSG;
+        //std::cout << "here" << std::endl;
+        return (std::real(std::conj(a)*d + std::conj(b)*c))/DSG;
     } else if (obs == "C nnll" || obs == "C llnn")
     {
         return -std::real(std::conj(a)*d + std::conj(b)*c)/DSG;
@@ -397,7 +403,10 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
     } else if (obs == "M n0ml" || obs == "N 0nlm")
     {
         return std::imag(std::conj(a)*d - std::conj(b)*c)/DSG;
-    }           
+    } else {
+        std::cout << "Unknown observable" << std::endl;
+        return 0;
+    }    
 }
 
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 

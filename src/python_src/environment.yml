@@ -1,0 +1,23 @@
+name: nn-mwpc-env
+channels:
+- conda-forge
+dependencies:
+- python=3.7
+- cython
+- numpy
+- scipy
+- matplotlib
+- pandas
+- seaborn
+- jupyter
+- ipywidgets
+- nbdime
+- emcee
+- corner
+- mkl-service
+- scikit-learn
+- scikit-image
+- pip
+- pip:
+  - gpy
+  - gpyopt

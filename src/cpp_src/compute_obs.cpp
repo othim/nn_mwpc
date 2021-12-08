@@ -94,9 +94,9 @@ int main(int argc, char** argv)
     unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
     
     // ----- JUST CHOOSE SOME VALUES TO REPRODUCE PHASE SHIFTS WITH -----
-    static double Lambda	= 450; 		  // cut-off for renormalization of LO  [MeV]
-    static double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
-    static double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    //static double Lambda	= 450; 		  // cut-off for renormalization of LO  [MeV]
+    //static double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    //static double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
     
     // Do precomputations
     ph::physics_helpers_init();
@@ -121,15 +121,19 @@ int main(int argc, char** argv)
     if (std::string(argv[1]) == "phase") {
         check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
     }
-    std::complex<double> a =( -1.70140, 8.83681);
-    std::complex<double> e = (0.00069, 0.00306);
-    std::cout << std::real(std::conj(a)*e) << std::endl;
+    //std::complex<double> a =( -1.70140, 8.83681);
+    //std::complex<double> e = (0.00069, 0.00306);
+    //std::cout << std::real(std::conj(a)*e) << std::endl;
     
     // Check observables
     if (std::string(argv[1]) == "DSG") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"I 0000");
     } else if (std::string(argv[1]) == "PB") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P n000");
+    } else if (std::string(argv[1]) == "CKK") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"A 00mm");
+    } else if (std::string(argv[1]) == "AYY") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"C nn00");
     }
     ph::physics_helpers_free();
     return 0;
@@ -290,7 +294,7 @@ void check_observable(std::string observable, double energy, Potential_ext& pot,
 void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
    unsigned int J_max_in_pot,double scale,std::string obs_string)
 {
-    std::clock_t start, end;   
+    //std::clock_t start, end;   
     // Make grid
     double* p_grid;
     double* w_grid;
@@ -328,7 +332,12 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = "DSG";
     } else if (obs_string == "P n000") {
         obs_string2 = "PB";
+    } else if (obs_string == "A 00mm") {
+        obs_string2 = "CKK";
+    } else if (obs_string == "C nn00") {
+        obs_string2 = "AYY";
     }
+
     double Lambda = 5000.0;
     int l_max = 30;
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
@@ -346,7 +355,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         double Tl = energies[i];
         // Compute all the phase shifts in the channels
         std::vector<Phase_shifts_chn> phases_vec;
-        start = std::clock();
+        //start = std::clock();
         std::cout << std::endl << "Testing " + obs_string2 + " with T_lab=" << Tl << " MeV" << std::endl << std::endl;  
     
         // Read in the correct file of data
@@ -422,8 +431,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             } else {
                 errors[ang-1] = 0;
             }
-            //std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
-            //    " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
+            std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
+               " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
             
             std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
             myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
@@ -469,6 +478,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
       // ---------------------------------- 
      // end = std::clock();
       //std::cout << "Time to compute cross section: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
+
    
       //std::cout << Tl << "\t \t" << cross_section << std::endl;
    } 
