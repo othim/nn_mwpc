@@ -17,6 +17,7 @@ dependencies:
 - mkl-service
 - scikit-learn
 - scikit-image
+- pybind11
 - pip
 - pip:
   - gpy
