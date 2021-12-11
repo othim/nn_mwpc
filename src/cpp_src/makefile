@@ -5,8 +5,12 @@ CC = g++
 
 # For mac
 CFLAGS2 = -Wall -ggdb -std=c++11
-CFLAGS  = -Wall -ggdb -std=c++11 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+#CFLAGS  = -Wall -ggdb -std=c++11 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
 LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/ 
+
+# For SO
+CFLAGS = -Wall -fPIC -std=c++11 -I/opt/anaconda3/envs/nn-mwpc-env/include -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+
 
 # For Linux
 #CFLAGS2 = -Wall -ggdb -std=c++11
@@ -27,6 +31,14 @@ main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o phys
 
 run: main
 	./main
+
+FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
+
+so: $(FILES_SO)
+	$(CC) -Wall -std=c++11 -shared -undefined dynamic_lookup $(LDFLAGS) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so
+
+pybind_interface.o: pybind_interface.h pybind_interface.cpp
+	$(CC) $(CFLAGS) -c pybind_interface.cpp
 
 compute_obs.o: compute_obs.cpp
 	$(CC) $(CFLAGS) -c compute_obs.cpp
@@ -57,4 +69,4 @@ pot_ext.o: pot_ext.h
 
 
 clean:
-	rm main pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o pot_ext.o compute_obs.o
+	rm main nn_mwpc.so pybind11_interface.o compute_obs.o pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o pot_ext.o compute_obs.o
