@@ -11,8 +11,18 @@
 #define PYBIND11_INTERFACE
 // includes
 #include "pybind11/pybind11.h"
+#include <algorithm>
 #include <iostream>
+#include <ctime>
 
+#include "pot_nn_mwpc.h"
+#include "quantum_states.h"
+#include "LS_Solver.h"
+#include "gsl_sf_legendre.h" 
+#include "gsl_integration.h" 
+#include "scattering.h"
+#include "physics_helpers.h"
+#include "pot_ext.h"
 
 /* This class will be acessed from python through the bindings in pybind11.
  * The pybind code will be written in sucha a way that C++ will always have
@@ -44,7 +54,7 @@ public:
     nn_mwpc_interface(int J);
     //~nn_mwpc_interface();
 
-    //double* compute_phase_shifts();
+    double* compute_phase_shifts();
     
     double compute_obs();
 
