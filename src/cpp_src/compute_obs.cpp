@@ -338,7 +338,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = "AYY";
     }
 
-    double Lambda = 5000.0;
+    double Lambda = 10000.0;
     int l_max = 30;
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
     LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);

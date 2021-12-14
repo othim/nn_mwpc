@@ -121,7 +121,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
         double a;
         std::cin >> a;
     }*/
-    gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM,l_max,cos_theta,-1,sph_arr);
+    gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM,l_max,cos_theta,1,sph_arr);
 
     std::complex<double> result = 0;
     
@@ -163,11 +163,12 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                     // elements of positive m
                     double y_lm;
                     if (-(mi-mo)<0) {
-                        y_lm = gsl_sf_legendre_sphPlm(lo,(mi-mo), cos_theta);
-                        //y_lm = std::pow(-1,-(mi-mo))*sph_arr[gsl_sf_legendre_array_index(lo, (mi-mo))];
+                        //y_lm = gsl_sf_legendre_sphPlm(lo,(mi-mo), cos_theta);
+                        y_lm = std::pow(-1,(mi-mo))*sph_arr[gsl_sf_legendre_array_index(lo, (mi-mo))];
                     } else {
-                        y_lm = std::pow(-1, -(mi-mo))*gsl_sf_legendre_sphPlm(lo,-(mi-mo),cos_theta);
-                        //y_lm = sph_arr[gsl_sf_legendre_array_index(lo, -(mi-mo))];
+                        //y_lm = std::pow(-1, -(mi-mo))*gsl_sf_legendre_sphPlm(lo,-(mi-mo),cos_theta);
+                        
+                        y_lm = sph_arr[gsl_sf_legendre_array_index(lo, -(mi-mo))];
                     }
 
                     double wig1 = wig3jj(2*  lo , 2*  s , 2*  J ,
@@ -203,11 +204,13 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                     std::cout << "wig1: " <<  wig1 << std::endl;
                     std::cout << "wig2: " << wig2 << std::endl;*/
                     
+                    // OLD
                     std::complex<double> add = std::pow(imag_u,(li-lo)) * (std::complex<double>) (2.0*J+1)*sqrt(2*li+1)*y_lm*wig1*wig2*T_el;
-                    //std::complex<double> add =  (std::complex<double>) (2.0*J+1)*sqrt(2*li+1)*y_lm*wig1*wig2*T_el;
-                    //std::cout << "add: " << add << std::endl;
+                    // ---
+                    
+                    //std::complex<double> add = std::pow(imag_u,(li-lo)) * (std::complex<double>) (2.0*J+1)*sqrt(1/(4*M_PI))*y_lm*wig1*wig2*T_el;
+                    
                     result += add;
-                    //std::cout << "Result" << result << std::endl;
                 } // end if
             } // end loop over (lo,li)
         } // end S=s
