@@ -52,7 +52,7 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
  */
 
 void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
-   unsigned int J_max_in_pot,double scale, std::string obs_string);
+   unsigned int J_max_in_pot,double scale, std::string obs_string, bool ope_J_geq9);
 
 void create_ext_pot();
 
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 96; // Number of points in angular integration
     unsigned int number_of_p_points = 100; // Number of momentum-grid points
-    unsigned int J_max_in_pot = 40; // Maximum J that is stored for L-polynomials
+    unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     
     // ----- JUST CHOOSE SOME VALUES TO REPRODUCE PHASE SHIFTS WITH -----
     //static double Lambda	= 450; 		  // cut-off for renormalization of LO  [MeV]
@@ -104,12 +104,14 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 9;
+    int J_max =8;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
     bool print = true;
-
+    bool OPE_inclue = true;
+    
+    
     std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
      
     // Construct the quantum scattering channels from the states
@@ -127,13 +129,13 @@ int main(int argc, char** argv)
     
     // Check observables
     if (std::string(argv[1]) == "DSG") {
-        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"I 0000");
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"I 0000", OPE_inclue);
     } else if (std::string(argv[1]) == "PB") {
-        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P n000");
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P n000", OPE_inclue);
     } else if (std::string(argv[1]) == "CKK") {
-        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"A 00mm");
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"A 00mm", OPE_inclue);
     } else if (std::string(argv[1]) == "AYY") {
-        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"C nn00");
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"C nn00", OPE_inclue);
     }
     ph::physics_helpers_free();
     return 0;
@@ -292,7 +294,7 @@ void check_observable(std::string observable, double energy, Potential_ext& pot,
 
 
 void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
-   unsigned int J_max_in_pot,double scale,std::string obs_string)
+   unsigned int J_max_in_pot,double scale,std::string obs_string, bool ope_J_geq_9)
 {
     //std::clock_t start, end;   
     // Make grid
@@ -300,8 +302,10 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     double* w_grid;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
-    // Choose terms in the potential, LO WPC
-    /*
+    double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    // Choose terms in LO WPC potential
+    
     std::vector<std::string> terms;
     terms.push_back("OPEP"); // To just test elements use just OPEP
     terms.push_back("C1S0");
@@ -309,21 +313,37 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 
     Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
    
-    std::cout << "Populate saved matrices..." << std::endl;
-
-    start = std::clock();
     for (auto chn : chns)
     {
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
-    end = std::clock();
-    std::cout << "Time to compute save matrices: " << 1e3*(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
   
     Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
-    */
+
     // Construct potential and LS-Solver 
+
+    // Choose terms in OPE potential
+    
+    double Lambda = 10000.0;
+    int l_max = 50;
+    std::vector<std::string> terms2;
+    terms2.push_back("OPEP"); // To just test elements use just OPEP
+
+    Potential_mwpc OPE = Potential_mwpc(terms2,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda);
+  
+    
+    for (auto chn : chns)
+    {
+        if (chn.J > 9)
+        {
+            OPE.populate_saved_mtx(chn,true); // Realtivistic factor on
+        }
+    }
+  
+    //OPE.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+    OPE.LECs_["gA2"]  = 1.1*1.1; // Set correct LEC
 
     // Compute the observables
     std::string obs_string2;
@@ -338,8 +358,6 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = "AYY";
     }
 
-    double Lambda = 10000.0;
-    int l_max = 30;
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
     LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
    
@@ -348,7 +366,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     double rho_T;
    
     const int len = 3;
-    double energies[len] = {10.0, 50.0, 200.0};
+    //double energies[len] = {10.0, 50.0, 200.0};
+    double energies[len] = {125.0, 200.0, 350.0};
     
     for (int i = 0; i < len; i++)
     {
@@ -387,10 +406,23 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         for (auto chn : chns)
         {
             LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-         
+                      
             //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
-            gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
-         
+            
+            gsl_matrix* pot_V_mtx;
+            if (ope_J_geq_9)
+            {
+                if (chn.J < 10)
+                {
+                    pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+                } else 
+                {
+                    pot_V_mtx = OPE.get_saved_matrix(q_on_shell, chn, true);
+                }
+            } else
+            {
+                pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+            }
             //Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
             Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
             

@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iostream>
 #include <ctime>
+#include <string>
 
 #include "pot_nn_mwpc.h"
 #include "quantum_states.h"
@@ -49,14 +50,27 @@ class nn_mwpc_interface
 private:
 /* Here variables that needs to be initialized are stored
  */
-    int J_;
-public:
-    nn_mwpc_interface(int J);
-    //~nn_mwpc_interface();
+    // Constants
+    double scale_;
+    int ang_int_points_;
+    int number_of_p_points_;
+    int J_max_in_pot_;   
 
-    double* compute_phase_shifts();
+    // Objects 
+    Potential_mwpc Pot_;
+    Potential_ext Pot_ext_;
+
+    LS_Solver LS_Solver_;
+
+    std::vetor<qs::quantum_channel> Chns_;
+public:
+    nn_mwpc_interface(const std::string& model_name);
+    ~nn_mwpc_interface();
     
-    double compute_obs();
+    //std::vector<double> compute_phase_shifts();
+    
+    std::vector<double> compute_observable(const std::string& name, 
+            std::vector<double> angles, double T_lab);
 
     //std::string print_settings();
 };
@@ -69,7 +83,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(nn_mwpc, m) 
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<int>())
-        .def("compute_obs", &nn_mwpc_interface::compute_obs);
+        .def(py::init<int>(const std::string&))
+        .def("compute_obs", &nn_mwpc_interface::compute_observable);
 }
 #endif
