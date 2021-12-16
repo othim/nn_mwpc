@@ -1,5 +1,5 @@
 /*
- * File to compute observalbes
+ * File to compute observalbes and check the speed of the code.
  */
 
 
@@ -37,15 +37,6 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
     int coup = (int)coupled;
     nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
-/*    
-    for (int i = 0; i < 6; i++)
-    {
-        std::cout << V_arr[i] << " ";        
-        // V_arr[i] = factor*V_arr[i];
-    }
-    std::cout << std::endl;
-    double a;
-    std::cin >> a;*/
 }
 /*
  * Function declarations
@@ -58,6 +49,11 @@ void create_ext_pot();
 
 void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot);
+
+
+void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
+   unsigned int J_max_in_pot);
+
 
 void test_f()
 {
@@ -81,6 +77,7 @@ void test_f()
         std::cout << V_arr[i] << " "; 
     } 
 }
+
 int main(int argc, char** argv)
 {
    // test_f();
@@ -136,6 +133,8 @@ int main(int argc, char** argv)
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"A 00mm", OPE_inclue);
     } else if (std::string(argv[1]) == "AYY") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"C nn00", OPE_inclue);
+    } else if (std::string(argv[1]) == "SPEED") {
+        check_speed(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     }
     ph::physics_helpers_free();
     return 0;
@@ -516,3 +515,144 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
    } 
 }
 
+void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
+{
+    std::cout << "Testing speed of code with LO WPC potential and the observable DSG" << std::endl << std::endl;
+
+    std::clock_t start, end;   
+    
+    // Make grid
+    double* p_grid;
+    double* w_grid;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+    double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    
+    // Choose terms in LO WPC potential
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
+
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    start = std::clock();   
+    for (auto chn : chns)
+    {
+        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+    end = std::clock();
+    std::cout << "Time to save matrices: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
+
+    // Set correct LECs
+    Pot.LECs_["gA2"]  = constants::gA*constants::gA;
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+
+    int l_max = 50;
+    double Lambda = 450.0;
+
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+   
+    double q_on_shell;
+    double mu;
+    double rho_T;
+    
+    double Tl = 50.0; // MeV
+
+    // Compute all the phase shifts in the channels
+    std::vector<Phase_shifts_chn> phases_vec;
+    int count = 0;
+    for (auto chn : chns)
+    {
+        std::cout << "Channel " << count << std::endl;
+        count++;
+        
+        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+        
+        start = std::clock();        
+        Pot.LECs_["C1S0"] = C1S0;
+        Pot.LECs_["C3S1"] = C3S1;
+        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+        end = std::clock();
+        std::cout << "Get V: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
+
+        start = std::clock();   
+        Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+        end = std::clock();
+        std::cout << "Solve LS (T): " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl;
+        
+        start = std::clock();   
+        phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+        end = std::clock();
+        std::cout << "Solve LS (R): " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl << std::endl;
+        
+        gsl_matrix_free(pot_V_mtx);
+        phases_vec.push_back(phases);
+    }
+
+    start = std::clock();
+    for (auto chn : chns)
+    {
+        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+        Pot.LECs_["C1S0"] = C1S0;
+        Pot.LECs_["C3S1"] = C3S1;
+        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+
+        Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+        
+        gsl_matrix_free(pot_V_mtx);
+        phases_vec.push_back(phases);
+    }
+    end = std::clock();
+    std::cout << "Total time to solve LS (T): " << 1e3*(double)(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
+    
+    start = std::clock();
+    for (auto chn : chns)
+    {
+        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+        Pot.LECs_["C1S0"] = C1S0;
+        Pot.LECs_["C3S1"] = C3S1;
+        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+
+        Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+        
+        gsl_matrix_free(pot_V_mtx);
+        phases_vec.push_back(phases);
+    }
+    end = std::clock();
+    std::cout << "Total time to solve LS (R): " << 1e3*(double)(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl << std::endl;
+    // Compute observable for angle 180 angles
+    //start = std::clock();
+    for (int ang = 1; ang < 181; ang++)
+    {
+        double angle = (double)ang;
+        if (ang == 90) {
+            angle = 90.001;
+        }
+        // Get Saclay amplitudes
+        
+        start = std::clock();
+        std::vector<std::complex<double> > saclay_amplitudes;
+        LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
+        rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+        saclay_amplitudes = compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
+        end = std::clock();
+        if (ang == 1) {
+            std::cout << "Get Sac. amp.: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl;
+        } 
+        // Compute the observable from the amplitudes
+        start = std::clock();
+        double obs = compute_observable(saclay_amplitudes, "I 0000");
+        end = std::clock();
+        if (ang == 1) {
+            std::cout << "Compute OBS from Sac. amp.: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl << std::endl;
+        }
+    } 
+    
+    //end = std::clock();
+    //std::cout << "Time calculate OBS for 180 angles: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl;
+}
