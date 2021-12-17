@@ -1,6 +1,7 @@
 #include "scattering.h"
 
-
+namespace sc 
+{
 /*
     This function computes the on-shell T-matrix elements from a vector of
     phase shifts. Phase shifts are in the Stapp convention.
@@ -514,4 +515,6 @@ double get_observables(gsl_matrix_complex* sigma_i_1, gsl_matrix_complex* sigma_
     gsl_matrix_complex_free(tmp);
     // Return 
     return GSL_REAL(t)/4.0; // The normalization factor
+}
+
 }
