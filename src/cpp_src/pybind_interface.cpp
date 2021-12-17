@@ -1,5 +1,6 @@
 #include "pybind_interface.h"
 
+
 nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name, 
         int J_max_chn, double cutoff, bool pre_comp_pot, bool rel_corr)
 {
@@ -24,7 +25,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     // ---------------------------------
 
     // Initialize physics helpers
-    ph::physics_helper_init();
+    ph::physics_helpers_init();
 
     // Construct the quantum states and quantum channels
     std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
@@ -42,7 +43,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     if ("WPC_LO"==model_name)
     {
         // Choose terms in potential
-        std::vector<std::string terms> terms;
+        std::vector<std::string> terms;
         terms.push_back("OPEP");
         terms.push_back("C1S0");
         terms.push_back("C3S1");
@@ -52,17 +53,17 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
                 number_of_p_points_,J_max_in_pot_,cutoff_);
         Pot_ext_ = nullptr;
 
-        if (pre_comp_pot)
+        if (pre_comp_pot_)
         {
             // Save potential
             for (auto chn : chns_)
             {
-                Pot->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
+                Pot_->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
             }
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
                 cutoff_,rel_corr_);
 
     } else
@@ -70,28 +71,106 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         std::cout << "Error, not a valid model_name" << std::endl;
     }
 }
-
+/*
 nn_mwpc_interface::initialize()
 {
-    // Delete all pointers
 }
-
+*/
 nn_mwpc_interface::~nn_mwpc_interface()
 {
-
+    // Delete all pointers
+    delete LS_Solver_;
+    delete Pot_;
+    delete Pot_ext_;
 }
     
 std::vector<double> nn_mwpc_interface::compute_observable(const std::string& name, 
-        std::vector<double> angles, double T_lab, std::vector<double> LECs)
+        std::vector<double> angles, std::vector<double> T_lab, std::vector<double> LECs)
 {
     // Compute phase shifts in all channels for the given energy
-    
-    // For the specified angles (not 90...) 
-    std::vector<double> obs_ang;
-    /*for (int i = 0; i < 1000; i++)
+     
+    // Set the couplings by looping through LECs in use
+    int i = 0;
+    for (auto& it: Pot_->LECs_)
     {
-        obs_ang.push_back((double)i);
-    }*/
+         Pot_->LECs_["it->first"] = LECs[i++];
+    }
+    // Compute the phase shifts with those couplings
+    std::vector<double> obs_vec;
+    double mu, q_on_shell, rho_T;
 
-    return obs_ang;
+    for (auto Tl : T_lab)
+    {
+        std::vector<Phase_shifts_chn> phases_vec = compute_phase_shifts(Tl);
+
+        
+        for (auto ang : angles)
+        {
+            if (std::abs(ang-90.0) < 0.001) {
+                ang = 90.001;
+            }
+            LS_Solver::get_mu_q_on_shell(Tl,chns_[0], &mu,&q_on_shell);
+            rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
+                    (constants::Mn+constants::Mp); // In the convention used in the code
+            
+            std::vector<std::complex<double> > saclay_amplitudes;
+            saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
+                    ang*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+            
+            // Compute the observable from the amplitudes
+            double obs = sc::compute_observable(saclay_amplitudes, name);
+            obs_vec.push_back(obs);
+        } 
+    }
+    /* 
+     * This vector contains the observables in a long array where all the
+     * angles for one energy is in a row.
+     */
+    return obs_vec;
+}
+
+std::string nn_mwpc_interface::print_LECs_in_use()
+{
+    // Print the LECs in the same order as they are set in the compute functions.
+    std::string output;
+    output.append(" Print the LECs in the same order as they are set in the compute functions. \n");
+    for (auto s : Pot_->LECs_in_use_)
+    {
+        output.append(s);
+        output.append("\n");
+    }
+    return output;
+}
+
+std::string nn_mwpc_interface::print_LEC_values()
+{
+    std::string output;
+    output.append("Printing the LECs and their current values. \n");
+    for (auto& it: Pot_->LECs_)
+    {
+         output.append(it.first + " = " +std::to_string(it.second) +  "\n");
+    }
+    return output;
+}
+
+/*
+ * Helper functions
+ */
+
+std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
+{
+    std::vector<Phase_shifts_chn> phases_vec;
+    double mu, q_on_shell, rho_T;
+    for (auto chn : chns_)
+    {
+        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+        
+        gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+
+        Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(Tl,chn,pot_V_mtx);
+        
+        gsl_matrix_free(pot_V_mtx);
+        phases_vec.push_back(phases);
+    }
+    return phases_vec;
 }

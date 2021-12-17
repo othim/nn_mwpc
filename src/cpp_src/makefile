@@ -5,11 +5,11 @@ CC = g++
 
 # For mac
 CFLAGS2 = -Wall -std=c++11 -O3
-CFLAGS  = -Wall -std=c++11 -O3 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+#CFLAGS  = -Wall -std=c++11 -O3 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
 LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/ 
 
 # For SO
-#CFLAGS = -Wall -fPIC -ggdb -std=c++11 -I/opt/anaconda3/envs/nn-mwpc-env/include -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+CFLAGS = -Wall -fPIC -O3 -std=c++11 -I/opt/anaconda3/envs/nn-mwpc-env/include -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
 
 
 # For Linux
@@ -27,7 +27,7 @@ NN_MWPC_FILES = compute_obs.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o 
 #If you want to profile with gprof you need to link with that library 
 
 obs: compute_obs.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran -g 
+	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran -g -lboost_python37 
 
 main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 	$(CC) $(CFLAGS2) -o main $(LDFLAGS) test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o -lgsl -lcblas -lgslcblas -lwigxjpf -lm -lgfortran

@@ -21,6 +21,10 @@
 #include <iostream>
 #include "gsl_matrix.h"
 
+namespace sc 
+{
+    
+
 /*
     This function computes the M-matrix elements from phase shifts.
     (The M/K-matrix is basically just a matrix of scattering amplitudes)
@@ -90,4 +94,4 @@ gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
         gsl_matrix_complex* M_matrix);
 
 
-
+}

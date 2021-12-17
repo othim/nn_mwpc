@@ -56,24 +56,26 @@ private:
     int ang_int_points_;
     int number_of_p_points_;
     int J_max_in_pot_;   
-
+    bool rel_corr_;
     // Objects 
     Potential_mwpc* Pot_;
     Potential_ext* Pot_ext_;
 
     LS_Solver* LS_Solver_;
 
-    std::vector<qs::quantum_channel> Chns_;
+    std::vector<qs::quantum_channel> chns_;
+
+    std::vector<Phase_shifts_chn> compute_phase_shifts(double Tl);
 public:
-    nn_mwpc_interface(const std::string& model_name, double scale_gl_grid, 
-            int gl_grid_size, int ang_int_size, int J_max_in_pot, int J_max_chn, 
-            bool pre_comp_pot);
+    nn_mwpc_interface(const std::string& model_name, int J_max_chn, double cutoff,
+            bool pre_comp_pot, bool rel_corr);
     ~nn_mwpc_interface();
     
     std::vector<double> compute_observable(const std::string& name, 
-            std::vector<double> angles, double T_lab, std::vector<double> LECs);
+            std::vector<double> angles, std::vector<double> T_lab, std::vector<double> LECs);
 
-    //std::string print_settings();
+    std::string print_LECs_in_use();
+    std::string print_LEC_values();
 };
 /* Here is the code for the pybind11 interface
  */
@@ -83,9 +85,11 @@ namespace py = pybind11;
 PYBIND11_MODULE(nn_mwpc, m) 
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<const std::string&,double,int,int,int,int>())
+        .def(py::init<const std::string&,int,double,bool,bool>())
         .def("compute_observable", &nn_mwpc_interface::compute_observable,
-                py::return_value_policy::copy);
+                py::return_value_policy::copy)
+        .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,py::return_value_policy::copy)
+        .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, py::return_value_policy::copy);
 }
 
 #endif

@@ -66,7 +66,7 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,
     
     // Call get_M_Matrix_T
     //return std::complex<double>(0,0);
-    return get_M_matrix_T(chns_vec,T_vec,q_on_shell,s,mo,mi,cos_theta,l_max);
+    return sc::get_M_matrix_T(chns_vec,T_vec,q_on_shell,s,mo,mi,cos_theta,l_max);
 }
 
 /*

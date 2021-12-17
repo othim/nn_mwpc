@@ -80,7 +80,9 @@ void test_f()
 
 int main(int argc, char** argv)
 {
-   // test_f();
+
+    using namespace sc;
+    // test_f();
     //int a = 0;
     //std::cin >> a;
     // ------ CONSTANTS TO CHANGE ------
@@ -450,11 +452,11 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
 
             rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
-            saclay_amplitudes = compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
+            saclay_amplitudes = sc::compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
 
             // Compute the observable from the amplitudes
 
-            double obs = compute_observable(saclay_amplitudes, obs_string);
+            double obs = sc::compute_observable(saclay_amplitudes, obs_string);
             
             //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
             if (D_obs[ang-1] != 0) {
@@ -639,14 +641,14 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
         std::vector<std::complex<double> > saclay_amplitudes;
         LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
         rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
-        saclay_amplitudes = compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
+        saclay_amplitudes = sc::compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
         end = std::clock();
         if (ang == 1) {
             std::cout << "Get Sac. amp.: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl;
         } 
         // Compute the observable from the amplitudes
         start = std::clock();
-        double obs = compute_observable(saclay_amplitudes, "I 0000");
+        double obs = sc::compute_observable(saclay_amplitudes, "I 0000");
         end = std::clock();
         if (ang == 1) {
             std::cout << "Compute OBS from Sac. amp.: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl << std::endl;
