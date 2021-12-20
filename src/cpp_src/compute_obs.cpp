@@ -595,6 +595,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
         gsl_matrix_free(pot_V_mtx);
         phases_vec.push_back(phases);
     }
+    phases_vec.clear();
 
     start = std::clock();
     for (auto chn : chns)
@@ -611,7 +612,8 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     }
     end = std::clock();
     std::cout << "Total time to solve LS (T): " << 1e3*(double)(end-start)/(double)CLOCKS_PER_SEC << " ms" << std::endl;
-    
+    phases_vec.clear();
+
     start = std::clock();
     for (auto chn : chns)
     {
