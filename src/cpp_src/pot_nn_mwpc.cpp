@@ -101,7 +101,7 @@ Potential_mwpc::~Potential_mwpc()
    // Delete all the stored matrices    
     if (!saved_matrices_.empty())
     {
-        for (auto it = saved_matrices_.begin(); it != saved_matrices.end(); it++)
+        for (auto it = saved_matrices_.begin(); it != saved_matrices_.end(); it++)
         {
             for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
             {
