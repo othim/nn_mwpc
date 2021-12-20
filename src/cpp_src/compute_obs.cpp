@@ -5,17 +5,10 @@
 
 #include <iostream>
 #include <fstream>
-#include "pot_nn_mwpc.h"
-#include "quantum_states.h"
-#include "LS_Solver.h"
-#include "gsl_sf_legendre.h" // Legendre polynomials
-#include "gsl_integration.h" 
 #include <cstdio>
 #include <ctime>
-#include "scattering.h"
-#include "physics_helpers.h"
-#include "pot_ext.h"
 #include <algorithm>
+#include "pybind_interface.h"
 /*
  * This function can be called if this file is linked with 
  * the .o files from the fortran libray compiled.
@@ -54,6 +47,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
 void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot);
 
+void check_interface();
 
 void test_f()
 {
@@ -137,6 +131,8 @@ int main(int argc, char** argv)
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"C nn00", OPE_inclue);
     } else if (std::string(argv[1]) == "SPEED") {
         check_speed(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
+    } else if (std::string(argv[1]) == "INT") {
+        check_interface();
     }
     ph::physics_helpers_free();
     return 0;
@@ -666,4 +662,19 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
 
     delete[] p_grid;
     delete[] w_grid;
+}
+
+void check_interface()
+{
+    std::vector<double> angles = {1.0,5.0};
+    std::vector<double> energies = {10.0,50.0};
+    std::string observable = "I 0000";
+    std::vector<double> LECs = {-0.112927/100.0,-0.087340/100.0,1.289*1.289};
+
+    nn_mwpc_interface obj("WPC_LO",25,450.0,true, true);
+    
+    std::cout << "Object created" << std::endl;
+    std::vector<double> res = obj.compute_observable(observable,angles,energies,LECs);
+
+    std::cout << "Done!" << std::endl; 
 }

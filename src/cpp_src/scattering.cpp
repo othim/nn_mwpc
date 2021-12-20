@@ -14,7 +14,7 @@ std::vector<std::complex<double>*> T_from_phase_shifts(std::vector<Phase_shifts_
     std::complex<double> fac = 1.0;//imag_u/(2.0*rho_T);
 
     //std::cout << fac << std::endl;
-    std::cout << phases.size() << " " << chns_vec.size() << std::endl;
+//    std::cout << phases.size() << " " << chns_vec.size() << std::endl;
 
     std::vector<std::complex<double>*> T_vec;
 

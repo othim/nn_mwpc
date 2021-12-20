@@ -10,8 +10,8 @@
 #ifndef PYBIND11_INTERFACE
 #define PYBIND11_INTERFACE
 
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
+//#include "pybind11/pybind11.h"
+//#include "pybind11/stl.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -83,6 +83,7 @@ public:
 /* Here is the code for the pybind11 interface
  */
 
+/*
 namespace py = pybind11;
 
 PYBIND11_MODULE(nn_mwpc, m) 
@@ -93,6 +94,6 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,py::return_value_policy::copy)
         .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, py::return_value_policy::copy);
-}
+}*/
 
 #endif
