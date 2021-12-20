@@ -67,9 +67,20 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,
     
     // Call get_M_Matrix_T
     //return std::complex<double>(0,0);
-    return sc::get_M_matrix_T(chns_vec,T_vec,q_on_shell,s,mo,mi,cos_theta,l_max);
-}
+    
+    std::complex<double> result = sc::get_M_matrix_T(chns_vec,T_vec,q_on_shell,
+            s,mo,mi,cos_theta,l_max);
 
+    // Delete the T-matrix elements
+    
+    while (!T_vec.empty())
+    {
+        delete T_vec.back();
+        T_vec.pop_back();
+    }
+
+    return result;
+}
 /*
     Computes the (lo,li) pairs that are possible from
     the quantum numbers J and S.

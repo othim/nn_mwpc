@@ -93,7 +93,7 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
     int i = 0;
     for (auto& it: Pot_->LECs_)
     {
-         Pot_->LECs_["it->first"] = LECs[i++];
+         Pot_->LECs_[it.first] = LECs[i++];
     }
     // Compute the phase shifts with those couplings
     std::vector<double> obs_vec;
@@ -102,14 +102,13 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
     for (auto Tl : T_lab)
     {
         std::vector<Phase_shifts_chn> phases_vec = compute_phase_shifts(Tl);
-
-        
+        LS_Solver::get_mu_q_on_shell(Tl,chns_[0], &mu,&q_on_shell);
+        double obs;
         for (auto ang : angles)
         {
             if (std::abs(ang-90.0) < 0.001) {
                 ang = 90.001;
             }
-            LS_Solver::get_mu_q_on_shell(Tl,chns_[0], &mu,&q_on_shell);
             rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
                     (constants::Mn+constants::Mp); // In the convention used in the code
             
@@ -118,7 +117,7 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
                     ang*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
             
             // Compute the observable from the amplitudes
-            double obs = sc::compute_observable(saclay_amplitudes, name);
+            obs = sc::compute_observable(saclay_amplitudes, name);
             obs_vec.push_back(obs);
         } 
     }
