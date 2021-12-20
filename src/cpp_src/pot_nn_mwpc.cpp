@@ -98,9 +98,20 @@ Potential_mwpc::~Potential_mwpc()
    }
    free(stored_Legendre_polynomials_);
 
-   #ifdef ENABLE_DEBUG
-      std::cout << "V object deleted" << std::endl;
-   #endif
+   // Delete all the stored matrices    
+    if (!saved_matrices_.empty())
+    {
+        for (auto it = saved_matrices_.begin(); it != saved_matrices.end(); it++)
+        {
+            for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
+            {
+                gsl_matrix_free(it->second[LECs_in_use_[i]]);
+            }
+        }
+    }
+    #ifdef ENABLE_DEBUG
+        std::cout << "V object deleted" << std::endl;
+    #endif
 }
 
 
