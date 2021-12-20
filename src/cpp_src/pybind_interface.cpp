@@ -35,9 +35,9 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     chns_ = get_channels(states, print);   
 
     // Make GL grid
-    double* p_grid;
-    double* w_grid;
-    ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid,&w_grid);
+    double* p_grid_;
+    double* w_grid_;
+    ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
     
     // These are the pre-determined models
     if ("WPC_LO"==model_name)
@@ -49,7 +49,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("C3S1");
 
         // Construct potential
-        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid,w_grid,
+        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
                 number_of_p_points_,J_max_in_pot_,cutoff_);
         Pot_ext_ = nullptr;
 
@@ -82,6 +82,9 @@ nn_mwpc_interface::~nn_mwpc_interface()
     delete LS_Solver_;
     delete Pot_;
     delete Pot_ext_;
+
+    delete[] p_grid_;
+    delete[] w_grid_;
 
     ph::physics_helpers_free();
 }

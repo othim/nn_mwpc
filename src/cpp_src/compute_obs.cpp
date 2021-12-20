@@ -282,6 +282,8 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
         //std::cout << "One channel done" << std::endl;
         //std::cin >> a;
     }
+    delete[] p_grid;
+    delete[] w_grid;
 }
 
 
@@ -514,7 +516,9 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 
    
       //std::cout << Tl << "\t \t" << cross_section << std::endl;
-   } 
+    } 
+    delete[] p_grid;
+    delete[] w_grid;
 }
 
 void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
@@ -659,4 +663,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     
     //end = std::clock();
     //std::cout << "Time calculate OBS for 180 angles: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl;
+
+    delete[] p_grid;
+    delete[] w_grid;
 }

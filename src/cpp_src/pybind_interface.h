@@ -57,6 +57,9 @@ private:
     int number_of_p_points_;
     int J_max_in_pot_;   
     bool rel_corr_;
+ 
+    double* p_grid_;
+    double* w_grid_;
     // Objects 
     Potential_mwpc* Pot_;
     Potential_ext* Pot_ext_;
