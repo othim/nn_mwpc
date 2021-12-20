@@ -82,6 +82,8 @@ nn_mwpc_interface::~nn_mwpc_interface()
     delete LS_Solver_;
     delete Pot_;
     delete Pot_ext_;
+
+    ph::physics_helpers_free();
 }
     
 std::vector<double> nn_mwpc_interface::compute_observable(const std::string& name, 
