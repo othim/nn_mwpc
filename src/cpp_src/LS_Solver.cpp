@@ -567,7 +567,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
 
     gsl_vector_complex_free(D_vector);
     gsl_matrix_complex_free(T_result);
-
+    gsl_matrix_complex_free(pot_complex);
     gsl_matrix_complex_free(F_matrix);
     gsl_matrix_complex_free(inverse);
     gsl_permutation_free(perm);
