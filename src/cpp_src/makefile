@@ -2,7 +2,6 @@
 
 CC = g++
 
-
 # For mac
 CFLAGS2 = -Wall -ggdb -std=c++11 -O3 -stdlib=libc++
 #CFLAGS  = -Wall -std=c++11 -O3 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
@@ -41,7 +40,7 @@ so: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared -undefined dynamic_lookup  $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran
 
 pybind_interface.o: pybind_interface.h 
-	$(CC) $(CFLAGS) -c pybind_interface.cpp
+	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp
 
 compute_obs.o: compute_obs.cpp
 	$(CC) $(CFLAGS) -c compute_obs.cpp
