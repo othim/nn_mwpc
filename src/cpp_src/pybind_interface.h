@@ -10,8 +10,6 @@
 #ifndef PYBIND11_INTERFACE
 #define PYBIND11_INTERFACE
 
-//#include "pybind11/pybind11.h"
-//#include "pybind11/stl.h"
 #include <algorithm>
 #include <iostream>
 #include <ctime>
@@ -26,6 +24,7 @@
 #include "physics_helpers.h"
 #include "pot_ext.h"
 
+//#define PYBIND
 /* This class will be acessed from python through the bindings in pybind11.
  * The pybind code will be written in sucha a way that C++ will always have
  * ownership over the objects that are created even if it is created in 
@@ -57,7 +56,8 @@ private:
     int number_of_p_points_;
     int J_max_in_pot_;   
     bool rel_corr_;
- 
+    double cutoff_;
+    bool pre_comp_pot_;
     double* p_grid_;
     double* w_grid_;
     // Objects 
@@ -80,20 +80,13 @@ public:
     std::string print_LECs_in_use();
     std::string print_LEC_values();
 };
+
 /* Here is the code for the pybind11 interface
  */
 
+
+//PYBIND11_MODULE(nn_mwpc, m);
+
 /*
-namespace py = pybind11;
-
-PYBIND11_MODULE(nn_mwpc, m) 
-{
-    py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<const std::string&,int,double,bool,bool>())
-        .def("compute_observable", &nn_mwpc_interface::compute_observable,
-                py::return_value_policy::copy)
-        .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,py::return_value_policy::copy)
-        .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, py::return_value_policy::copy);
-}*/
-
+ */
 #endif

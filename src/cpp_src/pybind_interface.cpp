@@ -1,5 +1,22 @@
 #include "pybind_interface.h"
 
+#ifdef PYBIND
+
+#include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
+
+namespace py = pybind11;
+
+PYBIND11_MODULE(nn_mwpc, m) 
+{
+    py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
+        .def(py::init<const std::string&,int,double,bool,bool>())
+        .def("compute_observable", &nn_mwpc_interface::compute_observable,
+                py::return_value_policy::copy)
+        .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,py::return_value_policy::copy)
+        .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, py::return_value_policy::copy);
+}
+#endif
 
 nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name, 
         int J_max_chn, double cutoff, bool pre_comp_pot, bool rel_corr)
@@ -7,13 +24,13 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
-    double scale_ = 100.0; // Scale of momenutm grid MeV
-    int number_of_p_points_ = 100; // Number of momentum-grid points
-    int ang_int_points_ = 96; // Number of points in angular integration
-    int J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
-    double cutoff_ = cutoff; // Cutoff in LS-equation
-    bool pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
-    bool rel_corr_ = rel_corr;
+    scale_ = 100.0; // Scale of momenutm grid MeV
+    number_of_p_points_ = 100; // Number of momentum-grid points
+    ang_int_points_ = 96; // Number of points in angular integration
+    J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
+    cutoff_ = cutoff; // Cutoff in LS-equation
+    pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
+    rel_corr_ = rel_corr;
 
     // For the quantum states
     int J_max = J_max_chn;
@@ -35,8 +52,6 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     chns_ = get_channels(states, print);   
 
     // Make GL grid
-    double* p_grid_;
-    double* w_grid_;
     ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
     
     // These are the pre-determined models
@@ -70,6 +85,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     {
         std::cout << "Error, not a valid model_name" << std::endl;
     }
+    //std::cout << J_max_in_pot_ << std::endl;
 }
 /*
 nn_mwpc_interface::initialize()
@@ -93,7 +109,9 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
         std::vector<double> angles, std::vector<double> T_lab, std::vector<double> LECs)
 {
     // Compute phase shifts in all channels for the given energy
-     
+    //std::cout << J_max_in_pot_ << std::endl; 
+    //std::cout << scale_ << std::endl;
+    //std::cout << ang_int_points_ << std::endl;
     // Set the couplings by looping through LECs in use
     int i = 0;
     for (auto& it: Pot_->LECs_)
@@ -116,7 +134,7 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
             }
             rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
                     (constants::Mn+constants::Mp); // In the convention used in the code
-            
+            //std::cout << J_max_in_pot_ << std::endl;            
             std::vector<std::complex<double> > saclay_amplitudes;
             saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
                     ang*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);

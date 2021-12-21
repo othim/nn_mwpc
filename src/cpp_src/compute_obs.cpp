@@ -671,10 +671,11 @@ void check_interface()
     std::string observable = "I 0000";
     std::vector<double> LECs = {-0.112927/100.0,-0.087340/100.0,1.289*1.289};
 
-    nn_mwpc_interface obj("WPC_LO",25,450.0,true, true);
+    nn_mwpc_interface* obj = new nn_mwpc_interface("WPC_LO",25,450.0,true, true);
     
     std::cout << "Object created" << std::endl;
-    std::vector<double> res = obj.compute_observable(observable,angles,energies,LECs);
-
+    std::vector<double> res = obj->compute_observable(observable,angles,energies,LECs);
+    
+    delete obj;
     std::cout << "Done!" << std::endl; 
 }

@@ -123,7 +123,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
     // Move to some constructor-ish
     wig_table_init(2*100, 9);
     wig_temp_init(2*100);
-
+    //std::cout << "l_max " << l_max << std::endl;
     // Precompute some spherical harmonics for the given cos_theta
     double* sph_arr = (double*) malloc(gsl_sf_legendre_array_n(l_max)*sizeof(double)); // Not including coplex e^{im\phi} phase. But we set \phi = 0 anyway!
    /* 
@@ -245,6 +245,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
 std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
     std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell, double rho_T, int l_max)
 {
+    //std::cout << "S l " << l_max << std::endl;
     // Compute M-matrix elements
     std::complex<double> M_pp = 
         get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);

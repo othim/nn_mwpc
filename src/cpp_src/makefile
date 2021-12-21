@@ -4,12 +4,12 @@ CC = g++
 
 
 # For mac
-CFLAGS2 = -Wall -std=c++11 -O3 -stdlib=libc++
+CFLAGS2 = -Wall -ggdb -std=c++11 -O3 -stdlib=libc++
 #CFLAGS  = -Wall -std=c++11 -O3 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
 LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  
 
 # For SO
-CFLAGS = -Wall -fPIC -O3 -std=c++11 -stdlib=libc++ -I/opt/anaconda3/envs/nn-mwpc-env/include -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+CFLAGS = -Wall -fPIC -ggdb -O3 -std=c++11 -stdlib=libc++ -I/opt/anaconda3/envs/nn-mwpc-env/include -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
 
 
 # For Linux
@@ -26,8 +26,8 @@ NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o quantum_st
 #CFLAGS = -O3
 #If you want to profile with gprof you need to link with that library 
 
-obs: compute_obs.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran -g  
+obs: compute_obs.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o pybind_interface.o
+	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran 
 
 main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 	$(CC) $(CFLAGS2) -o main $(LDFLAGS) test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o -lgsl -lcblas -lgslcblas -lwigxjpf -lm -lgfortran
@@ -72,4 +72,4 @@ pot_ext.o: pot_ext.h
 
 
 clean:
-	rm main nn_mwpc.so pybind11_interface.o compute_obs.o pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o pot_ext.o compute_obs.o
+	rm main nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o test.o Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o pot_ext.o compute_obs.o
