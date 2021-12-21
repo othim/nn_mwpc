@@ -1,5 +1,5 @@
 #include "LS_Solver.h"
-
+//#define TIME
 //#define ENABLE_DEBUG
 
 // Constructor
@@ -234,6 +234,11 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         std::cerr << "solve_in_chn()" << std::endl;
     #endif
     // Compute reduced mass mu, which depends on the isospin-prijection.
+    #ifdef TIME
+        std::clock_t start, end;
+        start = std::clock(); 
+    #endif    
+    
     double mu;
     double q_on_shell;
     get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
@@ -255,6 +260,11 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     // Setup F-matrix
     gsl_matrix* F_matrix = setup_F_matrix(chn.coupled,D_vector,pot_V_mtx);
     
+    #ifdef TIME
+        end = std::clock();
+        std::cout << "Time D,F: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << std::endl;
+        start = std::clock();
+    #endif  
     // Solve the matrix equation F*R = V
         
     // LU decompose
@@ -272,7 +282,11 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, inverse, pot_V_mtx, 0.0, R_result); 
    
     // Get the matrix elements corresponding to the on-shell R-matrix
-
+    #ifdef TIME
+        end = std::clock();
+        std::cout << "Time invert: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << std::endl;
+        start = std::clock();
+    #endif
     Phase_shifts_chn phase_shifts;
     if (chn.coupled) 
     {
@@ -312,7 +326,10 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_uncoupled = atan(-rho*R);
     }
 
-    
+    #ifdef TIME
+        end = std::clock();
+        std::cout << "Time compute phase shifts: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << std::endl;
+    #endif
 
     // Delete temporary pointers
     gsl_vector_free(D_vector);

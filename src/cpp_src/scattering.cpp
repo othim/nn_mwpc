@@ -441,7 +441,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
 
     double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b);
 
-    return sigma*constants::MeVm2_to_mbarn; // Convert to milli barn
+    return sigma;
 }
 
 gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,

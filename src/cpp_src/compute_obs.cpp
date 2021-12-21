@@ -133,6 +133,9 @@ int main(int argc, char** argv)
         check_speed(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "INT") {
         check_interface();
+    } else if (std::string(argv[1]) == "SGT") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, 
+                J_max_in_pot,"SGT", OPE_inclue);
     }
     ph::physics_helpers_free();
     return 0;
@@ -355,6 +358,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = "CKK";
     } else if (obs_string == "C nn00") {
         obs_string2 = "AYY";
+    } else if (obs_string == "SGT") {
+        obs_string2 = "SGT"; // Special
     }
 
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
@@ -438,43 +443,49 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 
         double errors[180];
         double mean_error = 0;
-        for (int ang = 1; ang < 181; ang++)
+        if (obs_string == "SGT")
         {
-            double angle = (double)ang;
-            if (ang == 90) {
-                angle = 90.001;
-            }
-            // Get Saclay amplitudes
-            std::vector<std::complex<double> > saclay_amplitudes;
-
-            LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
-
-            rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
-            saclay_amplitudes = sc::compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
-
-            // Compute the observable from the amplitudes
-
-            double obs = sc::compute_observable(saclay_amplitudes, obs_string);
-            
-            //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
-            if (D_obs[ang-1] != 0) {
-                errors[ang-1] = std::abs((D_obs[ang-1] - obs)/D_obs[ang-1]);
-            } else {
-                errors[ang-1] = 0;
-            }
-            std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
-               " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
-            
-            std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
-            myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
-            mean_error += errors[ang-1];
-
-            /*
-            // With the M-matrix
-            double obs_M;
-            if (obs_string == "I 0000")
+            double angle = 0.0;
+        } 
+        else
+        {
+            for (int ang = 1; ang < 181; ang++)
             {
-                gsl_matrix_complex* M_matrix = get_M_matrix(chns, phases_vec, q_on_shell, angle*M_PI/180.0, rho_T, l_max);
+                double angle = (double)ang;
+                if (ang == 90) {
+                    angle = 90.001;
+                }
+                // Get Saclay amplitudes
+                std::vector<std::complex<double> > saclay_amplitudes;
+
+                LS_Solver::get_mu_q_on_shell(Tl,chns[0], &mu,&q_on_shell);
+
+                rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+                saclay_amplitudes = sc::compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
+
+                // Compute the observable from the amplitudes
+
+                double obs = sc::compute_observable(saclay_amplitudes, obs_string);
+            
+                //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
+                if (D_obs[ang-1] != 0) {
+                    errors[ang-1] = std::abs((D_obs[ang-1] - obs)/D_obs[ang-1]);
+                } else {
+                    errors[ang-1] = 0;
+                }
+                std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
+                    " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
+            
+                std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
+                myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
+                mean_error += errors[ang-1];
+
+                /*
+                // With the M-matrix
+                double obs_M;
+                if (obs_string == "I 0000")
+                {
+                g   sl_matrix_complex* M_matrix = get_M_matrix(chns, phases_vec, q_on_shell, angle*M_PI/180.0, rho_T, l_max);
                 gsl_matrix_complex* eig = gsl_matrix_complex_alloc(2,2);
                 gsl_matrix_complex_set_identity(eig);
                 ph::print_m_complex(eig);
@@ -482,6 +493,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
                 obs_M = get_observables(eig,eig,eig,eig,M_matrix); 
             }            
             std::cout << angle << "   " << obs_M << " mb" << std::endl; */
+            }
         }
         std::cout << "Mean absolute relative error: " << mean_error/180.0  << std::endl;
         std::cout << "Maximum error: " << *(std::max_element(errors, errors + 180)) << std::endl;

@@ -24,7 +24,6 @@
 #include "physics_helpers.h"
 #include "pot_ext.h"
 
-//#define PYBIND
 /* This class will be acessed from python through the bindings in pybind11.
  * The pybind code will be written in sucha a way that C++ will always have
  * ownership over the objects that are created even if it is created in 
