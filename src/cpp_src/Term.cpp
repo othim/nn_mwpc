@@ -37,6 +37,42 @@ Term::Term(std::string name)
         isovector_ = false;
         my_v_alpha_well_def_pw= &Term::mom_C3S1;
         lecs_in_term_.push_back("C3S1");
+    } else if (name == "C3P0")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 1;
+        LS_well_def_pw_.Lo = 1;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_C3P0;
+        lecs_in_term_.push_back("C3P0");
+    } else if (name == "C3P2")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 2;
+        LS_well_def_pw_.Li = 1;
+        LS_well_def_pw_.Lo = 1;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_C3P2;
+        lecs_in_term_.push_back("C3P2");
+    } else if (name == "C3D2")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 2;
+        LS_well_def_pw_.Li = 2;
+        LS_well_def_pw_.Lo = 2;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_C3D2;
+        lecs_in_term_.push_back("C3D2");
     } else 
     {
         std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;
@@ -118,12 +154,24 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned 
 }
 
 // C1S0
-double Term::mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs)
+double Term::mom_C1S0(double qi, double qo, std::unordered_map<std::string,double>& LECs)
 {
     return LECs["C1S0"]; // If momentum dependent, multiply here
 }
 // C3S1
-double Term::mom_C3S1(double qi, double qo, std::unordered_map<std::string,double> LECs)
+double Term::mom_C3S1(double qi, double qo, std::unordered_map<std::string,double>& LECs)
 {
     return LECs["C3S1"]; // If momentum dependent, multiply here
+}
+double Term::mom_C3P0(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+{
+    return LECs["C3P0"]*qi*qo; 
+}
+double Term::mom_C3P2(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+{
+    return LECs["C3P2"]*qi*qo; 
+}
+double Term::mom_C3D2(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+{
+    return LECs["C3D2"]*qi*qi*qo*qo; // If momentum dependent, multiply here
 }

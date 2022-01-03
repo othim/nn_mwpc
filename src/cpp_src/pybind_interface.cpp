@@ -81,6 +81,35 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
                 cutoff_,rel_corr_);
 
+    } else if("MWPC_LO_1"==model_name)
+    { 
+    
+        // Choose terms in potential
+        std::vector<std::string> terms;
+        terms.push_back("OPEP");
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("C3P0");
+        terms.push_back("C3P2");
+
+        // Construct potential
+        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+                number_of_p_points_,J_max_in_pot_,cutoff_);
+        Pot_ext_ = nullptr;
+
+        if (pre_comp_pot_)
+        {
+            // Save potential
+            for (auto chn : chns_)
+            {
+                Pot_->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
+            }
+        }
+
+        // Construct LS Solver
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
+                cutoff_,rel_corr_);
+
     } else
     {
         std::cout << "Error, not a valid model_name" << std::endl;

@@ -29,7 +29,7 @@ private:
 
     // Function pointer
    
-    double (*my_v_alpha_well_def_pw)(double qi, double qo,std::unordered_map<std::string,double> LECs);
+    double (*my_v_alpha_well_def_pw)(double qi, double qo,std::unordered_map<std::string,double>& LECs);
 
     // Boolean to indicate if the term is a lec-term
     bool well_def_pw_;
@@ -53,8 +53,11 @@ public:
     double get_v_alpha_well_def_pw(double qi, double qo,std::unordered_map<std::string,double> LECs);
 
     static std::vector<double> v_alpha_OPEP(double qi, double qo, double* z, unsigned int z_len, std::unordered_map<std::string,double> LECs);
-    static double mom_C1S0(double qi, double qo, std::unordered_map<std::string,double> LECs);
-    static double mom_C3S1(double qi, double qo, std::unordered_map<std::string,double> LECs);
+    static double mom_C1S0(double qi, double qo, std::unordered_map<std::string,double>& LECs);
+    static double mom_C3S1(double qi, double qo, std::unordered_map<std::string,double>& LECs);
+    static double mom_C3P0(double qi, double qo, std::unordered_map<std::string,double>& LECs);
+    static double mom_C3P2(double qi, double qo, std::unordered_map<std::string,double>& LECs);
+    static double mom_C3D2(double qi, double qo, std::unordered_map<std::string,double>& LECs);
 
 };
 

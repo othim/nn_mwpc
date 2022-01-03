@@ -29,6 +29,9 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    LEC_names_.push_back("gA2");
    LEC_names_.push_back("C1S0");
    LEC_names_.push_back("C3S1");
+   LEC_names_.push_back("C3P0");
+   LEC_names_.push_back("C3P2");
+   LEC_names_.push_back("C3D2");
    
    // Initialize all LECs to zero
    for (std::size_t i = 0; i < LEC_names_.size(); i++)
