@@ -143,9 +143,9 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
     //std::cout << ang_int_points_ << std::endl;
     // Set the couplings by looping through LECs in use
     int i = 0;
-    for (auto& it: Pot_->LECs_)
+    for (auto& it: Pot_->LECs_in_use_)
     {
-         Pot_->LECs_[it.first] = LECs[i++];
+         Pot_->LECs_[it] = LECs[i++];
     }
     // Compute the phase shifts with those couplings
     std::vector<double> obs_vec;

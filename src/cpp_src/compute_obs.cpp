@@ -49,6 +49,8 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
 
 void check_interface();
 
+void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot);
 void test_f()
 {
 
@@ -97,7 +99,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max =8;
+    int J_max =25;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -136,6 +138,8 @@ int main(int argc, char** argv)
     } else if (std::string(argv[1]) == "SGT") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, 
                 J_max_in_pot,"SGT", OPE_inclue);
+    } else if (std::string(argv[1]) == "MWPC") {
+        check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     }
     ph::physics_helpers_free();
     return 0;
@@ -690,4 +694,66 @@ void check_interface()
     
     delete obj;
     std::cout << "Done!" << std::endl; 
+}
+
+void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
+{
+    std::cout << "Testing speed of code with LO WPC potential and the observable DSG" << std::endl << std::endl;
+
+    std::clock_t start, end;   
+    
+    // Make grid
+    double* p_grid;
+    double* w_grid;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+    double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    double C3P0 = 0.0;
+    double C3P2 = 0.0;    
+    // Choose terms in LO WPC potential
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
+    terms.push_back("C3P0");
+    terms.push_back("C3P2");
+
+
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    for (auto chn : chns)
+    {
+        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+
+    // Set correct LECs
+    Pot.LECs_["gA2"]  = constants::gA*constants::gA;
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+    Pot.LECs_["C3P0"] = C3P0;
+    Pot.LECs_["C3P2"] = C3P2;
+
+    int l_max = 50;
+    double Lambda = 450.0;
+
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+   
+    double q_on_shell;
+    double mu;
+    double rho_T;
+    
+    double Tl = 50.0; // MeV
+
+    // Compute all the phase shifts in the channels
+    
+    int i = 1;
+    qs::quantum_channel chn = chns[i];    
+    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+    Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+    
+    // Claculate error and print it 
 }
