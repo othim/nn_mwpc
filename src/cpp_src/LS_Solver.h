@@ -63,7 +63,7 @@ public:
    ~LS_Solver();
    void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);
 
-   // Returns an array of phase shifts in the convention: ...
+   // Returns an array of phase shifts in the convention: Stapp
    Phase_shifts_chn solve_in_chn_R(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
 

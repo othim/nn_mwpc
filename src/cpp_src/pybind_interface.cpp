@@ -13,6 +13,8 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def(py::init<const std::string&,int,double,bool,bool>())
         .def("compute_observable", &nn_mwpc_interface::compute_observable,
                 py::return_value_policy::copy)
+        .def("compute_phase_shift",&nn_mwpc_interface::compute_phase_shift,
+                py::return_value_policy::copy)
         .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,py::return_value_policy::copy)
         .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, py::return_value_policy::copy);
 }
@@ -204,6 +206,43 @@ std::string nn_mwpc_interface::print_LEC_values()
     return output;
 }
 
+
+std::vector<double> nn_mwpc_interface::compute_phase_shift(int chn_number, double T_lab, 
+        std::vector<double> LECs)
+{
+    int i = 0;
+    for (auto& it: Pot_->LECs_in_use_)
+    {
+         Pot_->LECs_[it] = LECs[i++];
+    }
+
+    qs::quantum_channel chn = chns_[0]; // Just to have it initialized
+    
+    if (chn_number < chns_.size())
+    {
+        chn = chns_[chn_number];
+    } else 
+    {
+        std::cout << "Error: chn_number out of range" << std::endl;
+    }
+
+    double mu, q_on_shell;
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+        
+    gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+
+    Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(T_lab,chn,pot_V_mtx);
+        
+    gsl_matrix_free(pot_V_mtx);
+    std::vector<double> phases_vec;
+    phases_vec.push_back(phases.delta_p);
+    phases_vec.push_back(phases.delta_m);
+    phases_vec.push_back(phases.epsilon);
+    phases_vec.push_back(phases.delta_uncoupled);
+
+    return phases_vec;
+}
+
 /*
  * Helper functions
  */
@@ -211,7 +250,7 @@ std::string nn_mwpc_interface::print_LEC_values()
 std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
 {
     std::vector<Phase_shifts_chn> phases_vec;
-    double mu, q_on_shell, rho_T;
+    double mu, q_on_shell;
     for (auto chn : chns_)
     {
         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);

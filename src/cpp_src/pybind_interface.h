@@ -75,7 +75,16 @@ public:
     
     std::vector<double> compute_observable(const std::string& name, 
             std::vector<double> angles, std::vector<double> T_lab, std::vector<double> LECs);
-
+    
+    /*
+     * chn_number is the channel number in the vector chns_
+     * T_lab is the lab energy in MeV
+     * LECs is the lecs in the correct order as in the potential,
+     * the units are specified in the README file.
+     *
+     * The function return the phase shifts in the Stapp convention.
+     */
+    std::vector<double> compute_phase_shift(int chn_number, double T_lab, std::vector<double> LECs);
     std::string print_LECs_in_use();
     std::string print_LEC_values();
 };
