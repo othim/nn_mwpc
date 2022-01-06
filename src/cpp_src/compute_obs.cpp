@@ -289,16 +289,6 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     delete[] w_grid;
 }
 
-
-
-void check_observable(std::string observable, double energy, Potential_ext& pot, LS_Solver& LS_Solver)
-{
-
-
-} 
-
-
-
 void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
    unsigned int J_max_in_pot,double scale,std::string obs_string, bool ope_J_geq_9)
 {
@@ -374,8 +364,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     double rho_T;
    
     const int len = 3;
-    //double energies[len] = {10.0, 50.0, 200.0};
-    double energies[len] = {125.0, 200.0, 350.0};
+    double energies[len] = {10.0, 50.0, 200.0};
+    //double energies[len] = {125.0, 200.0, 350.0};
     
     for (int i = 0; i < len; i++)
     {
@@ -383,11 +373,17 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         // Compute all the phase shifts in the channels
         std::vector<Phase_shifts_chn> phases_vec;
         //start = std::clock();
-        std::cout << std::endl << "Testing " + obs_string2 + " with T_lab=" << Tl << " MeV" << std::endl << std::endl;  
+        std::string data;
+        if (obs_string2 != "SGT")
+        {
+            std::cout << std::endl << "Testing " + obs_string2 + " with T_lab=" << Tl << " MeV" << std::endl << std::endl;  
     
-        // Read in the correct file of data
-        std::string data = "../../data/np_" + obs_string2 + "_" + std::to_string((int)Tl) + "_nijm1.txt";   
-        
+            // Read in the correct file of data
+            data = "../../data/np_" + obs_string2 + "_" + std::to_string((int)Tl) + "_nijm1.txt";   
+        } else
+        {
+            data = "../../data/np_SGT_nijm1.txt";
+        }
         // Open file
         std::ifstream infile(data);
         if (infile.is_open())
@@ -439,7 +435,12 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         }
         
         std::ofstream myfile;
-        std::string filename = "../../data/out_" + obs_string2 + "_" + std::to_string((int)Tl) + ".txt"; 
+        std::string filename;
+        if (obs_string2 != "SGT") {
+            filename = "../../data/out_" + obs_string2 + "_" + std::to_string((int)Tl) + ".txt"; 
+        } else {
+            filename = "../../data/out_SGT.txt"; 
+        }
         myfile.open(filename);
 
         // Compute the observables
@@ -449,7 +450,19 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         double mean_error = 0;
         if (obs_string == "SGT")
         {
-            double angle = 0.0;
+            int e = i+1;
+            // Loop over energies
+            LS_Solver::get_mu_q_on_shell(energies[e-1],chns[0], &mu,&q_on_shell);
+            double obs = sc::compute_total_cross_section(chns, phases_vec,
+                        q_on_shell,l_max);
+            if (D_obs[e-1] != 0) {
+                errors[e-1] = std::abs((D_obs[e-1] - obs)/D_obs[e-1]);
+            } else {
+                errors[e-1] = 0;
+            }
+            std::cout << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] <<"\t" <<  errors[e-1] << std::endl;
+            myfile << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] << "\t" << errors[e-1] << std::endl;
+            mean_error += errors[e-1];
         } 
         else
         {

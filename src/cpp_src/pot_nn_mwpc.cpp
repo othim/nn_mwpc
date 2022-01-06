@@ -16,6 +16,7 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    J_max_ = J_max;
    cutoff_Lambda_ = cutoff_Lambda;
    cut_pow_ = 4;   
+   sharp_cutoff_ = true;
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
    {
@@ -455,7 +456,11 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
          }
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
-      
+         if (sharp_cutoff_) {
+            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
+               rel_fac = 0.0;
+            }
+         }
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
          /*std::cout << "Rel fac: " << rel_fac << std::endl;
@@ -697,7 +702,11 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          }
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
-
+         if (sharp_cutoff_) {
+            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
+               rel_fac = 0.0;
+            }
+         }
          if (J == 0 && S == 1) // 3P_0 case
          {
             gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[2]*rel_fac);
@@ -773,7 +782,11 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          }
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
-
+         if (sharp_cutoff_) {
+            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
+               rel_fac = 0.0;
+            }
+         }
          // In this part of the code the symmetry of the potential in momentum is taken
          // advantage of. Note that this does NOT mean that every block is symmetric,
          // but rather the WHOLE matrix.
@@ -873,7 +886,11 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
          }
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
-      
+         if (sharp_cutoff_) {
+            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
+               rel_fac = 0.0;
+            }
+         }
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
      
          if (!chn.coupled)

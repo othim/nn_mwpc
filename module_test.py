@@ -34,6 +34,7 @@ print("Done")
 
 print(obj.print_LECs_in_use())
 
+# Just some test values
 C1S0 = -0.112927/100.0
 C3S1 = -0.087340/100.0
 gA2  = 1.289*1.289;

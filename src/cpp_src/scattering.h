@@ -74,8 +74,11 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
 */
 double compute_observable(std::vector<std::complex<double> > sac_amp,std::string obs);
 
+/*
+ * This function computes the total cross section SGT. The return unit is mb.
+ */
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
-    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,double rho_T,int l_max);
+    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,int l_max);
 
 /* 
  * This function gives the M-matrix for the given on shell energy
