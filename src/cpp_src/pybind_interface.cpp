@@ -178,20 +178,31 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
         std::vector<Phase_shifts_chn> phases_vec = compute_phase_shifts(Tl);
         LS_Solver::get_mu_q_on_shell(Tl,chns_[0], &mu,&q_on_shell);
         double obs;
-        for (auto ang : angles)
+        if (name != "SGT")
         {
-            if (std::abs(ang-90.0) < 0.001) {
-                ang = 90.001;
+            for (auto ang : angles)
+            {
+                if (std::abs(ang-90.0) < 0.001) {
+                    ang = 90.001;
+                }
+                rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
+                        (constants::Mn+constants::Mp); // In the convention used in the code
+                //std::cout << J_max_in_pot_ << std::endl;            
+                std::vector<std::complex<double> > saclay_amplitudes;
+                saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
+                        ang*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+            
+                // Compute the observable from the amplitudes
+                obs = sc::compute_observable(saclay_amplitudes, name);
+                obs_vec.push_back(obs);
             }
+        } else 
+        {
             rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
                     (constants::Mn+constants::Mp); // In the convention used in the code
-            //std::cout << J_max_in_pot_ << std::endl;            
-            std::vector<std::complex<double> > saclay_amplitudes;
-            saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
-                    ang*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
             
             // Compute the observable from the amplitudes
-            obs = sc::compute_observable(saclay_amplitudes, name);
+            obs = sc::compute_total_cross_section(chns_, phases_vec, q_on_shell, rho_T, J_max_in_pot_);
             obs_vec.push_back(obs);
         } 
     }
