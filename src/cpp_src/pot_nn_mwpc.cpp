@@ -15,7 +15,7 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    mom_grid_size_ = mom_grid_size;
    J_max_ = J_max;
    cutoff_Lambda_ = cutoff_Lambda;
-   
+   cut_pow_ = 4;   
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
    {
@@ -243,6 +243,10 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
       {
          // Get JLS from the Term to know where to apend the lec value 
          LS_term LS_term = terms_in_pot_[i].get_LS_term();
+         //std::cout << "LS-term: " << LS_term.J  << " " << LS_term.Li << " " << LS_term.Lo << " " <<
+         //    LS_term.S << std::endl;
+         //std::cout << "Initial: " << V_coupled_mm << " " << V_coupled_pp << " " << V_coupled_mp <<
+         //   V_coupled_pm << " " << V_uncoupled_S0 << " " << V_uncoupled_S1 << std::endl; 
          // Find which ouput to append (if any)
          if (J==LS_term.J)
          {
@@ -273,8 +277,16 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
                   {
                      V_uncoupled_S1 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
                   }
+               } else if (LS_term.Li == 1 && LS_term.Lo == 1 && LS_term.J == 0 
+                       && LS_term.S == 1) // 3P0 exception
+               {
+                   V_coupled_pp += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                   //std::cout <<  terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_) << std::endl;
                }
             }
+
+            //std::cout << "Final: " << V_coupled_mm << " " << V_coupled_pp << " " << V_coupled_mp <<
+            //    V_coupled_pm << " " << V_uncoupled_S0 << " " << V_uncoupled_S1 << std::endl; 
          }
       } 
    }
@@ -441,7 +453,7 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
       
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
@@ -683,7 +695,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
 
          if (J == 0 && S == 1) // 3P_0 case
@@ -759,7 +771,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
 
          // In this part of the code the symmetry of the potential in momentum is taken
@@ -859,7 +871,7 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
       
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);

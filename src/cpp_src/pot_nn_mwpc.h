@@ -51,7 +51,9 @@ private:
    // the potential elements for solving the LS-equation in a more
    // stable way.
    double cutoff_Lambda_;
-
+   
+   // The power that Lambda and p is raised to
+   int cut_pow_;
    // This is the maximum J of the channels the potential class can
    // calculate matrix elements in, since Lagandre polynomials are just
    // precomputed and stored to this order.

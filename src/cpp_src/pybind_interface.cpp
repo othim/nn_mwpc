@@ -112,6 +112,26 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
                 cutoff_,rel_corr_);
 
+    } else if("nijmegen1"==model_name)
+    {
+        // TODO: implement this 
+        // Construct potential
+        Pot_ = nullptr;
+        Pot_ext_ = nullptr;
+
+        if (pre_comp_pot_)
+        {
+            // Save potential
+            for (auto chn : chns_)
+            {
+                Pot_->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
+            }
+        }
+
+        // Construct LS Solver
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
+                cutoff_,rel_corr_);
+
     } else
     {
         std::cout << "Error, not a valid model_name" << std::endl;
