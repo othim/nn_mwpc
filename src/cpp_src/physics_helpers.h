@@ -69,9 +69,10 @@ typedef struct
  * produces eigenvales and eigenvectors. The method is exact diagonalization 
  * of the Hamiltonian in the given quadreture basis.
  * The potential is assumed to be in a partial wave basis with normalization 
- * <p'|p> = (pi/2)*\delta(p'-p)/p^2 (as in Landau).
+ * <p'|p> = \delta(p'-p)/p^2, so the factor \pi/2 from Landau is removed.
  */
-eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,qs::quantum_channel chn, const gsl_matrix* V);
+eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,
+        qs::quantum_channel chn, const gsl_matrix* V);
 
 /*
  * Converts radians to degrees

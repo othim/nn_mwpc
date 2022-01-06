@@ -274,6 +274,10 @@ std::vector<double> nn_mwpc_interface::compute_phase_shift(int chn_number, doubl
     return phases_vec;
 }
 
+std::vector<double> nn_mwpc_interface::compute_binding( 
+        int chn_number, std::vector<double> LECs)
+{
+}
 /*
  * Helper functions
  */

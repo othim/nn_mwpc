@@ -138,10 +138,11 @@ void ph::gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,dou
 }
 
 
-ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_points,qs::quantum_channel chn, const gsl_matrix* V)
+ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_points
+        ,qs::quantum_channel chn, const gsl_matrix* V)
 {
    // The potential is assumed to be in a partial wave basis with normalization 
-   // <p'|p> = (pi/2)*\delta(p'-p)/p^2 (as in Landau).
+   // <p'|p> = \delta(p'-p)/p^2, with \pi/2 factor from Landau removed.
    if (chn.coupled)
    {
       if (V->size1 != 2*number_of_grid_points)

@@ -85,8 +85,15 @@ public:
      * The function return the phase shifts in the Stapp convention.
      */
     std::vector<double> compute_phase_shift(int chn_number, double T_lab, std::vector<double> LECs);
-    std::string print_LECs_in_use();
+    /*
+     * This function computes the lowest eigenvalue to the Hamiltonian in the 
+     * specified channel. The unit is MeV
+     */
+    std::vector<double> nn_mwpc_interface::compute_binding( 
+            int chn_number, std::vector<double> LECs);
+    
     std::string print_LEC_values();
+    std::string print_LECs_in_use();
 };
 
 /* Here is the code for the pybind11 interface
