@@ -43,6 +43,16 @@ settings['s_initial']   = [1,1,1,1]
 model = nn_mwpc.nn_mwpc_interface("WPC_LO",settings['J_max_saved'], \
         settings['lambda_cut'], True, settings['rel_corr'])
 
+# Print so the LECs are in the correct order
+model.print_LECs_in_use();
+
+# Unit conversion from the 'GeV' units to MeV units that are accepted in 
+# the C++ code. It is very important that the order here corresponds to 
+# the order of the LECs as printed by the model above.
+
+# 1S0, 3S1, 3P0, 3P2
+settings['GeV_to_MeV'] = np.array([1e-2,1e-2,1e-8,1e-8])
+
 # Get constants from C++ module. Some constants are not acessable from the 
 # python interface. To be able to reproduct results all constants are loaded
 # and stored in the settings dictionary.
@@ -76,7 +86,7 @@ A = np.loc[np['Observable'] == 'DSG'] # Take just PB observable
 # -------------------------------------
 now = datetime.now()
 dt_string = now.strftime("%H_%M_%S_%d-%m")
-filename = '../output/mb_' + dt_string + '.h5'
+filename = '../output/sampl_' + dt_string + '.h5'
 
 out = emcee_sampler(settings, data, filename, bayes.log_posterior)
 
@@ -87,7 +97,7 @@ d = {}
 d['out']      = out
 d['settings'] = settings
 d['data']     = data
-path_data     = '../output/mb_'+ dt_string + '.npy'
+path_data     = '../output/sampl_'+ dt_string + '.npy'
 np.save(path_data, d)
 # To load the data: np.load(path_data,allow_pickle='TRUE').item()
 

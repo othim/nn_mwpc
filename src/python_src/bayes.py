@@ -6,6 +6,7 @@
 #
 #
 # Oliver Thim, 2021 - 
+
 import numpy as np
 import time
 from scipy.stats import norm
@@ -25,13 +26,18 @@ def log_posterior(param,settings,data):
         data     - contains the experimental data
         
         Output:
-        The logarithm of the posterior of the data given the parameters
+        The logarithm of the posterior of the data given the parameters.
     """
-    
+    # The parameters (LECs) are here in the 10^4 GeV^{-2n} units. The units 
+    # that are entered in the function to compute observables are MeV^{-2n}.
+
     return log_lik(param, settings, data) + log_prior(param, settings)
 
 def log_lik_one_obs(q_on_shell, mpi, lambda_chi, c_bar, obs_e, obs_e_var, obs_th):
-    
+    """
+        Returns the log likelihood of the given data point given the parameters.
+        It is NOT normalized.
+    """
     # The EFT expansion parameter
     Q = np.maximum(mpi,q_on_shell)/lambda_chi
     
@@ -42,7 +48,7 @@ def log_lik_one_obs(q_on_shell, mpi, lambda_chi, c_bar, obs_e, obs_e_var, obs_th
     # The total variance from the model and theory error
     var = obs_e_var + obs_th_var
 
-    # The un-normalized log-contribution to the likelihood
+    # The UN-normalized log-contribution to the likelihood
     return -((obs_e - obs_th)**2)/(2*var2)
     
 
@@ -53,13 +59,21 @@ def log_lik(param,settings,data):
         This function returns the log likelihood of the data sigma_exp
         given the sigma_th computed with gien lecs.
     """
-    
-    energies = [] # List of energies
-    mpi = ...
-    lambda_chi = ... 
-    c_bar = ...
+   
+    # Convert the LECs to the correct units
+    param_MeV = np.dot(param, settings['GeV_to_MeV'])
 
-    sum = 0
+
+    energies = [] # List of energies
+    mpi = settings['c_mpi']
+    lambda_chi = settings['lambda_chi']
+    c_bar = settings['c_bar']
+
+    sum = 0 # All contributions from all data will be added
+
+    # Loop over energies since the ALL observabels for a given energy can 
+    # be computed efficiently since the saclay-amplitudes only needs to be
+    # computed once.
     for Tlab in energies:
         
         # Compute saclay amplitudes for this energy

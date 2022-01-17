@@ -38,7 +38,7 @@ def emcee_sampler(settings,data,filename,log_posterior):
 
     with Pool() as pool:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, \
-                bayes.log_posterior,args=[settings,data],pool=pool,backend=backend)
+                log_posterior,args=[settings,data],pool=pool,backend=backend)
         
         # Run the steps
         pos, prob, state = sampler.run_mcmc(initial, nsteps, progress=settings['progress'])
