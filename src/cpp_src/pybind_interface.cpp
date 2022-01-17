@@ -202,7 +202,7 @@ std::vector<double> nn_mwpc_interface::compute_observable(const std::string& nam
                     (constants::Mn+constants::Mp); // In the convention used in the code
             
             // Compute the observable from the amplitudes
-            obs = sc::compute_total_cross_section(chns_, phases_vec, q_on_shell, rho_T, J_max_in_pot_);
+            obs = sc::compute_total_cross_section(chns_, phases_vec, q_on_shell, J_max_in_pot_);
             obs_vec.push_back(obs);
         } 
     }

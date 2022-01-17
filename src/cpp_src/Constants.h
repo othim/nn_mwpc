@@ -4,9 +4,9 @@
 
 namespace constants
 {
-    const double gA  = 1.27;//1.289;
-    const double fpi = 93; // 92.2
-    const double mpi = 138.0;//138.039;
+    const double gA  = 1.29;//1.289;
+    const double fpi = 92.4; // 92.2
+    const double mpi = 138.04;//138.039;
     const double Mp  = 938.27208;
     const double Mn  = 939.56542;
     const double inv_fm_to_MeV = 197.3269789;

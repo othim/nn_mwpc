@@ -240,7 +240,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
         double error_p = 0;
         double error_eps = 0;
 
-        for (int E = 1; E < 301; E++)
+        for (int E = 1; E < 40; E++)
         {
             double T_lab = (double)E;
 
@@ -268,13 +268,18 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
                 error += std::abs((phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1])/D_delta_uncoupled[E-1]); 
             } else 
             {
-                double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
-                double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
-                double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
-                std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
-                error_m += em;
-                error_p += ep;
-                error_eps += eps;
+                if (phases.delta_m < 0) {
+                    phases.delta_m = phases.delta_m + M_PI;
+                }
+                //double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
+                //double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
+                //double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
+                //std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
+                std::cout << T_lab << "   " << phases.delta_m << "   " << phases.delta_p << "    " << phases.epsilon << std::endl; 
+                
+                //error_m += em;
+                //error_p += ep;
+                //error_eps += eps;
             } 
         
         }

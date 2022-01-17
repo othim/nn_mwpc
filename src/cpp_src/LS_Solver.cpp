@@ -190,14 +190,36 @@ void print_matrix(gsl_matrix* matrix)
 Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
 {
     Phase_shifts_chn phases;
-    phases.epsilon = 0.5*asin(sin(2*ps.epsilon)* sin(ps.delta_m - ps.delta_p));
-    //std::cout << phases.epsilon << std::endl;
+    double diff = ps.delta_m-ps.delta_p;
+    
+    phases.epsilon = 0.5*asin((double)sin((double)2.0*ps.epsilon)* sin((double)diff));
+    phases.delta_m = 0.5*(ps.delta_p + ps.delta_m + asin(tan(2.0*phases.epsilon)/tan(2.0*ps.epsilon)));
+    phases.delta_p = 0.5*(ps.delta_p + ps.delta_m - asin(tan(2.0*phases.epsilon)/tan(2.0*ps.epsilon)));
+
+    phases.delta_uncoupled = ps.delta_uncoupled;
+   /* 
+    std::cout << "--------" << std::endl;
+    std::cout << phases.epsilon << std::endl;
+    std::cout << ps.epsilon << "   " << tan(2.0*phases.epsilon)/tan(2.0*ps.epsilon) << std::endl;
+    std::cout << asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)) << std::endl; 
+    std::cout << phases.delta_m << "   " << phases.delta_p << "   " << phases.epsilon << std::endl;
+    std::cout << "------" << std::endl;
+    */
+    return phases;
+}
+
+Phase_shifts_chn BB_to_Stapp_2(Phase_shifts_chn ps,double tan_p, double tan_m, double tan_e)
+{
+    Phase_shifts_chn phases;
+    double diff = ps.delta_m-ps.delta_p;
+    std::cout << "--------" << std::endl;
+    //std::cout << "Diff: " << diff << std::endl; 
+    phases.epsilon = 0.5*asin(sin(2*ps.epsilon)* sin(diff));
+    
     phases.delta_m = 0.5*(ps.delta_p + ps.delta_m + asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)));
-    //std::cout << tan(2*phases.epsilon)/tan(2*ps.epsilon) << std::endl;
     phases.delta_p = 0.5*(ps.delta_p + ps.delta_m - asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)));
 
     phases.delta_uncoupled = ps.delta_uncoupled;
-
     return phases;
 }
 
@@ -249,7 +271,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     // R-matrix to the T/S matrices. rho will be different if a different 
     // normalization for the |klm> quantum states is choosen. To see the conventions
     // Used in this code see the README.md file.
-    double rho = (M_PI/2.0)*2.0*q_on_shell*mu;
+    double rho = M_PI*q_on_shell*mu;
 
     //std::cout << "Potential" << std::endl;
     //print_matrix(pot_V_mtx);
@@ -299,18 +321,48 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         //std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
 
         // Compute phase shifts in BB convention in radians
-        phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
-        phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
-        phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
-        //std::cout << "Phase shifts in BB" << std::endl;
-        //std::cout << phase_shifts.delta_m << " " << phase_shifts.delta_p << " " << phase_shifts.epsilon << " " << std::endl;
+        
+        // ---- CORRECT -----
+        //phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
+        //phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        //phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        
+        //phase_shifts.delta_uncoupled = 0;
+        
+        //phase_shifts = BB_to_Stapp(phase_shifts);
+        
+        // ------------------
+        double tm = (R_mm-R_pp);
+        double tp = (R_mm+R_pp);
+        double x = 2.0*R_mp/tm;
+        phase_shifts.epsilon = atan2(2.0*R_mp,tm)/2.0;
+
+        double rr = tm*(sqrt(1+x*x));
+
+        phase_shifts.delta_m = atan((-rho/2.0)*(tp + rr));
+        phase_shifts.delta_p = atan((-rho/2.0)*(tp - rr));
 
         phase_shifts.delta_uncoupled = 0;
-        phase_shifts = BB_to_Stapp(phase_shifts);
+      
+    
+        //std::cout << "T:" << T_lab << "   " << R_mp << "   " << tm << std::endl; 
+        //std::cout << x << "   " << atan(x) << std::endl;
+        //std::cout << phase_shifts.delta_m << "   " << phase_shifts.delta_p << "   " << phase_shifts.epsilon << std::endl;
+        Phase_shifts_chn c = phase_shifts; 
+       // phase_shifts = BB_to_Stapp(phase_shifts);
 
-        //std::cout << "T:" << std::endl;
-        //gsl_matrix_complex* T = T_matrix_from_R_matrix(R_result,rho);
-
+        // Check the equations
+        std::cout << phase_shifts.delta_m + phase_shifts.delta_p - c.delta_m - c.delta_p << std::endl;
+        std::cout << sin(phase_shifts.delta_m - phase_shifts.delta_p) - tan(2.0*phase_shifts.epsilon)/tan(2.0*c.epsilon) << std::endl;
+        std::cout << sin(c.delta_m - c.delta_p) - sin(2.0*phase_shifts.epsilon)/sin(2.0*c.epsilon) << std::endl;
+        //std::cout << phase_shifts.delta_m << "   " << phase_shifts.delta_p << "   " << phase_shifts.epsilon << std::endl;
+    
+        //std::cout << "TEST" << std::endl;
+        //Phase_shifts_chn c = {.delta_m = 1.5, .delta_p = -0.04, .epsilon = 1.5};
+        //Phase_shifts_chn p = BB_to_Stapp(c);
+        
+        //std::cout << 0.5*asin((double)sin((double)2.0*c.epsilon)* sin((double)(c.delta_m - c.delta_p))) << std::endl;
+        //std::cout << p.delta_m << "   " << p.delta_p << "   " << p.epsilon << std::endl;
     } else 
     {
         // on-shell R-matrix is 1x1

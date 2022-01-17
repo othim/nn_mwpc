@@ -31,7 +31,7 @@
 #include "gsl_complex.h"
 #include "gsl_complex_math.h"
 #include "gsl_matrix_complex_double.h"
-#include <cmath>
+#include <math.h>
 #include "physics_helpers.h"
 
 class LS_Solver

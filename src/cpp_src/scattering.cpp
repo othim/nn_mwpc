@@ -52,7 +52,15 @@ std::vector<std::complex<double>*> T_from_phase_shifts(std::vector<Phase_shifts_
     return T_vec;
 }
 
+std::vector<std::complex<double>*> S_from_Stapp(double dm, double dp, double eps)
+{
 
+}
+
+std::vector<std::complex<double>*> S_from_BB(double dm, double dp, double eps)
+{
+
+}
 
 std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,
     std::vector<Phase_shifts_chn> phase_shifts_vec, int s, int mo, int mi, 

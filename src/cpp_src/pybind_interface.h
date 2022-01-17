@@ -89,7 +89,7 @@ public:
      * This function computes the lowest eigenvalue to the Hamiltonian in the 
      * specified channel. The unit is MeV
      */
-    std::vector<double> nn_mwpc_interface::compute_binding( 
+    std::vector<double> compute_binding( 
             int chn_number, std::vector<double> LECs);
     
     std::string print_LEC_values();
