@@ -12,27 +12,35 @@ import time
 from multiprocessing import Pool
 import multiprocessing
 
-def emcee_sampler(settings,data,filename):
+
+def emcee_sampler(settings,data,filename,log_posterior):
     """
         Function to that performs the emcee sampling for the desired
         parameters
+        
+        settings - the settings dictionary
+
+        data     - the eperimental data included
+
+        filename - the filename to save the data to
 
         Returns a list of the sampled lecs.
     """
     # Settings for sampler
-    ndim = settings['ndim']
-    nwalkers = settings['nwalkers']
-    nsteps = settings['nsteps']
-    initial = data['initial'] # Initial guess for lecs
+    ndim = settings['s_ndim']
+    nwalkers = settings['s_nwalkers']
+    nsteps = settings['s_nsteps']
+    initial = settings['s_initial'] # Initial position for walkers
 
     # Do the sampling in paralell using Pool
     backend = emcee.backends.HDFBackend(filename)
     backend.reset(nwalkers, ndim)
 
     with Pool() as pool:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior,args=[settings,data],pool=pool,backend=backend)
-        # Run the burn steps
-        print("Run nsteps=" + str(nsteps))
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, \
+                bayes.log_posterior,args=[settings,data],pool=pool,backend=backend)
+        
+        # Run the steps
         pos, prob, state = sampler.run_mcmc(initial, nsteps, progress=settings['progress'])
 
     # Reshape samples

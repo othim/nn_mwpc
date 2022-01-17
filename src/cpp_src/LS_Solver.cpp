@@ -323,14 +323,14 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         // Compute phase shifts in BB convention in radians
         
         // ---- CORRECT -----
-        //phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
-        //phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
-        //phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        /*phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
+        phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
+        phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
         
-        //phase_shifts.delta_uncoupled = 0;
+        phase_shifts.delta_uncoupled = 0;
         
-        //phase_shifts = BB_to_Stapp(phase_shifts);
-        
+        phase_shifts = BB_to_Stapp(phase_shifts);
+        */
         // ------------------
         double tm = (R_mm-R_pp);
         double tp = (R_mm+R_pp);
@@ -348,13 +348,33 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         //std::cout << "T:" << T_lab << "   " << R_mp << "   " << tm << std::endl; 
         //std::cout << x << "   " << atan(x) << std::endl;
         //std::cout << phase_shifts.delta_m << "   " << phase_shifts.delta_p << "   " << phase_shifts.epsilon << std::endl;
+        
+        std::complex<double>* S_BB = sc::S_from_BB(phase_shifts.delta_m, phase_shifts.delta_p,
+                phase_shifts.epsilon);
+        std::cout << "Tl: " << T_lab << std::endl;
+        std::cout << "BB" << std::endl;
+        for (int i = 0; i < 3; i++)
+        {
+            std::cout << std::real(S_BB[i]) << "," << std::imag(S_BB[i]) << std::endl;
+        }
+        
         Phase_shifts_chn c = phase_shifts; 
-       // phase_shifts = BB_to_Stapp(phase_shifts);
+        phase_shifts = BB_to_Stapp(phase_shifts);
 
+        std::complex<double>* S_Stapp = sc::S_from_BB(phase_shifts.delta_m, phase_shifts.delta_p,
+                phase_shifts.epsilon);
+        std::cout << "Stapp" << std::endl;
+        for (int i = 0; i < 3; i++)
+        {
+            std::cout << std::real(S_Stapp[i]) << "," << std::imag(S_Stapp[i]) << std::endl;
+        }
+
+        delete[] S_BB;
+        delete[] S_Stapp;
         // Check the equations
-        std::cout << phase_shifts.delta_m + phase_shifts.delta_p - c.delta_m - c.delta_p << std::endl;
-        std::cout << sin(phase_shifts.delta_m - phase_shifts.delta_p) - tan(2.0*phase_shifts.epsilon)/tan(2.0*c.epsilon) << std::endl;
-        std::cout << sin(c.delta_m - c.delta_p) - sin(2.0*phase_shifts.epsilon)/sin(2.0*c.epsilon) << std::endl;
+        //std::cout << phase_shifts.delta_m + phase_shifts.delta_p - c.delta_m - c.delta_p << std::endl;
+        //std::cout << sin(phase_shifts.delta_m - phase_shifts.delta_p) - tan(2.0*phase_shifts.epsilon)/tan(2.0*c.epsilon) << std::endl;
+        //std::cout << sin(c.delta_m - c.delta_p) - sin(2.0*phase_shifts.epsilon)/sin(2.0*c.epsilon) << std::endl;
         //std::cout << phase_shifts.delta_m << "   " << phase_shifts.delta_p << "   " << phase_shifts.epsilon << std::endl;
     
         //std::cout << "TEST" << std::endl;
@@ -363,6 +383,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         
         //std::cout << 0.5*asin((double)sin((double)2.0*c.epsilon)* sin((double)(c.delta_m - c.delta_p))) << std::endl;
         //std::cout << p.delta_m << "   " << p.delta_p << "   " << p.epsilon << std::endl;
+        
     } else 
     {
         // on-shell R-matrix is 1x1

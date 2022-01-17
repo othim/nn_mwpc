@@ -94,6 +94,21 @@ public:
     
     std::string print_LEC_values();
     std::string print_LECs_in_use();
+
+    
+    /*
+     * Get functions to get the values of conatants used
+     */
+    double get_scale();
+    int get_ang_int_points();
+    int get_momentum_grid_points();
+
+    double get_gA();
+    double get_fpi();
+    double get_mpi();
+    double get_Mp();
+    double get_Mn();
+
 };
 
 /* Here is the code for the pybind11 interface

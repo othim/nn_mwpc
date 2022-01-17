@@ -32,6 +32,8 @@
 #include "gsl_complex_math.h"
 #include "gsl_matrix_complex_double.h"
 #include <math.h>
+#include <complex>
+#include "scattering.h"
 #include "physics_helpers.h"
 
 class LS_Solver

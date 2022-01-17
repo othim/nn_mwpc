@@ -17,6 +17,18 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,py::return_value_policy::copy)
         .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, py::return_value_policy::copy);
+        .def("get_scale", &nn_mwpc_interface::get_scale, py::return_value_policy::copy);
+        .def("get_ang_int_points", &nn_mwpc_interface::get_ang_int_points, py::return_value_policy::copy);
+        .def("get_momentum_grid_points", &nn_mwpc_interface::get_momentum_grid_points, py::return_value_policy::copy);
+        .def("get_gA", &nn_mwpc_interface::get_gA, py::return_value_policy::copy);
+        .def("get_fpi", &nn_mwpc_interface::get_fpi, py::return_value_policy::copy);
+        .def("get_mpi", &nn_mwpc_interface::get_mpi, py::return_value_policy::copy);
+        .def("get_Mp", &nn_mwpc_interface::get_Mp, py::return_value_policy::copy);
+        .def("get_Mn", &nn_mwpc_interface::get_Mn, py::return_value_policy::copy);
+
+
+        
+
 }
 #endif
 
@@ -299,3 +311,46 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     }
     return phases_vec;
 }
+
+
+double nn_mwpc_interface::get_scale()
+{
+    return scale_;
+}
+
+int nn_mwpc_interface::get_ang_int_points()
+{
+    return ang_int_points_;
+}
+
+int nn_mwpc_interface::get_momentum_grid_points()
+{
+    return number_of_p_points_;
+}
+
+double nn_mwpc_interface::get_gA()
+{
+    return constants::gA;
+}
+
+double nn_mwpc_interface::get_fpi()
+{
+    return constants::fpi;
+}
+
+double nn_mwpc_interface::get_mpi()
+{
+    return constants::mpi;
+}
+
+double nn_mwpc_interface::get_Mp()
+{
+    return constants::Mp;
+}
+
+double nn_mwpc_interface::get_Mn()
+{
+    return constants::Mn;
+}
+
+

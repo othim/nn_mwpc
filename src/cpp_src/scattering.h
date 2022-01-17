@@ -96,5 +96,18 @@ gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
         gsl_matrix_complex* sigma_o_1, gsl_matrix_complex* sigma_o_2,
         gsl_matrix_complex* M_matrix);
 
+/*
+ * Funtion to compute the S-matrix from Stapp phase shifts
+ *
+ * The function returns the 11, 12 and 22 element of the S-matrix
+ */
+std::complex<double>* S_from_Stapp(double dm, double dp, double eps);
+
+/*
+ * Funtion to compute the S-matrix from BB phase shifts.
+ *
+ * The function returns the 11, 12 and 22 element of the S-matrix
+ */
+std::complex<double>* S_from_BB(double dm, double dp, double eps);
 
 }

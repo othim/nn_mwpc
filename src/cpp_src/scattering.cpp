@@ -52,14 +52,37 @@ std::vector<std::complex<double>*> T_from_phase_shifts(std::vector<Phase_shifts_
     return T_vec;
 }
 
-std::vector<std::complex<double>*> S_from_Stapp(double dm, double dp, double eps)
+std::complex<double>* S_from_Stapp(double dm, double dp, double eps)
 {
+    const std::complex<double> imag_u(0.0,1.0);
+    std::complex<double>* S = new std::complex<double>[3];
+    S[0] = (std::complex<double>)0.0;
+    S[1] = (std::complex<double>)0.0;
+    S[2] = (std::complex<double>)0.0;
 
+    S[0] = std::cos(2.0*eps)*std::exp(2.0*imag_u*dm);
+    S[1] = imag_u*std::sin(2.0*eps)*std::exp(imag_u*(dm+dp));
+    S[2] = std::cos(2.0*eps)*std::exp(2.0*imag_u*dp);
+    
+    return S;
 }
 
-std::vector<std::complex<double>*> S_from_BB(double dm, double dp, double eps)
+std::complex<double>* S_from_BB(double dm, double dp, double eps)
 {
+    const std::complex<double> imag_u(0.0,1.0);
+    std::complex<double>* S = new std::complex<double>[3];
+    S[0] = (std::complex<double>)0.0;
+    S[1] = (std::complex<double>)0.0;
+    S[2] = (std::complex<double>)0.0;
 
+    double c2e = std::cos(eps)*std::cos(eps);
+    double s2e = std::sin(eps)*std::sin(eps);
+    S[0] = c2e*std::exp(2.0*imag_u*dm) + s2e*std::exp(2.0*imag_u*dm);
+    S[1] = std::cos(eps)*std::sin(eps)*std::exp(2.0*imag_u*dm) -
+        std::sin(eps)*std::cos(eps)*std::exp(2.0*imag_u*dp);
+    S[2] = s2e*std::exp(2.0*imag_u*dm) + c2e*std::exp(2.0*imag_u*dp);
+    
+    return S;
 }
 
 std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,

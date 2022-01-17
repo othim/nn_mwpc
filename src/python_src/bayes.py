@@ -28,27 +28,55 @@ def log_posterior(param,settings,data):
         The logarithm of the posterior of the data given the parameters
     """
     
-    return log_likelihood(param, settings, data) +\ 
-                log_prior(param, settings)
+    return log_lik(param, settings, data) + log_prior(param, settings)
+
+def log_lik_one_obs(q_on_shell, mpi, lambda_chi, c_bar, obs_e, obs_e_var, obs_th):
+    
+    # The EFT expansion parameter
+    Q = np.maximum(mpi,q_on_shell)/lambda_chi
+    
+    # The EFT model error from summing all contributions beyond
+    # leading order.
+    obs_th_var = (obs_e**2)*(c_bar**2)*(Q**4)/(1-Q**2)
+    
+    # The total variance from the model and theory error
+    var = obs_e_var + obs_th_var
+
+    # The un-normalized log-contribution to the likelihood
+    return -((obs_e - obs_th)**2)/(2*var2)
+    
+
 
 # Likelihood data given lecs, prior for lecs
-def log_likelihood(Tlab_L,ko_L,sigma_th,sigma_exp,sigma_exp_err,c_bar,Lambda_chi):
+def log_lik(param,settings,data):
     """
         This function returns the log likelihood of the data sigma_exp
         given the sigma_th computed with gien lecs.
     """
-
     
-    # Old
-    '''
-    sum = 0
-    for i,sigma in enumerate(sigma_th):
-        Q = np.maximum(const.mpi,ko_L[i])/Lambda_chi
+    energies = [] # List of energies
+    mpi = ...
+    lambda_chi = ... 
+    c_bar = ...
 
-        model_err2 = (sigma_exp[i]**2)*(c_bar**2)*(Q**4)/(1-Q**2)
-        var2 = sigma_exp_err[i]**2 + model_err2
-        sum -= ((sigma - sigma_exp[i])**2)/(2*var2)
-    '''
+    sum = 0
+    for Tlab in energies:
+        
+        # Compute saclay amplitudes for this energy
+        sac_amp = ...
+        q_on_shell = ...
+        for obs in data['obs']: # Loop over all observables with same energy
+            
+            # Get the experimental and theoretical values of the observable in 
+            # question
+            obs_e = ...
+            obs_e_var = ... 
+            obs_th = obj.get_observable()
+            
+            # Compute the contribution to the likelihood
+            sum -= log_lik_one_obs(q_on_shell, mpi, lambda_chi, c_bar, obs_e, \
+                    obs_e_var, obs_th)
+    
     return sum
 
 def log_prior(param,settings):
@@ -59,6 +87,7 @@ def log_prior(param,settings):
     # with width 5, that expect the lecs to be of natural size.
     sum = 0
     for i in range(len(param)):
-        sum -= param[i]**2/(2*(settings['width_prior'] * settings['lecs_scale'][i])**2)
+        sum -= param[i]**2/ \
+                (2*(settings['width_prior'] * settings['lecs_scale'][i])**2)
     return sum
 
