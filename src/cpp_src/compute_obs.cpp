@@ -99,12 +99,12 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max =25;
+    int J_max =8;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
     bool print = true;
-    bool OPE_inclue = true;
+    bool OPE_inclue = false;
     
     
     std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
@@ -369,8 +369,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     double rho_T;
    
     const int len = 3;
-    double energies[len] = {10.0, 50.0, 200.0};
-    //double energies[len] = {125.0, 200.0, 350.0};
+    //double energies[len] = {10.0, 50.0, 200.0};
+    double energies[len] = {125.0, 200.0, 350.0};
     
     for (int i = 0; i < len; i++)
     {

@@ -105,3 +105,16 @@ def log_prior(param,settings):
                 (2*(settings['width_prior'] * settings['lecs_scale'][i])**2)
     return sum
 
+
+def ppd():
+    """
+        This funstion computes the posteror predictive distribution.
+    """
+
+
+def bayes_lepage():
+    """
+        This function computes the lepage error-plot for a given observable
+        from all the sampled parameters. A Bayesian Lepage plot!
+    """
+
