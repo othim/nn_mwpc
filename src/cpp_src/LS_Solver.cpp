@@ -232,8 +232,8 @@ void LS_Solver::get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double*
     } else if (chn.Tz == 0)
     {
         *mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-        *q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
-            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
+        *q_on_shell = sqrt(constants::Mn*constants::Mn*T_lab*(T_lab + 2.0*constants::Mp)/
+            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mn));
     } else if (chn.Tz == 1)
     {
         *mu = constants::Mp/2.0; // pp
