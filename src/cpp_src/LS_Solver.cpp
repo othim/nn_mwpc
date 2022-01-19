@@ -185,26 +185,44 @@ void print_matrix(gsl_matrix* matrix)
 
 /*
     Converts the phase shifts in the BB convention to the Stapp
-    convention
+    convention. This version does not have a (known) numerical instability.
 */
 Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
 {
     Phase_shifts_chn phases;
-    double diff = ps.delta_m-ps.delta_p;
+    /*double diff = ps.delta_m-ps.delta_p;
     
     phases.epsilon = 0.5*asin((double)sin((double)2.0*ps.epsilon)* sin((double)diff));
     phases.delta_m = 0.5*(ps.delta_p + ps.delta_m + asin(tan(2.0*phases.epsilon)/tan(2.0*ps.epsilon)));
     phases.delta_p = 0.5*(ps.delta_p + ps.delta_m - asin(tan(2.0*phases.epsilon)/tan(2.0*ps.epsilon)));
-
-    phases.delta_uncoupled = ps.delta_uncoupled;
-   /* 
-    std::cout << "--------" << std::endl;
-    std::cout << phases.epsilon << std::endl;
-    std::cout << ps.epsilon << "   " << tan(2.0*phases.epsilon)/tan(2.0*ps.epsilon) << std::endl;
-    std::cout << asin(tan(2*phases.epsilon)/tan(2*ps.epsilon)) << std::endl; 
-    std::cout << phases.delta_m << "   " << phases.delta_p << "   " << phases.epsilon << std::endl;
-    std::cout << "------" << std::endl;
     */
+    phases.delta_uncoupled = ps.delta_uncoupled;
+
+
+    // New from Boris code. There is a numerical instability in the above
+    // equations
+    // ----
+    double cos2eps = std::cos(ps.epsilon)*std::cos(ps.epsilon);
+    double cos_2delta_plus  = std::cos(2.*ps.delta_p);
+    double sin_2delta_plus  = std::sin(2.*ps.delta_p);
+    double cos_2delta_minus = std::cos(2.*ps.delta_m);
+    double sin_2delta_minus = std::sin(2.*ps.delta_m);
+    
+    double aR, aI, tmp;
+    aR = cos2eps*cos_2delta_minus + (1.-cos2eps)*cos_2delta_plus;
+    aI = cos2eps*sin_2delta_minus + (1.-cos2eps)*sin_2delta_plus;
+    
+    phases.delta_m = 0.5*std::atan2(aI, aR);
+    aR = cos2eps*cos_2delta_plus + (1.-cos2eps)*cos_2delta_minus;
+    aI = cos2eps*sin_2delta_plus + (1.-cos2eps)*sin_2delta_minus;
+    phases.delta_p = 0.5*std::atan2(aI, aR);
+    
+    tmp = 0.5*std::sin(2.0*ps.epsilon);
+    aR  = tmp*(cos_2delta_minus - cos_2delta_plus);
+    aI  = tmp*(sin_2delta_minus - sin_2delta_plus);
+    tmp = (delta_plus + delta_minus);
+    phases.epsilon = 0.5*std::asin(aI*cos(tmp) - aR*sin(tmp));
+    // ----
     return phases;
 }
 
@@ -322,16 +340,6 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
 
         // Compute phase shifts in BB convention in radians
         
-        // ---- CORRECT -----
-        /*phase_shifts.epsilon = atan(2.0*R_mp/(R_mm-R_pp))/2.0;
-        phase_shifts.delta_p = atan((-rho/2.0)*(R_mm + R_pp - (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
-        phase_shifts.delta_m = atan((-rho/2.0)*(R_mm + R_pp + (R_mm - R_pp)/gsl_sf_cos(2*phase_shifts.epsilon)));
-        
-        phase_shifts.delta_uncoupled = 0;
-        
-        phase_shifts = BB_to_Stapp(phase_shifts);
-        */
-        // ------------------
         double tm = (R_mm-R_pp);
         double tp = (R_mm+R_pp);
         double x = 2.0*R_mp/tm;
@@ -343,12 +351,13 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_p = atan((-rho/2.0)*(tp - rr));
 
         phase_shifts.delta_uncoupled = 0;
+        phase_shifts = BB_to_Stapp(phase_shifts);
       
     
         //std::cout << "T:" << T_lab << "   " << R_mp << "   " << tm << std::endl; 
         //std::cout << x << "   " << atan(x) << std::endl;
         //std::cout << phase_shifts.delta_m << "   " << phase_shifts.delta_p << "   " << phase_shifts.epsilon << std::endl;
-        
+        /*
         std::complex<double>* S_BB = sc::S_from_BB(phase_shifts.delta_m, phase_shifts.delta_p,
                 phase_shifts.epsilon);
         std::cout << "Tl: " << T_lab << std::endl;
@@ -359,7 +368,6 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         }
         
         Phase_shifts_chn c = phase_shifts; 
-        phase_shifts = BB_to_Stapp(phase_shifts);
 
         std::complex<double>* S_Stapp = sc::S_from_BB(phase_shifts.delta_m, phase_shifts.delta_p,
                 phase_shifts.epsilon);
@@ -371,6 +379,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
 
         delete[] S_BB;
         delete[] S_Stapp;
+        */
         // Check the equations
         //std::cout << phase_shifts.delta_m + phase_shifts.delta_p - c.delta_m - c.delta_p << std::endl;
         //std::cout << sin(phase_shifts.delta_m - phase_shifts.delta_p) - tan(2.0*phase_shifts.epsilon)/tan(2.0*c.epsilon) << std::endl;
