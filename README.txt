@@ -1,0 +1,113 @@
+
+-----------
+Description
+-----------
+nn_mwpc is a code for computing nucleon-nucleon observables from different 
+potential models. The main purpose why the code was created was to make a 
+potential class that can include arbitrary potential terms, which makes it easy
+to check different power-coutings. The code will also be able to perturbatively
+include higher order potential contributions in the Born approximation.
+
+The flow of the code is as follows.
+
+- Build your potential by specifying what terms it should include
+
+- Create a list of the possible quantum scattering channels
+
+- Pass this information to the Lippmann Schwinger solver and get phase shifts.
+
+- Pass the phase shifts to the code that computes the scattering observable of
+  your choice.
+
+The code is a C++ code. If you want to use all of its features, you have to
+write this code in C++. However there is a python interface that is built for
+easy access to certain key features that are pre-specified. To make more
+features available from python you have to write the code in C++ and then
+bind the calls to python via the interface. 
+
+-----------
+DEFINITIONS
+-----------
+
+A COUPLED channel in np-scattering is a channel where there are four possible
+states that can mix. E.g. the 3P0 channel is considered uncoupled since it 
+cannot mix with any other L-value. For J>0 the the S=3 channel can always have
+both L=J-1 and L=J+1.
+
+-----------
+CONVENTIONS
+-----------
+
+POTENTIAL
+
+The potential is conputed in a partial wave basis with the normalization 
+<p',p> = \delta(p'-p)/p^2.
+
+LS-EQUATION
+
+The LS-equatoin is written in the same partial wave basis as the potential.
+This menas that there is no \pi/2 in front of the integral which appear in 
+another widely used convention. This will affect the \rho_T parameter 
+(see. eg Quantum Mechanics II - A second Course in Quantum Theory by Rubin H.
+Lambdu) for a discussion. NOTE that this book uses the OTHER convention of
+normalization of the parital wave states which produces a \pi/2 in the partial
+wave LS eqiuation.
+
+The LS-equation is solved using discretization of the momentum states
+\int dp p^2 -> \sum_i w_i p_i^2. (see Rubin H. Landau Ch. 18)
+
+OBSERVABLES
+
+Observables are calculated from phase shifts by first computing the M-matrix 
+and then conputing the corresponding Saclay Amplitudes which are then converted 
+to observables. For the moment the trace computation directly from the M-matrix
+is not implemented. 
+
+------------------
+COMPILING THE CODE
+------------------
+
+EXTERNAL LIBRARIES NEEDED
+gsl
+pybind11
+
+COMPILING
+
+The code is compiled by running the appropriate make command as defined in the 
+make file depending on what target you want to have. e.g. 'make obs'.
+
+Note that the linking arguments might need a change since they are specific to
+where your libraris are installed on your system. There is also different arguments
+if you compile on Mac or Linux (check the makefile). If you compile the code on
+a subatom computer you could probabily acess my (Oliver Thim) libraries and 
+the changes to the makefile are minimal. The only thing you have to make sure is
+that you use the Linux version and not the Mac version.
+
+TESTING
+
+
+----------------
+RUNNING THE CODE
+---------------
+
+C++
+
+
+PYTHON
+
+--------------------------
+Compiling to python module
+--------------------------
+
+If the makefile is set up correctly you just run 'bash install.sh' in the
+nn_mwpc directory. This will build the code and install the python library
+with pip. Then it is just to import it by 'import nn_mwpc' in python. Note that 
+the library is sensitive to the python version used so make sure you are in the
+nn-mwpc-env.
+
+There is not so much documentation on the python interface. I recomend that 
+one opens the interface files 'src/cpp_src/pybind_interfac.h and 
+src/cpp_src/pybind_interface.cpp' and read the comments. There is also a file 
+in this directory: 'module_test.py' that tests the library that you could run
+after 'bash install' to make sure that everything is fine. The code and comments
+in 'module_test.py' should give some guidence how to use the code.
