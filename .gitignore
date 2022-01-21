@@ -12,3 +12,7 @@
 /build
 
 /test
+
+/nn_mwpce.egg-info
+
+nn_mwpc.so

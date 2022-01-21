@@ -220,7 +220,7 @@ Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
     tmp = 0.5*std::sin(2.0*ps.epsilon);
     aR  = tmp*(cos_2delta_minus - cos_2delta_plus);
     aI  = tmp*(sin_2delta_minus - sin_2delta_plus);
-    tmp = (delta_plus + delta_minus);
+    tmp = (phases.delta_p + phases.delta_m);
     phases.epsilon = 0.5*std::asin(aI*cos(tmp) - aR*sin(tmp));
     // ----
     return phases;
