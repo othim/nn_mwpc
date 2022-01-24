@@ -456,6 +456,7 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
     std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,int l_max)
 {
+    /*
     
     // Compute rho_T from q_on_shell
     double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
@@ -470,13 +471,30 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
         get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)-1,std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_s =
         get_M_matrix_p(chns_vec,phase_shifts_vec,(int)0,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
- 
+    
+
+    std::cout << std::imag(M_pp) << " " << std::imag(M_pp) << std::endl;
+    std::cout << std::imag(M_00) << " " << std::imag(M_00) << std::endl;
+    std::cout << std::imag(M_pm) << " " << std::imag(M_pm) << std::endl;
+    std::cout << std::imag(M_s) << " " << std::imag(M_s) << std::endl;
+
     double fac = std::sqrt(constants::MeVm2_to_mbarn);
     std::complex<double> a = fac*(1.0/2.0) * (M_pp + M_00 - M_pm);
     std::complex<double> b = fac*(1.0/2.0) * (M_pp + M_s + M_pm);
-    std::cout << std::imag(a) << " " << std::imag(b) << std::endl;
-    double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b)*fac;
+    std::cout << std::imag(a) << " " << std::imag(a) << std::endl;
+    std::cout << std::real(b) << " " << std::imag(b) << std::endl;
+    */
+    double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+    std::vector<std::complex<double>> out = compute_Saclay_amplitudes(chns_vec,
+            phase_shifts_vec, 0.0, q_on_shell, rho_T,l_max);
+    std::complex<double> a = out[0];
+    std::complex<double> b = out[1];
 
+    //std::cout << std::imag(a) << " " << std::imag(a) << std::endl;
+    //std::cout << std::real(b) << " " << std::imag(b) << std::endl;
+    
+    double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b);
+    std::cout << sigma << std::endl;
     return sigma;
 }
 

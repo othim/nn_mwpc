@@ -23,6 +23,7 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 
+# This function is not correct!! Not stable for all inputs!!
 
 def blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB):                
     # Return phases in deg                                                      
@@ -61,7 +62,7 @@ energies = [10.0,50.0,200.0]
 # Time the funtion call
 start = time.time()
 #obs_vector = obj.compute_observable("I 0000",angles_l,energies,[C1S0,C3P0,C3P2,C3S1,gA2])
-obs_vector = obj.compute_observable("I 0000",angles_l,energies,[C1S0,C3S1,gA2])
+obs_vector = obj.compute_observable_l("I 0000",angles_l,energies,[C1S0,C3S1,gA2])
 end = time.time()
 
 for E in np.linspace(1,30,30):
