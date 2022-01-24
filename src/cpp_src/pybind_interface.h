@@ -7,6 +7,7 @@
  * Oliver Thim 2021-12-
  * Department of Physics, Chalmers
  */
+
 #ifndef PYBIND11_INTERFACE
 #define PYBIND11_INTERFACE
 
@@ -62,20 +63,53 @@ private:
     // Objects 
     Potential_mwpc* Pot_;
     Potential_ext* Pot_ext_;
-
     LS_Solver* LS_Solver_;
-
+    
+    // Saved data
     std::vector<qs::quantum_channel> chns_;
-
+    std::vector<Phase_shifts_chn> phase_shifts_; 
+    double energy_saved_;
+    // Helper functions
     std::vector<Phase_shifts_chn> compute_phase_shifts(double Tl);
 public:
-    nn_mwpc_interface(const std::string& model_name, int J_max_chn, double cutoff,
-            bool pre_comp_pot, bool rel_corr);
+
+    /*
+     * Constructor where the models are defined.
+     */
+    nn_mwpc_interface(const std::string& model_name, int J_max_chn, 
+            double cutoff, bool pre_comp_pot, bool rel_corr);
     ~nn_mwpc_interface();
     
-    std::vector<double> compute_observable(const std::string& name, 
-            std::vector<double> angles, std::vector<double> T_lab, std::vector<double> LECs);
+    /*
+     * Method that solves the LS equation and saves the phase shifts in
+     * this class. The phase shifts are then accessed when an observable 
+     * is computed. Thus, it is necessary to call this method before computing
+     * observables. This 
+     * method solves the LS in every channel which J less than J_max_chn enered
+     * in the constructor. The energy is in MeV in the lab-frame  and the LECs 
+     * are in MeV^{-n} depending on which LEC it is.
+     */
+    void solve_LS(double T_lab, std::vector<double> LECs);
+
+    /*
+     * Methods that computes observables from the saved phase shifts. The 
+     * angles are in the center-of-mass-frame. 
+     */
+    double compute_observable(const std::string& name, 
+            double angle);
     
+    std::vector<double> get_saved_phase_shifts(int chn_number); 
+    
+    /*
+     * Methods that take lists of angles and energies as arguments. The
+     * angles are in degrees and the energy is in MeV. The LECs are in 
+     * MeV^{-n} to some power n dependeing on the LEC. The angles are in the 
+     * center-of-mass frame and the energy is in the lab-frame.
+     */
+    std::vector<double> compute_observable_l(const std::string& name, 
+            std::vector<double> angles, std::vector<double> T_lab, 
+            std::vector<double> LECs);
+   
     /*
      * chn_number is the channel number in the vector chns_
      * T_lab is the lab energy in MeV
@@ -84,12 +118,20 @@ public:
      *
      * The function return the phase shifts in the Stapp convention.
      */
-    std::vector<double> compute_phase_shift(int chn_number, double T_lab, std::vector<double> LECs);
+    std::vector<double> compute_phase_shift(int chn_number, double T_lab, 
+            std::vector<double> LECs);
+    
+    /*
+     * Same as 'compute_phase_shift' but accepts a list of energies.
+     */ 
+    std::vector<double> compute_phase_shift_l(int chn_number, 
+            std::vector<double> T_lab, std::vector<double> LECs);
+    
     /*
      * This function computes the lowest eigenvalue to the Hamiltonian in the 
      * specified channel. The unit is MeV
      */
-    std::vector<double> compute_binding( 
+    std::vector<double> compute_binding_energy( 
             int chn_number, std::vector<double> LECs);
     
     std::string print_LEC_values();
@@ -99,6 +141,9 @@ public:
     /*
      * Get functions to get the values of conatants used
      */
+
+    double get_on_shell_momentum(double T_lab);
+
     double get_scale();
     int get_ang_int_points();
     int get_momentum_grid_points();

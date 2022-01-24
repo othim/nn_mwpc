@@ -11,15 +11,28 @@ PYBIND11_MODULE(nn_mwpc, m)
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
         .def(py::init<const std::string&,int,double,bool,bool>())
+        .def("solve_LS", &nn_mwpc_interface::solve_LS,
+                py::return_value_policy::copy)
         .def("compute_observable", &nn_mwpc_interface::compute_observable,
+                py::return_value_policy::copy)
+        .def("get_saved_phase_shifts", &nn_mwpc_interface::get_saved_phase_shifts,
+                py::return_value_policy::copy)
+        .def("compute_observable_l", &nn_mwpc_interface::compute_observable_l,
                 py::return_value_policy::copy)
         .def("compute_phase_shift",&nn_mwpc_interface::compute_phase_shift,
                 py::return_value_policy::copy)
-        .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,py::return_value_policy::copy)
-        .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, py::return_value_policy::copy)
-        .def("get_scale", &nn_mwpc_interface::get_scale, py::return_value_policy::copy)
-        .def("get_ang_int_points", &nn_mwpc_interface::get_ang_int_points, py::return_value_policy::copy)
-        .def("get_momentum_grid_points", &nn_mwpc_interface::get_momentum_grid_points, py::return_value_policy::copy)
+        .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,
+                py::return_value_policy::copy)
+        .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, 
+                py::return_value_policy::copy)
+        .def("get_on_shell_momentum",&nn_mwpc_interface::get_on_shell_momentum, 
+                py::return_value_policy::copy)
+        .def("get_scale", &nn_mwpc_interface::get_scale, 
+                py::return_value_policy::copy)
+        .def("get_ang_int_points", &nn_mwpc_interface::get_ang_int_points, 
+                py::return_value_policy::copy)
+        .def("get_momentum_grid_points", &nn_mwpc_interface::get_momentum_grid_points, 
+                py::return_value_policy::copy)
         .def("get_gA", &nn_mwpc_interface::get_gA, py::return_value_policy::copy)
         .def("get_fpi", &nn_mwpc_interface::get_fpi, py::return_value_policy::copy)
         .def("get_mpi", &nn_mwpc_interface::get_mpi, py::return_value_policy::copy)
@@ -164,13 +177,72 @@ nn_mwpc_interface::~nn_mwpc_interface()
     ph::physics_helpers_free();
 }
     
-std::vector<double> nn_mwpc_interface::compute_observable(const std::string& name, 
+void nn_mwpc_interface::solve_LS(double T_lab, std::vector<double> LECs)
+{
+    // Set the couplings by looping through LECs in use
+    int i = 0;
+    for (auto& it: Pot_->LECs_in_use_)
+    {
+         Pot_->LECs_[it] = LECs[i++];
+    }
+    // Compute the phase shifts
+    phase_shifts_ = compute_phase_shifts(T_lab);
+    energy_saved_ = T_lab;
+}
+
+
+    
+
+double nn_mwpc_interface::compute_observable(const std::string& name, double angle)
+{
+    double obs = 0.0;
+    
+    double mu, q_on_shell;
+    LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
+    if (name != "SGT")
+    {
+        if (std::abs(angle-90.0) < 0.001) {
+            angle = 90.001;
+        }
+        double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
+                (constants::Mn+constants::Mp); // In the convention used
+        
+        std::vector<std::complex<double> > saclay_amplitudes;
+        // Convert the angle to radians. This uses the pre-computed phase
+        // shifts phase_shifts_ that are stored in the class.
+        saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phase_shifts_, 
+                angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+            
+        // Compute the observable from the amplitudes
+        obs = sc::compute_observable(saclay_amplitudes, name);
+    } else 
+    {
+        // Compute the observable from the amplitudes
+        obs = sc::compute_total_cross_section(chns_, phase_shifts_, q_on_shell, 
+                J_max_in_pot_);
+    } 
+    return obs;
+}
+
+std::vector<double> nn_mwpc_interface::get_saved_phase_shifts(int chn_number)
+{
+            
+    if (!(chn_number < chns_.size()))
+    {
+        std::cout << "Error: chn_number out of range" << std::endl;
+    } 
+
+    std::vector<double> vec;
+    vec.push_back(phase_shifts_[chn_number].delta_p);
+    vec.push_back(phase_shifts_[chn_number].delta_m);
+    vec.push_back(phase_shifts_[chn_number].epsilon);
+    vec.push_back(phase_shifts_[chn_number].delta_uncoupled);
+    return vec;
+}
+
+std::vector<double> nn_mwpc_interface::compute_observable_l(const std::string& name, 
         std::vector<double> angles, std::vector<double> T_lab, std::vector<double> LECs)
 {
-    // Compute phase shifts in all channels for the given energy
-    //std::cout << J_max_in_pot_ << std::endl; 
-    //std::cout << scale_ << std::endl;
-    //std::cout << ang_int_points_ << std::endl;
     // Set the couplings by looping through LECs in use
     int i = 0;
     for (auto& it: Pot_->LECs_in_use_)
@@ -282,7 +354,7 @@ std::vector<double> nn_mwpc_interface::compute_phase_shift(int chn_number, doubl
     return phases_vec;
 }
 
-std::vector<double> nn_mwpc_interface::compute_binding( 
+std::vector<double> nn_mwpc_interface::compute_binding_energy( 
         int chn_number, std::vector<double> LECs)
 {
 }
@@ -308,6 +380,12 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     return phases_vec;
 }
 
+double nn_mwpc_interface::get_on_shell_momentum(double T_lab)
+{
+    double mu, q_on_shell;
+    LS_Solver::get_mu_q_on_shell(T_lab, chns_[0], &mu, &q_on_shell);
+    return q_on_shell;
+}
 
 double nn_mwpc_interface::get_scale()
 {

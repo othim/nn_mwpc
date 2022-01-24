@@ -708,7 +708,7 @@ void check_interface()
     nn_mwpc_interface* obj = new nn_mwpc_interface("WPC_LO",25,450.0,true, true);
     
     std::cout << "Object created" << std::endl;
-    std::vector<double> res = obj->compute_observable(observable,angles,energies,LECs);
+    std::vector<double> res = obj->compute_observable_l(observable,angles,energies,LECs);
     
     delete obj;
     std::cout << "Done!" << std::endl; 
