@@ -494,7 +494,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
     //std::cout << std::real(b) << " " << std::imag(b) << std::endl;
     
     double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b);
-    std::cout << sigma << std::endl;
+    //std::cout << sigma << std::endl;
     return sigma;
 }
 
