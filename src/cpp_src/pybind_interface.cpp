@@ -293,28 +293,24 @@ std::vector<double> nn_mwpc_interface::compute_observable_l(const std::string& n
     return obs_vec;
 }
 
-std::string nn_mwpc_interface::print_LECs_in_use()
+void nn_mwpc_interface::print_LECs_in_use()
 {
     // Print the LECs in the same order as they are set in the compute functions.
-    std::string output;
-    output.append(" Print the LECs in the same order as they are set in the compute functions. \n");
+    std::cout << "The LECs in the same order as they must be set in the compute functions." << std::endl;
     for (auto s : Pot_->LECs_in_use_)
     {
-        output.append(s);
-        output.append("\n");
+        std::cout << s << ", ";
     }
-    return output;
+    std::cout << std::endl;
 }
 
-std::string nn_mwpc_interface::print_LEC_values()
+void nn_mwpc_interface::print_LEC_values()
 {
-    std::string output;
-    output.append("Printing the LECs and their current values. \n");
+    std::cout << "Printing the LECs and their current values." << std::endl;
     for (auto& it: Pot_->LECs_)
     {
-         output.append(it.first + " = " +std::to_string(it.second) +  "\n");
+        std::cout << it.first << " = " << it.second << std::endl;
     }
-    return output;
 }
 
 

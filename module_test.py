@@ -26,124 +26,95 @@ import matplotlib.pyplot as plt
 # -----------
 # Observables
 # -----------
+def observables(obs):
+    print("\n \nTesting observables \n")
+    # Print the LECs that are in use to know in what order to eneter them in 
+    # the calls later.
+    obj.print_LECs_in_use()
 
-print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",25,450.0,True,True)
-#obj = nn_mwpc.nn_mwpc_interface("WPC_LO",25,450.0,True,True)
+    # Just some test values
+    C1S0 = -0.112927/100.0
+    C3S1 = -0.087340/100.0
+    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    C3P0 = 1.3e-8;
+    C3P2 = 0.1e-8;
+        
+    LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
+    # Test to compute many observables at once
+    # -----------------------------------------
+    print("Many observables at once")
+    angles = np.linspace(1,179,50) # in degrees
+    angles_l = angles.tolist()
+    energies = [10.0,50.0,200.0] # in MeV
+    
+    # Time the funtion call
+    start = time.time()
+    obs_vector = obj.compute_observable_l("I 0000",angles_l,energies,LECs)
+    end = time.time()
 
+    #print(obs_vector)
+    #obj.print_LEC_values() # To confirm that the LECs were set correctly
+    print(f'Total time: {1e3*(end-start):0.3f} ms')
+    print(f'Time per energy: {1e3*(end-start)/len(energies):0.3f} ms \n')
+    # -----------------------------------------
 
-print(obj.print_LECs_in_use())
+    # Test to compute one observable at the time
+    # ------------------------------------------
+    print("One observable at the time \n")
+    ang = 10.0 # deg
+    E   = 50.0 # MeV
 
-# Just some test values
-C1S0 = -0.112927/100.0
-C3S1 = -0.087340/100.0
+    # Time the funtion call
+    start = time.time()
+    # First solve the LS equation. This saves phase shifts in the object obj.
+    # The saved phase shifts can be accessed with obj.get_saved_phase_shifts(chn_number)
+    obj.solve_LS(E,[C1S0,C3P0,C3P2,C3S1,gA2])
+    
+    # Call the function that computes an observable at a certain angle. This will
+    # be computed with the saves phase shifts from the previous call.
+    obs = obj.compute_observable("I 0000",ang)
 
-C1S0 = -0.1/100.0
-gA2  = 1.29*1.29;
-C3P0 = 1.3e-8;
-C3P2 = 0.1e-8;
+    end = time.time()
 
+    #print(obs_vector)
+    print(f'Total time: {1e3*(end-start):0.3f} ms')
 
-angles = np.linspace(1,179,50)
-angles_l = angles.tolist()
-energies = [10.0,50.0,200.0]
-
-# Time the funtion call
-start = time.time()
-#obs_vector = obj.compute_observable_l("I 0000",angles_l,energies,[C1S0,C3P0,C3P2,C3S1,gA2])
-#obs_vector = obj.compute_observable_l("I 0000",angles_l,energies,[C1S0,C3S1,gA2])
-
-obj.solve_LS(30.0,[C1S0,C3P0,C3P2,C3S1,gA2])
-end = time.time()
-
-print(f'Total time: {1e3*(end-start):0.3f} ms')
-x = 0
-input(x)
-#for E in np.linspace(1,30,30):
-#
-#    phase_shift_vec = obj.compute_phase_shift(0,E,[C1S0,C3S1,gA2]);
-#    phase = phase_shift_vec[3]
-#    print(f'{E}   {phase*180/np.pi}')
-#
+    # ------------------------------------------
 #print(obj.print_LEC_values()) # To confirm they are correct
 
-
-print(obs_vector)
 
 # ------------
 # Phase shifts
 # ------------
+def phase_shifts(obj):
+    print('\n \nTesting phase shifts \n')
+    # Print the LECs that are in use to know in what order to eneter them in 
+    # the calls later.
+    obj.print_LECs_in_use()
 
-#model = "WPC_LO"
-model = "MWPC_LO_1"
-obj = nn_mwpc.nn_mwpc_interface(model,8,450.0,True,True)
-print(obj.print_LECs_in_use())
-T_lab = np.linspace(10,50,100) # MeV
-
-
-C1S0 = 0
-C3S1 = 0
-gA2  = 0
-C3P0 = 0
-C3P2 = 0
-
-if (model=="MWPC_LO_1"):
-    # LECs from Jerry 
-    C1S0 = -3.52087e-6
-    C3S1 = -6.2791150e-6
-    gA2  = 1.27*1.27;
-    C3P0 = 4.78808625866e-11;
-    C3P2 = -1.15148500523e-11;
-
-    # Conversion to my conventions
-    fac = (2/np.pi)*(2*np.pi)**3
-    C1S0 = (C1S0 -3.70998077e-6)*(2/np.pi)*(2*np.pi)**3 # Seems correct
-    C3S1 = C3S1*(2/np.pi)*(2*np.pi)**3 
-    #gA2 = gA2*fac
-    C3P0 = C3P0*fac
-    C3P2 = C3P2*fac
-elif(model=="WPC_LO"):
+    # Just some test values
     C1S0 = -0.112927/100.0
     C3S1 = -0.087340/100.0
-    gA2 = 1.289*1.289
-
-# 1S0, 3S1, 3P0, 3P2
-chn_i_list = [3]
-
-i = 0
-for chn_i in chn_i_list:
-
-    phases_m = []
-    phases_p = []
-    phases_e = []
-    for Tl in T_lab:
-        phase_shift_vec = []
-        if (model == "MWPC_LO_1"):
-            phase_shift_vec = obj.compute_phase_shift(chn_i,Tl,[C1S0,C3P0,C3P2,C3S1,gA2]);
-        elif(model =="WPC_LO"):
-            phase_shift_vec = obj.compute_phase_shift(chn_i,Tl,[C1S0,C3S1,gA2]);
-        #print(phase_shift_vec)
-
-        if (chn_i == 3 or chn_i == 7):
-            
-            #a, b, c = blattToStapp(phase_shift_vec[1],phase_shift_vec[0],phase_shift_vec[2]*2.0);
-            a, b, c = phase_shift_vec[1], phase_shift_vec[0], phase_shift_vec[2]
-            phases_m.append(a)
-            phases_p.append(b)
-            phases_e.append(c)
-        else:
-            phases.append(phase_shift_vec[3])
-
-    #print(f'Phase shifts: {phase_shift_vec}')
-    #print(np.array(phases)*180/np.pi)
+    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    C3P0 = 1.3e-8;
+    C3P2 = 0.1e-8;
     
-    fix, ax = plt.subplots(2,2)
-    axs = ax.reshape(-1)
-    axs[0].plot(T_lab,np.array(phases_m)*180/np.pi,'.-')
-    axs[1].plot(T_lab,np.array(phases_p)*180/np.pi,'.-')
-    axs[2].plot(T_lab,np.array(phases_e)*180/np.pi,'.-')
-    axs[3].plot(T_lab, np.sin(np.array(phases_m)-np.array(phases_p)),'.-')
+    LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
+    
+    T_lab = np.linspace(10,50,100) # MeV
+    chn_number = 0
 
-print(obj.print_LEC_values()) # To confirm they are correct
-plt.show()
-print('Exit OK')
+    start = time.time()
+    phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
+    end = time.time()
+    print(f'Phase shifts in Stapp convention in radians: {phases}')
+
+    print(f'Total time: {1e3*(end-start):0.3f} ms')
+
+# ------------------------------
+# --------- MAIN CODE ----------
+print("Constructing object and saving potential")
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",25,450.0,True,True)
+
+phase_shifts(obj)
+observables(obj)

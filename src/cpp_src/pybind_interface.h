@@ -135,8 +135,8 @@ public:
     std::vector<double> compute_binding_energy( 
             int chn_number, std::vector<double> LECs);
     
-    std::string print_LEC_values();
-    std::string print_LECs_in_use();
+    void print_LEC_values();
+    void print_LECs_in_use();
 
     
     /*

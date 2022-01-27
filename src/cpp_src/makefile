@@ -1,9 +1,10 @@
 
 # Choose sytem
 # ------------
-#SYSTEM = MAC
-SYSTEM = LINUX
+SYSTEM = MAC
+#SYSTEM = LINUX
 # ------------
+# Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
 # Compiler
 CC = g++
@@ -16,7 +17,7 @@ LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/li
 		   -L/usr/local/opt/llvm/lib
 
 # For SO
-CFLAGS = -Wall -fopenmp -fPIC -ggdb -p -O3 -std=c++11 -stdlib=libc++ \
+CFLAGS = -Wall -fPIC -ggdb -p -O3 -std=c++11 -stdlib=libc++ \
 		 -I/opt/anaconda3/envs/nn-mwpc-env/include \
 		 -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ \
 		 -I/usr/local/Cellar/gsl/2.7/include/gsl -I/usr/local/opt/llvm/include
@@ -60,7 +61,7 @@ FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran -fopenmp
+	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran
 
 pybind_interface.o: pybind_interface.h 
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp
