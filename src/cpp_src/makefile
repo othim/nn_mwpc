@@ -28,11 +28,11 @@ endif
 # For Linux
 ifeq ($(SYSTEM), LINUX)
 
-CFLAGS2 = -Wall -g -pg -std=c++11
+CFLAGS2 = -Wall -g -O3 -pg -std=c++11
 LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib 
 
 # For SO
-CFLAGS = -Wall -fopenmp -fPIC -std=c++11 \
+CFLAGS = -Wall -fopenmp -O3 -fPIC -std=c++11 \
 		 -I/net/home/toliver/miniconda3/include/python3.8 \
 		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
 		 -I/net/home/toliver/wigxjpf-1.11/inc \

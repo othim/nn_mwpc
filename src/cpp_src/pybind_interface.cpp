@@ -370,9 +370,9 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     double mu, q_on_shell;
     
     // Make this loop parallel
-    //#pragma omp parallel
+    #pragma omp parallel
     {
-        //#pragma omp for
+        #pragma omp for
         for (int i = 0; i < chns_.size(); i++)
         {
             //int th_id = omp_get_thread_num();

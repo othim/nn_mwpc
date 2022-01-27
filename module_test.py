@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 # -----------
 
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",30,450.0,True,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",25,450.0,True,True)
 #obj = nn_mwpc.nn_mwpc_interface("WPC_LO",25,450.0,True,True)
 
 
@@ -56,7 +56,7 @@ start = time.time()
 obj.solve_LS(30.0,[C1S0,C3P0,C3P2,C3S1,gA2])
 end = time.time()
 
-print(f'Total time: {1e3*(end-start):0.3f} ms,  Per energy: {1e3*(end-start)/len(energies):0.3f} ms')
+print(f'Total time: {1e3*(end-start):0.3f} ms')
 x = 0
 input(x)
 #for E in np.linspace(1,30,30):
