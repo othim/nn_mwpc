@@ -23,16 +23,6 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 
-# This function is not correct!! Not stable for all inputs!!
-
-def blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB):                
-    # Return phases in deg                                                      
-    # Stapp convention (bar-phase shifts) in terms of Blatt-Biedenharn convention
-    twoEpsilonJ = np.arcsin(np.sin(twoEpsilonJ_BB)*np.sin(delta_minus_BB - delta_plus_BB))  # mixing parameter
-    delta_minus = 0.5*(delta_plus_BB + delta_minus_BB + np.arcsin(np.tan(twoEpsilonJ)/np.tan(twoEpsilonJ_BB)))
-    delta_plus  = 0.5*(delta_plus_BB + delta_minus_BB - np.arcsin(np.tan(twoEpsilonJ)/np.tan(twoEpsilonJ_BB)))
-    epsilon = 0.5*twoEpsilonJ                                                                                                                                    
-    return delta_minus, delta_plus, epsilon 
 # -----------
 # Observables
 # -----------

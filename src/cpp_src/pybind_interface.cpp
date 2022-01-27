@@ -364,18 +364,30 @@ std::vector<double> nn_mwpc_interface::compute_binding_energy(
 
 std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
 {
-    std::vector<Phase_shifts_chn> phases_vec;
+    // Allogacate a vector of the same length as numer of channels and 
+    // fill with zeros.
+    std::vector<Phase_shifts_chn> phases_vec(chns_.size());
     double mu, q_on_shell;
-    for (auto chn : chns_)
+    
+    // Make this loop parallel
+    #pragma omp parallel
     {
-        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-        
-        gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+        #pragma omp for
+        for (int i = 0; i < chns_.size(); i++)
+        {
+            int th_id = omp_get_thread_num();
+            std::cout << "Hello from thread: " << th_id << std::endl;
+            qs::quantum_channel chn = chns_[i];
 
-        Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(Tl,chn,pot_V_mtx);
+            LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
         
-        gsl_matrix_free(pot_V_mtx);
-        phases_vec.push_back(phases);
+            gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+
+            Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(Tl,chn,pot_V_mtx);
+        
+            gsl_matrix_free(pot_V_mtx);
+            phases_vec[i] = phases;
+        }
     }
     return phases_vec;
 }

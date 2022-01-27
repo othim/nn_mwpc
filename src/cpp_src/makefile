@@ -5,10 +5,10 @@ CC = g++
 # For mac
 CFLAGS2 = -Wall -ggdb -p -std=c++11 -O3 -stdlib=libc++
 #CFLAGS  = -Wall -std=c++11 -O3 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
-LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  
+LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  -L/usr/local/opt/llvm/lib
 
 # For SO
-CFLAGS = -Wall -fPIC -ggdb -p -O3 -std=c++11 -stdlib=libc++ -I/opt/anaconda3/envs/nn-mwpc-env/include -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl
+CFLAGS = -Wall -fopenmp -fPIC -ggdb -p -O3 -std=c++11 -stdlib=libc++ -I/opt/anaconda3/envs/nn-mwpc-env/include -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ -I/usr/local/Cellar/gsl/2.7/include/gsl -I/usr/local/opt/llvm/include
 
 
 # For Linux

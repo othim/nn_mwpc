@@ -15,6 +15,7 @@
 #include <iostream>
 #include <ctime>
 #include <string>
+#include <omp.h>
 
 #include "pot_nn_mwpc.h"
 #include "quantum_states.h"
