@@ -370,13 +370,13 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     double mu, q_on_shell;
     
     // Make this loop parallel
-    #pragma omp parallel
+    //#pragma omp parallel
     {
-        #pragma omp for
+        //#pragma omp for
         for (int i = 0; i < chns_.size(); i++)
         {
-            int th_id = omp_get_thread_num();
-            std::cout << "Hello from thread: " << th_id << std::endl;
+            //int th_id = omp_get_thread_num();
+            //std::cout << "Hello from thread: " << th_id << std::endl;
             qs::quantum_channel chn = chns_[i];
 
             LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
