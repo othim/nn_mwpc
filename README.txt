@@ -78,8 +78,9 @@ EXTERNAL LIBRARIES NEEDED
 COMPILING
 
 1. The first thing you need to do is to compile the external fortran code for the
-nijmegen potential. This is done by running 'make' in the 
-nijm-fort-working-class directory. The object files then need to be copied to 
+nijmegen potential. This is done by running 'make cleanall' && 'make' in the 
+nijm-fort-working-class directory. The object files 'pnijm.o' and 
+'nijmegen_interface.o' then needs to be copied to 
 the src/cpp_src directory to be accessed when compiling the C++ code. You can
 see in the make file in src/cpp_src that it assumes that the fortran object
 files are in that directory.
