@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
-    bool print = true;
+    bool print = false;
     bool OPE_inclue = false;
     
  
@@ -109,7 +109,6 @@ int main(int argc, char** argv)
     {
         TEST = true;
         J_max = 5;
-        print = false;
     } else {
         TEST = false;
     }
@@ -417,9 +416,18 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     double rho_T;
    
     const int len = 3;
-    //double energies[len] = {10.0, 50.0, 200.0};
-    double energies[len] = {125.0, 200.0, 350.0};
-    
+
+    double energies1[len] = {10.0,50.0, 200.0};
+    double energies2[len] = {125.0, 200.0,350.0};
+    double* energies; 
+    if (obs_string2 == "DSG")
+    {
+        energies = energies2;
+    } else 
+    {
+        energies = energies1;
+    }
+
     for (int i = 0; i < len; i++)
     {
         double Tl = energies[i];
@@ -496,13 +504,12 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         }
         myfile.open(filename);
 
-        // Compute the observables
-        std::cout << "Angle \t obs \t correct \t abs. rel. error" << std::endl;    
 
         double errors[180];
         double mean_error = 0;
         if (obs_string == "SGT")
         {
+            std::cout << "Energy \t obs \t correct \t abs. rel. error" << std::endl;    
             int e = i+1;
             // Loop over energies
             LS_Solver::get_mu_q_on_shell(energies[e-1],chns[0], &mu,&q_on_shell);
@@ -513,12 +520,13 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             } else {
                 errors[e-1] = 0;
             }
-            std::cout << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] <<"\t" <<  errors[e-1] << std::endl;
+            std::cout << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] <<"\t" <<  errors[e-1] << std::endl << std::endl;
             myfile << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] << "\t" << errors[e-1] << std::endl;
-            mean_error += errors[e-1];
         } 
         else
         {
+
+            std::cout << "Angle \t obs \t correct \t abs. rel. error" << std::endl;    
             for (int ang = 1; ang < 181; ang++)
             {
                 double angle = (double)ang;
@@ -564,9 +572,9 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             }            
             std::cout << angle << "   " << obs_M << " mb" << std::endl; */
             }
+            std::cout << "Mean absolute relative error: " << mean_error/180.0  << std::endl;
+            std::cout << "Maximum error: " << *(std::max_element(errors, errors + 180)) << std::endl;
         }
-        std::cout << "Mean absolute relative error: " << mean_error/180.0  << std::endl;
-        std::cout << "Maximum error: " << *(std::max_element(errors, errors + 180)) << std::endl;
         myfile.close();
         // Now all the pahse shifts in the relevent channels are known.
       // Now we can compute the total cross section for some on_shell

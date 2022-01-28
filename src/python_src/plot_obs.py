@@ -12,43 +12,35 @@ import sys
 # Read the data from the file names
 
 obs_string = sys.argv[1]
-
 path = '../../data/out_' + obs_string
 
-#DSG_10  = np.loadtxt(path + '_10.txt')
-#DSG_50  = np.loadtxt(path + '_50.txt')
-#DSG_200 = np.loadtxt(path + '_200.txt')
+DSG_10  = np.loadtxt(path + '_10.txt')
+DSG_50  = np.loadtxt(path + '_50.txt')
+DSG_200 = np.loadtxt(path + '_200.txt')
 
 
-DSG_10  = np.loadtxt(path + '_125.txt')
-DSG_50  = np.loadtxt(path + '_200.txt')
-DSG_200 = np.loadtxt(path + '_350.txt')
+#DSG_10  = np.loadtxt(path + '_125.txt')
+#DSG_50  = np.loadtxt(path + '_200.txt')
+#DSG_200 = np.loadtxt(path + '_350.txt')
 
 
 fig,ax = plt.subplots(2,1)
-ax[0].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,1],'b')
-ax[0].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,2],'r')
-ax[1].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,3])
-ax[0].set_title('10 MeV')
+ax[0].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,1],'b',label="this code")
+ax[0].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,2],'r',label="nn-on-line")
+ax[1].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,3],label="error")
+ax[0].set_title(obs_string + ' 10 MeV')
 
 fig,ax = plt.subplots(3,1)
-ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,1],'b')
-ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,2],'r')
-ax[1].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,3])
-ax[0].set_title('50 MeV')
-
-dat = np.loadtxt('../../data/results.dat')
-ax[0].plot(np.cos(dat[:,0]*np.pi/180),dat[:,1],'g')
-ax[1].plot(np.cos(dat[:,0]*np.pi/180),np.abs(dat[:,1]-DSG_50[:,2])/DSG_50[:,2],'g')
-ax[2].plot(np.cos(dat[:,0]*np.pi/180),np.abs(dat[:,1]-DSG_50[:,2])/DSG_50[:,2],'g')
+ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,1],'b',label="this code")
+ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,2],'r',label="nn-on-line")
+ax[1].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,3],label="error")
+ax[0].set_title(obs_string + ' 50 MeV')
 
 fig,ax = plt.subplots(2,1)
-ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,1],'b')
-ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,2],'r')
-ax[1].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,3])
-ax[0].set_title('200 MeV')
-
-
+ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,1],'b',label="this code")
+ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,2],'r',label="nn-on-line")
+ax[1].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,3],label="error")
+ax[0].set_title(obs_string + ' 200 MeV')
 
 
 plt.show()

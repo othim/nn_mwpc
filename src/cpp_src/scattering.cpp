@@ -493,8 +493,10 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
     //std::cout << std::imag(a) << " " << std::imag(a) << std::endl;
     //std::cout << std::real(b) << " " << std::imag(b) << std::endl;
     
-    double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b);
-    //std::cout << sigma << std::endl;
+    double fac = std::sqrt(constants::MeVm2_to_mbarn);
+    // This factor is to convert the q_on_shell to mbarn
+    double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b)*fac;
+    
     return sigma;
 }
 
