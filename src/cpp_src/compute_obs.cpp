@@ -239,8 +239,9 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
         double error_m = 0;
         double error_p = 0;
         double error_eps = 0;
-
-        for (int E = 1; E < 40; E++)
+        
+        int E_MAX = 40;
+        for (int E = 1; E < E_MAX; E++)
         {
             double T_lab = (double)E;
 
@@ -271,19 +272,26 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
                 if (phases.delta_m < 0) {
                     phases.delta_m = phases.delta_m + M_PI;
                 }
-                //double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
-                //double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
-                //double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
-                //std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
-                std::cout << T_lab << "   " << phases.delta_m << "   " << phases.delta_p << "    " << phases.epsilon << std::endl; 
+                double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
+                double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
+                double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
                 
-                //error_m += em;
-                //error_p += ep;
-                //error_eps += eps;
+                std::cout << phases.delta_m*180/M_PI << "  " << D_delta_m[E-1] << std::endl;
+                std::cout << phases.delta_p*180/M_PI << "  " << D_delta_p[E-1] << std::endl;
+                std::cout << phases.epsilon*180/M_PI << "  " << D_eps[E-1] << std::endl;
+                std::cout << std::cos(2*phases.epsilon)*std::sin(phases.delta_m + phases.delta_p) << std::endl;
+                //double em = std::cos(2.*phases.delta_m) - std::cos(2.*D_delta_m[E-1]*M_PI/180.0);
+                
+                std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
+                //std::cout << T_lab << "   " << phases.delta_m << "   " << phases.delta_p << "    " << phases.epsilon << std::endl; 
+                
+                error_m += em;
+                error_p += ep;
+                error_eps += eps;
             } 
         
         }
-        std::cout << "Errors: " << error/300 << "   " << error_m/300 << "   " << error_p/300 << "   " << error_eps  << std::endl;
+        std::cout << "Errors: " << error/E_MAX << "   " << error_m/E_MAX << "   " << error_p/E_MAX << "   " << error_eps/E_MAX  << std::endl;
         
         myfile.close();
         //double a;
@@ -719,7 +727,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
 {
     std::cout << "Testing speed of code with LO WPC potential and the observable DSG" << std::endl << std::endl;
 
-    std::clock_t start, end;   
+    //std::clock_t start, end;   
     
     // Make grid
     double* p_grid;
@@ -754,14 +762,14 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     Pot.LECs_["C3P0"] = C3P0;
     Pot.LECs_["C3P2"] = C3P2;
 
-    int l_max = 50;
+    //int l_max = 50;
     double Lambda = 450.0;
 
     LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
    
     double q_on_shell;
     double mu;
-    double rho_T;
+    //double rho_T;
     
     double Tl = 50.0; // MeV
 

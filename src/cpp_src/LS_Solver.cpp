@@ -343,7 +343,8 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         double tm = (R_mm-R_pp);
         double tp = (R_mm+R_pp);
         double x = 2.0*R_mp/tm;
-        phase_shifts.epsilon = atan2(2.0*R_mp,tm)/2.0;
+        //phase_shifts.epsilon = atan2(2.0*R_mp,tm)/2.0;
+        phase_shifts.epsilon = atan(2.0*R_mp/tm)/2.0;
 
         double rr = tm*(sqrt(1+x*x));
 

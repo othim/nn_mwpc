@@ -12,12 +12,12 @@ CC = g++
 # For mac
 ifeq ($(SYSTEM), MAC)
 	
-CFLAGS2 = -Wall -ggdb -p -std=c++11 -O3 -stdlib=libc++
+CFLAGS2 = -Wall -ggdb -std=c++11 -O3 -stdlib=libc++
 LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  \
 		   -L/usr/local/opt/llvm/lib
 
 # For SO
-CFLAGS = -Wall -fPIC -ggdb -p -O3 -std=c++11 -stdlib=libc++ \
+CFLAGS = -Wall -fPIC -ggdb -O3 -std=c++11 -stdlib=libc++ \
 		 -I/opt/anaconda3/envs/nn-mwpc-env/include \
 		 -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ \
 		 -I/usr/local/Cellar/gsl/2.7/include/gsl -I/usr/local/opt/llvm/include
@@ -48,7 +48,7 @@ NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 
 # If you want to profile with gprof you need to link with that library 
 obs: $(NN_MWPC_FILES)
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran -fopenmp 
+	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran 
 
 # OLD
 main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
