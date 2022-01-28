@@ -124,7 +124,9 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
                     " Tz=" << sm.Tz << " pi=" << sm.pi << ")" << std::endl;
             }
         }
-        std::cout << std::endl;
+        if (print) {
+            std::cout << std::endl;
+        }
         j++;
     }
     if (print)

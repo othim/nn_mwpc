@@ -24,6 +24,7 @@ CFLAGS = -Wall -fPIC -ggdb -O3 -std=c++11 -stdlib=libc++ \
 
 # This flag is needed on mac...
 UNDEF = -undefined dynamic_lookup
+OPENMP =
 endif
 
 # For Linux
@@ -40,6 +41,7 @@ CFLAGS = -Wall -fopenmp -O3 -fPIC -std=c++11 \
 		 -I/net/home/toliver/phd/nn_mwpc/src/cpp_src/gsl-2.7/gsl
 
 UNDEF = 
+OPENMP = -fopenmp
 endif
 
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
@@ -48,7 +50,7 @@ NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 
 # If you want to profile with gprof you need to link with that library 
 obs: $(NN_MWPC_FILES)
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran 
+	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran $(OPENMP)
 
 # OLD
 main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
@@ -61,7 +63,7 @@ FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran
+	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lgslcblas -lm  -lwigxjpf -lgfortran $(OPENMP)
 
 pybind_interface.o: pybind_interface.h 
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp

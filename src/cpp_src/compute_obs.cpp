@@ -74,6 +74,9 @@ void test_f()
     } 
 }
 
+bool TEST = false; // This will regulate the printout in the testing
+double TOL = 0.03;
+
 int main(int argc, char** argv)
 {
 
@@ -88,39 +91,40 @@ int main(int argc, char** argv)
     unsigned int number_of_p_points = 100; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     
-    // ----- JUST CHOOSE SOME VALUES TO REPRODUCE PHASE SHIFTS WITH -----
-    //static double Lambda	= 450; 		  // cut-off for renormalization of LO  [MeV]
-    //static double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
-    //static double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
-    
     // Do precomputations
     ph::physics_helpers_init();
     // ---------------   
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max =8;
+    int J_max = 8;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
     bool print = true;
     bool OPE_inclue = false;
     
-    
+ 
+    if (std::string(argv[2]) == "test")
+    {
+        TEST = true;
+        J_max = 5;
+        print = false;
+    } else {
+        TEST = false;
+    }
+   
     std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
      
     // Construct the quantum scattering channels from the states
     std::cout << "Contruction scattering channels..." << std::endl;
-    std::vector<qs::quantum_channel> chns = get_channels(states, true);   
+    std::vector<qs::quantum_channel> chns = get_channels(states, print);   
     
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
     if (std::string(argv[1]) == "phase") {
         check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
     }
-    //std::complex<double> a =( -1.70140, 8.83681);
-    //std::complex<double> e = (0.00069, 0.00306);
-    //std::cout << std::real(std::conj(a)*e) << std::endl;
     
     // Check observables
     if (std::string(argv[1]) == "DSG") {
@@ -148,6 +152,8 @@ int main(int argc, char** argv)
 void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot)
 {
+    std::cout << "Testing phase shifts with the nijmegen1 potential" << std::endl;
+    std::cout << "-------------------------------------------------" << std::endl << std::endl;
     double* p_grid;
     double* w_grid;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
@@ -188,20 +194,23 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
         std::ofstream myfile;
         std::string filename = "../../data/out_" + quantum_channel_to_string(chn) + ".txt"; 
         myfile.open(filename);
-        std::cout << "File_name: " << filename << std::endl; 
+        //std::cout << "File_name: " << filename << " | ";
         
 
         // Read in the correct file of data
         std::string data = "../../data/np_" + quantum_channel_to_string(chn) + "_nijm1.txt";   
-        
+        std::cout << "Channel: " << quantum_channel_to_string(chn) << " | ";
         // Open file
         std::ifstream infile(data);
         if (infile.is_open())
         {
-            std::cout << "OK" << std::endl;
+            std::cout << "Load: OK | ";
         } else
         {
-            std::cout << "Failed" << std::endl;
+            std::cout << "Load: Failed | ";
+        }
+        if (!TEST) {
+            std::cout << std::endl;
         }
         double D_energies[300];
         double D_delta_uncoupled[300];
@@ -233,8 +242,10 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             }
         }
 
-
-        std::cout << "E_lab d-uncoup \t dm \t dp \t eps " << std::endl; 
+        if (!TEST)
+        {
+            std::cout << "E_lab d-uncoup \t dm \t dp \t eps " << std::endl; 
+        }
         double error = 0;
         double error_m = 0;
         double error_p = 0;
@@ -265,34 +276,63 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             //    phases.epsilon*180.0/M_PI << "\n"; 
             if (!chn.coupled)
             {
-                std::cout << T_lab << "   " << std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]) << std::endl;
-                error += std::abs((phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1])/D_delta_uncoupled[E-1]); 
+                //double err =std::abs((phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1])/D_delta_uncoupled[E-1]);
+                double err =std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]);
+                if (!TEST) {
+                    std::cout << T_lab << "   " << err << std::endl;
+                }
+                error = std::max(error,err);
             } else 
             {
                 if (phases.delta_m < 0) {
                     phases.delta_m = phases.delta_m + M_PI;
                 }
-                double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
-                double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
-                double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
+
+                //double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
+                //double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
+                //double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
                 
-                std::cout << phases.delta_m*180/M_PI << "  " << D_delta_m[E-1] << std::endl;
-                std::cout << phases.delta_p*180/M_PI << "  " << D_delta_p[E-1] << std::endl;
-                std::cout << phases.epsilon*180/M_PI << "  " << D_eps[E-1] << std::endl;
-                std::cout << std::cos(2*phases.epsilon)*std::sin(phases.delta_m + phases.delta_p) << std::endl;
-                //double em = std::cos(2.*phases.delta_m) - std::cos(2.*D_delta_m[E-1]*M_PI/180.0);
+                double em = std::abs(phases.delta_m*180.0/M_PI - D_delta_m[E-1]);
+                double ep = std::abs(phases.delta_p*180.0/M_PI   - D_delta_p[E-1]);         
+                double eps = std::abs(phases.epsilon*180.0/M_PI  - D_eps[E-1]);         
                 
-                std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
-                //std::cout << T_lab << "   " << phases.delta_m << "   " << phases.delta_p << "    " << phases.epsilon << std::endl; 
+                if (TEST)
+                {
+                } else 
+                { 
+                    std::cout << phases.delta_m*180/M_PI << "  " << D_delta_m[E-1] << std::endl;
+                    std::cout << phases.delta_p*180/M_PI << "  " << D_delta_p[E-1] << std::endl;
+                    std::cout << phases.epsilon*180/M_PI << "  " << D_eps[E-1] << std::endl;
+                    std::cout << std::cos(2*phases.epsilon)*std::sin(phases.delta_m + phases.delta_p) << std::endl;
                 
-                error_m += em;
-                error_p += ep;
-                error_eps += eps;
+                    std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
+                    //std::cout << T_lab << "   " << phases.delta_m << "   " << phases.delta_p << "    " << phases.epsilon << std::endl; 
+                }
+                error_m = std::max(em,error_m);
+                error_p = std::max(ep,error_p);
+                error_eps = std::max(eps,error_eps);
             } 
         
         }
-        std::cout << "Errors: " << error/E_MAX << "   " << error_m/E_MAX << "   " << error_p/E_MAX << "   " << error_eps/E_MAX  << std::endl;
+
+        std::cout << "Max. abs err. (deg): " << error << "   " << error_m << "   " << error_p << "   " << error_eps;
         
+        if (TEST)
+        {
+            bool passed = false;
+            if (error < TOL && error_m < TOL && error_p < TOL && error_eps < TOL) {
+                passed = true;
+            }
+            if (passed) {
+                std::cout << " | Passed: YES" << std::endl;
+            } else {
+                std::cout << " | Passed: NO" << std::endl;
+            }
+        } else
+        { 
+            std::cout << std::endl;
+        } 
+
         myfile.close();
         //double a;
         //std::cout << "One channel done" << std::endl;
