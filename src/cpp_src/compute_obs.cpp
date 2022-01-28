@@ -344,6 +344,8 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
 void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
    unsigned int J_max_in_pot,double scale,std::string obs_string, bool ope_J_geq_9)
 {
+    std::cout << "Testing bservables with the nijmegen1 potential" << std::endl;
+    std::cout << "-------------------------------------------------" << std::endl << std::endl;
     //std::clock_t start, end;   
     // Make grid
     double* p_grid;
@@ -437,7 +439,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         std::string data;
         if (obs_string2 != "SGT")
         {
-            std::cout << std::endl << "Testing " + obs_string2 + " with T_lab=" << Tl << " MeV" << std::endl << std::endl;  
+            std::cout << "Testing " + obs_string2 + " with T_lab=" << Tl << " MeV" << std::endl;
     
             // Read in the correct file of data
             data = "../../data/np_" + obs_string2 + "_" + std::to_string((int)Tl) + "_nijm1.txt";   
@@ -520,7 +522,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             } else {
                 errors[e-1] = 0;
             }
-            std::cout << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] <<"\t" <<  errors[e-1] << std::endl << std::endl;
+            //std::cout << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] <<"\t" <<  errors[e-1] << std::endl << std::endl;
             myfile << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] << "\t" << errors[e-1] << std::endl;
         } 
         else
@@ -551,10 +553,10 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
                 } else {
                     errors[ang-1] = 0;
                 }
-                std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
-                    " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
+                //std::cout << angle << " a: " << saclay_amplitudes[0] << " b: " << saclay_amplitudes[1] <<
+                //    " c: " << saclay_amplitudes[2] << " d: " << saclay_amplitudes[3] << " e: " << saclay_amplitudes[4] << std::endl; 
             
-                std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
+                //std::cout << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1]  << std::endl;
                 myfile << angle << "\t" << obs << "\t" << D_obs[ang-1] << "\t" << errors[ang-1] << std::endl;
                 mean_error += errors[ang-1];
 
