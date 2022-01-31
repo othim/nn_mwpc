@@ -104,6 +104,8 @@ def phase_shifts(obj):
     T_lab = np.linspace(10,50,100) # MeV
 
     for chn_number in [0,3]:
+        LS_term = obj.get_chn_LS_term(chn_number)
+        print(f'LS-Term: {LS_term}')
         start = time.time()
         phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
         end = time.time()
@@ -114,6 +116,7 @@ def phase_shifts(obj):
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
 obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",25,450.0,True,True)
-
+num_chn = obj.get_chn_len()
+print(f'Number of channels: {num_chn}')
 phase_shifts(obj)
 observables(obj)
