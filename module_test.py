@@ -45,7 +45,7 @@ def observables(obs):
     print("Many observables at once")
     angles = np.linspace(1,179,50) # in degrees
     angles_l = angles.tolist()
-    energies = [10.0,50.0,200.0] # in MeV
+    energies = [10.0,20.0,100.0] # in MeV
     
     # Time the funtion call
     start = time.time()
@@ -102,14 +102,13 @@ def phase_shifts(obj):
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     
     T_lab = np.linspace(10,50,100) # MeV
-    chn_number = 0
 
-    start = time.time()
-    phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
-    end = time.time()
-    print(f'Phase shifts in Stapp convention in radians: {phases}')
-
-    print(f'Total time: {1e3*(end-start):0.3f} ms')
+    for chn_number in [0,3]:
+        start = time.time()
+        phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
+        end = time.time()
+        print(f'Phase shifts in Stapp convention in radians: {phases}')
+        print(f'Total time: {1e3*(end-start):0.3f} ms')
 
 # ------------------------------
 # --------- MAIN CODE ----------

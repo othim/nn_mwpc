@@ -204,8 +204,7 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
         if (std::abs(angle-90.0) < 0.001) {
             angle = 90.001;
         }
-        double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
-                (constants::Mn+constants::Mp); // In the convention used
+        double rho_T = M_PI*q_on_shell*mu; // In the convention used
         
         std::vector<std::complex<double> > saclay_amplitudes;
         // Convert the angle to radians. This uses the pre-computed phase
@@ -265,8 +264,7 @@ std::vector<double> nn_mwpc_interface::compute_observable_l(const std::string& n
                 if (std::abs(ang-90.0) < 0.001) {
                     ang = 90.001;
                 }
-                rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
-                        (constants::Mn+constants::Mp); // In the convention used in the code
+                rho_T = M_PI*q_on_shell*mu; // In the convention used in the code
                 //std::cout << J_max_in_pot_ << std::endl;            
                 std::vector<std::complex<double> > saclay_amplitudes;
                 saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
@@ -368,7 +366,7 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     double mu, q_on_shell;
     
     // Make this loop parallel
-    //omp_set_num_threads(8);    
+    omp_set_num_threads(16);    
     #pragma omp parallel
     {
         #pragma omp for

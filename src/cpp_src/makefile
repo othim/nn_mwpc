@@ -1,8 +1,8 @@
 
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = LINUX
+#SYSTEM = MAC
+SYSTEM = LINUX
 # ------------
 # Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
