@@ -51,6 +51,8 @@ void check_interface();
 
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot);
+void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot);
 void test_f()
 {
 
@@ -108,7 +110,9 @@ int main(int argc, char** argv)
     if (std::string(argv[2]) == "test")
     {
         TEST = true;
-        J_max = 5;
+        if (std::string(argv[1]) == "phase") {
+            J_max = 5;
+        }
     } else {
         TEST = false;
     }
@@ -143,7 +147,10 @@ int main(int argc, char** argv)
                 J_max_in_pot,"SGT", OPE_inclue);
     } else if (std::string(argv[1]) == "MWPC") {
         check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
+    } else if (std::string(argv[1]) == "test_1S0") {
+        check_1S0(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     }
+
     ph::physics_helpers_free();
     return 0;
 }
@@ -344,7 +351,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
 void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_of_p_points,unsigned int ang_int_points,
    unsigned int J_max_in_pot,double scale,std::string obs_string, bool ope_J_geq_9)
 {
-    std::cout << "Testing bservables with the nijmegen1 potential" << std::endl;
+    std::cout << "Testing observables with the nijmegen1 potential" << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
     //std::clock_t start, end;   
     // Make grid
@@ -771,7 +778,103 @@ void check_interface()
     delete obj;
     std::cout << "Done!" << std::endl; 
 }
+void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
+{
+    std::cout << "Testing 1S0 phase shifts with the WPC_LO potential." << std::endl;
+    std::cout << "-------------------------------------------------" << std::endl << std::endl;
+    std::cout << "First, oposite np kinematics then correct kinematics" << std::endl;
+    std::vector<std::string> files;
+    files.push_back("../../data/phase_shift_1S0_Andreas.dat");
+    // This file constains the phase shifts produced when I have the correct
+    // kinematics p -> n that I have produced. When I use the same kinematics as
+    // Andreas I get absolute errros of 10^{-5} when I produced this test data.
+    files.push_back("../../data/phase_shift_1S0_Andreas_corrected.dat");
+    
+    for (auto& data : files)
+    {
+        // Open file
+        std::ifstream infile(data);
+        if (infile.is_open())
+        {
+            std::cout << "File" + data + " loaded: OK" << std::endl;
+        } else
+        {
+            std::cout << "File" + data + ": Failed" << std::endl;
+        }
 
+        // Read and save the data to arrays
+        double D_E[350];
+        double D_p[350];
+        double E, phase;
+        int k = 0;
+        while(infile >> E >> phase)
+        {
+            D_E[k] = E;
+            D_p[k] = phase;
+            k++;
+            //std::cout << E << "   " << phase << std::endl;
+        }
+        
+        // Make grid
+        double* p_grid;
+        double* w_grid;
+        double Lambda = 500.0;
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+        double C1S0	= -0.1/100.0; 
+        double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+        double C3P0 = 0.0;
+        double C3P2 = 0.0;    
+        // Choose terms in LO WPC potential
+        std::vector<std::string> terms;
+        terms.push_back("OPEP"); // To just test elements use just OPEP
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("C3P0");
+        terms.push_back("C3P2");
+
+
+        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda);
+        
+        std::cout << "Saving potential matrices" << std::endl;
+        for (auto chn : chns)
+        {
+            Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+        }
+
+        // Set correct LECs
+        Pot.LECs_["gA2"]  = 1.29*1.29;
+        Pot.LECs_["C1S0"] = C1S0;
+        Pot.LECs_["C3S1"] = C3S1;
+        Pot.LECs_["C3P0"] = C3P0;
+        Pot.LECs_["C3P2"] = C3P2;
+
+        LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+       
+        double q_on_shell;
+        double mu;
+        double max = 0;
+        double mean = 0;
+        qs::quantum_channel chn = chns[0]; // 1S0    
+        
+        for (int i = 0; i < 350; i++)
+        {
+            LS_Solver::get_mu_q_on_shell(D_E[i], chn, &mu, &q_on_shell);
+            gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+            Phase_shifts_chn phases = solver.solve_in_chn_R(D_E[i],chn,pot_V_mtx);
+            
+            double err = std::abs(D_p[i] - phases.delta_uncoupled*180.0/M_PI);
+            //std::cout << std::setprecision(10);
+            //std::cout << D_E[i] << "   " << phases.delta_uncoupled*180.0/M_PI << std::endl;
+            max = std::max(max, err);
+            mean += err; 
+            delete[] pot_V_mtx;
+        }
+        std::cout << "Mean error (deg): " << mean/350.0 << ". Max error (deg): " << max << std::endl;
+
+    }
+}
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
 {
