@@ -1,9 +1,14 @@
 
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = LINUX
+#SYSTEM = MAC
+SYSTEM = LINUX
 # ------------
+
+# Choose blas library
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
+
 # Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
 # Compiler
@@ -12,7 +17,7 @@ CC = g++
 # For mac
 ifeq ($(SYSTEM), MAC)
 	
-CFLAGS2 = -Wall -ggdb -std=c++11 -O3 -stdlib=libc++
+CFLAGS2 = -Wall -std=c++11 -O3 -stdlib=libc++
 LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  \
 		   -L/usr/local/opt/llvm/lib
 
@@ -30,9 +35,15 @@ endif
 # For Linux
 ifeq ($(SYSTEM), LINUX)
 
-CFLAGS2 = -Wall -g -O3 -pg -std=c++11
-LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib 
+CFLAGS2 = -Wall -O3 -std=c++11
+#CFLAGS2 += -g -pg # For debugging
+LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib -L/usr/local/lib
 
+ifeq ($(BLAS_LIB), MKL)
+
+LDFLAGS  += -L/net/opt/intel/15.0.4/composer_xe_2015.5.223/mkl/lib/intel64 \
+			-Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+endif
 # For SO
 CFLAGS = -Wall -fopenmp -O3 -fPIC -std=c++11 \
 		 -I/net/home/toliver/miniconda3/include/python3.8 \
@@ -50,7 +61,7 @@ NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 
 # If you want to profile with gprof you need to link with that library 
 obs: $(NN_MWPC_FILES)
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lcblas -lm  -lwigxjpf -lgfortran $(OPENMP)
+	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP)
 
 # OLD
 main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
@@ -63,7 +74,7 @@ FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lcblas -lm  -lwigxjpf -lgfortran $(OPENMP)
+	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP)
 
 pybind_interface.o: pybind_interface.h 
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp
