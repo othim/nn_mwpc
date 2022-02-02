@@ -1,13 +1,13 @@
 
 # Choose sytem
 # ------------
-#SYSTEM = MAC
-SYSTEM = LINUX
+SYSTEM = MAC
+#SYSTEM = LINUX
 # ------------
 
 # Choose blas library
-BLAS_LIB = MKL
-#BLAS_LIB = GSL
+#BLAS_LIB = MKL
+BLAS_LIB = GSL
 
 # Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
@@ -20,6 +20,17 @@ ifeq ($(SYSTEM), MAC)
 CFLAGS2 = -Wall -std=c++11 -O3 -stdlib=libc++
 LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  \
 		   -L/usr/local/opt/llvm/lib
+
+ifeq ($(BLAS_LIB), MKL)
+
+LDFLAGS += -L/opt/intel/oneapi/mkl/2021.4.0/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
+
+endif
+
+ifeq ($(BLAS_LIB), GSL)
+
+LDFLAGS += -lcblas
+endif
 
 # For SO
 CFLAGS = -Wall -fPIC -ggdb -O3 -std=c++11 -stdlib=libc++ \
