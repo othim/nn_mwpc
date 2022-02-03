@@ -6,8 +6,8 @@ SYSTEM = LINUX
 # ------------
 
 # Choose blas library
-BLAS_LIB = MKL
-#BLAS_LIB = GSL
+#BLAS_LIB = MKL
+BLAS_LIB = GSL
 
 # Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
@@ -41,7 +41,7 @@ LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib -L/
 
 ifeq ($(BLAS_LIB), MKL)
 
-LDFLAGS  += -L/net/opt/intel/15.0.4/composer_xe_2015.5.223/mkl/lib/intel64 \
+LDFLAGS  += -L/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64 \
 			-Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
 endif
 # For SO
@@ -74,7 +74,7 @@ FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP)
+	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP) -lgslcblas
 
 pybind_interface.o: pybind_interface.h 
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp

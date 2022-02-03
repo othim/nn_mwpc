@@ -42,6 +42,7 @@ def observables(obs):
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     # Test to compute many observables at once
     # -----------------------------------------
+    '''
     print("Many observables at once")
     angles = np.linspace(1,179,50) # in degrees
     angles_l = angles.tolist()
@@ -57,7 +58,7 @@ def observables(obs):
     print(f'Total time: {1e3*(end-start):0.3f} ms')
     print(f'Time per energy: {1e3*(end-start)/len(energies):0.3f} ms \n')
     # -----------------------------------------
-
+    '''
     # Test to compute one observable at the time
     # ------------------------------------------
     print("One observable at the time \n")
@@ -103,7 +104,7 @@ def phase_shifts(obj):
     
     T_lab = np.linspace(10,50,100) # MeV
 
-    for chn_number in [0,3]:
+    for chn_number in [0,0,3]:
         LS_term = obj.get_chn_LS_term(chn_number)
         print(f'LS-Term: {LS_term}')
         start = time.time()
