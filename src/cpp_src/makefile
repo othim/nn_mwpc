@@ -6,8 +6,8 @@ SYSTEM = LINUX
 # ------------
 
 # Choose blas library
-#BLAS_LIB = MKL
-BLAS_LIB = GSL
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
 
 # Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
@@ -74,7 +74,7 @@ FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP) -lgslcblas
+	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP) 
 
 pybind_interface.o: pybind_interface.h 
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp

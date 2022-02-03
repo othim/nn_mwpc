@@ -42,7 +42,7 @@ def observables(obs):
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     # Test to compute many observables at once
     # -----------------------------------------
-    '''
+    
     print("Many observables at once")
     angles = np.linspace(1,179,50) # in degrees
     angles_l = angles.tolist()
@@ -58,7 +58,7 @@ def observables(obs):
     print(f'Total time: {1e3*(end-start):0.3f} ms')
     print(f'Time per energy: {1e3*(end-start)/len(energies):0.3f} ms \n')
     # -----------------------------------------
-    '''
+    
     # Test to compute one observable at the time
     # ------------------------------------------
     print("One observable at the time \n")
@@ -70,7 +70,8 @@ def observables(obs):
     # First solve the LS equation. This saves phase shifts in the object obj.
     # The saved phase shifts can be accessed with obj.get_saved_phase_shifts(chn_number)
     obj.solve_LS(E,[C1S0,C3P0,C3P2,C3S1,gA2])
-    
+    end1 = time.time()
+    print("Solved LS")    
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
     obs = obj.compute_observable("I 0000",ang)
@@ -79,6 +80,7 @@ def observables(obs):
 
     #print(obs_vector)
     print(f'Total time: {1e3*(end-start):0.3f} ms')
+    print(f'Time to solve LS: {1e3*(end1-start):0.3f} ms')
 
     # ------------------------------------------
 #print(obj.print_LEC_values()) # To confirm they are correct
@@ -116,7 +118,7 @@ def phase_shifts(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",25,450.0,True,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",10,450.0,True,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)

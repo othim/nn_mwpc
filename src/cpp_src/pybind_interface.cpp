@@ -52,8 +52,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
     scale_ = 100.0; // Scale of momenutm grid MeV
-    number_of_p_points_ = 100; // Number of momentum-grid points
-    ang_int_points_ = 96; // Number of points in angular integration
+    number_of_p_points_ = 60; // Number of momentum-grid points
+    ang_int_points_ = 76; // Number of points in angular integration
     J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
     cutoff_ = cutoff; // Cutoff in LS-equation
     pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
@@ -416,7 +416,7 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     double mu, q_on_shell;
     
     // Make this loop parallel
-    omp_set_num_threads(16);    
+    //omp_set_num_threads(1);    
     #pragma omp parallel
     {
         #pragma omp for

@@ -15,7 +15,7 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    mom_grid_size_ = mom_grid_size;
    J_max_ = J_max;
    cutoff_Lambda_ = cutoff_Lambda;
-   cut_pow_ = 6;   
+   cut_pow_ = 4;   
    sharp_cutoff_ = false;
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)

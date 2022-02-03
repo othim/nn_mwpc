@@ -89,8 +89,8 @@ int main(int argc, char** argv)
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
-    unsigned int ang_int_points = 96; // Number of points in angular integration
-    unsigned int number_of_p_points = 100; // Number of momentum-grid points
+    unsigned int ang_int_points = 76; // Number of points in angular integration
+    unsigned int number_of_p_points = 60; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     
     // Do precomputations
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 8;
+    int J_max = 25;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -774,7 +774,9 @@ void check_interface()
     
     std::cout << "Object created" << std::endl;
     std::vector<double> res = obj->compute_observable_l(observable,angles,energies,LECs);
-    
+   
+    obj->solve_LS(10.0,LECs);
+    double a = obj->compute_observable("I 0000", 80.0);
     delete obj;
     std::cout << "Done!" << std::endl; 
 }
