@@ -1,7 +1,7 @@
 from setuptools import setup, Extension
 
 setup(
-    name='nn_mwpce',
+    name='nn_mwpc',
     version=1.0,
     author='Oliver Thim',
     author_email='oliver.thim@chalmers.se',

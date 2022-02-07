@@ -24,7 +24,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
-#include "gsl_sf_legendre.h" 
+#include "gsl_sf_legendre.h"
 #include "gsl_integration.h" 
 #include "gsl_matrix.h"
 #include "Term.h"

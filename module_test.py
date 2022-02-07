@@ -16,7 +16,8 @@
 
     Oliver Thim 2021
 '''
-
+import sys
+sys.path.append("/home/x_olith/.local/lib/python3.8/site-packages")
 
 import nn_mwpc
 import numpy as np 
@@ -53,7 +54,7 @@ def observables(obs):
     end = time.time()
 
     #print(obs_vector)
-    #obj.print_LEC_values() # To confirm that the LECs were set correctly
+    obj.print_LEC_values() # To confirm that the LECs were set correctly
     print(f'Total time: {1e3*(end-start):0.3f} ms')
     print(f'Time per energy: {1e3*(end-start)/len(energies):0.3f} ms \n')
     # -----------------------------------------
@@ -105,7 +106,7 @@ def phase_shifts(obj):
     chn_number = 0
 
     start = time.time()
-    phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
+    phases = obj.compute_phase_shift(chn_number,10.0,LECs)
     end = time.time()
     print(f'Phase shifts in Stapp convention in radians: {phases}')
 
