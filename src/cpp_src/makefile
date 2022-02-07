@@ -9,7 +9,8 @@ SYSTEM = TETRALITH
 # Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
 # Compiler
-CC = g++
+#CC = g++
+CC = icpc
 
 # For mac
 ifeq ($(SYSTEM), MAC)
@@ -55,7 +56,8 @@ CFLAGS2 = -Wall -O3 -std=c++11
 LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib 
 
 #LDFLAGS +=  -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
-LDFLAGS +=  -Wl,--no-as-needed -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lm -lpcap
+#LDFLAGS +=  -Wl,--no-as-needed -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lm
+LDFLAGS += -Nmkl -mkl=parallel
 
 #LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib
 
@@ -89,7 +91,7 @@ FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 so: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP)
 
-pybind_interface.o: pybind_interface.h 
+pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp
 
 compute_obs.o: compute_obs.cpp
