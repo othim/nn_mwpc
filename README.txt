@@ -74,7 +74,8 @@ COMPILING THE CODE
 EXTERNAL LIBRARIES NEEDED
 - gsl
 - pybind11
-
+- intel MKL (oneapi)
+( - ic
 COMPILING
 
 1. The first thing you need to do is to compile the external fortran code for the
@@ -89,13 +90,46 @@ files are in that directory.
 in the make file in src/cpp_src depending on what target you want to have. 
 e.g. 'make obs'.
 
+If you use link to MKL instead of GSL you need some additional tricks. This is 
+worth is because you can expect a speedup in the solution of LS-equation by a
+factor 2-3 depending on the systems. If you compile with the MKL flag in the 
+makefile you will likely get errors that there are some missing shared library
+files. Sometimes even worse, you will just get segfaults... The solution is a 
+combination of what follows depending on the system you use.
+
+    1. You need to locate the directory where MKL is installed. Sometimes the 
+    enviroment variable $MKLROOT is set automatically, and sometimes not. In
+    that directory under env/ or bin/ there is a shell script named
+    vars.sh or setvars.sh. You need to run it by 'source setvars.sh'. This 
+    will set some required enviroment variables. 
+
+    2. If you still get errors you might need to export some enviroment variables
+    manually. On the subatom computers you need to run:
+    
+    - 'export LD_LIBRARY_PATH=/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/'
+    - 'export LD_PRELOAD=/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_def.so.2: \
+    /net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_core.so: \
+    /net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_intel_lp64.so.2: \
+    /net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_intel_thread.so:/net/opt/intel/lib/intel64/libiomp5.so'
+
+    don't ask me why.....
+
+    3. You must tell OpenMP and MKL how many threads they should use by running
+    - 'export MKL_NUM_THREADS=1'
+    - 'export OMP_NUM_THREADS=16'
+
+    4. By doing all these steps you should get a factor 2-3 speedup on the 
+    SUBATOM computers. Note that the export and setting of enviroment variables 
+    needs to be done each time you go into a new terminal session.
+
+    5. On Tetralith you just need to run the setvars.sh script and 
+    'export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib'
+
 Note that the linking arguments might need a change since they are specific to
 where your libraris are installed on your system. There is also different arguments
 if you compile on Mac or Linux (check the makefile). If you compile the code on
-a subatom computer you could probabily acess my (Oliver Thim) libraries and 
-the changes to the makefile should be minimal. The only thing you have to make 
-sure is that you use the Linux version and not the Mac version of the make file 
-when compileing on linux.
+a subatom computer you could probabily access my (Oliver Thim) libraries and 
+the changes to the makefile should be minimal.
 
 TESTING
 
