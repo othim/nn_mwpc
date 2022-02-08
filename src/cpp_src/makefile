@@ -6,8 +6,8 @@ SYSTEM = MAC
 # ------------
 
 # Choose blas library
-#BLAS_LIB = MKL
-BLAS_LIB = GSL
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
 
 # Note that yo might need to remove the -fopenmp flag on mac in the so: target.
 
@@ -29,7 +29,7 @@ endif
 
 ifeq ($(BLAS_LIB), GSL)
 
-LDFLAGS += -lcblas
+LDFLAGS += -lgslcblas
 endif
 
 # For SO

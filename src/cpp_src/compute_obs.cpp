@@ -89,8 +89,8 @@ int main(int argc, char** argv)
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
-    unsigned int ang_int_points = 96; // Number of points in angular integration
-    unsigned int number_of_p_points = 100; // Number of momentum-grid points
+    unsigned int ang_int_points = 52; // Number of points in angular integration
+    unsigned int number_of_p_points = 50; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     
     // Do precomputations
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 8;
+    int J_max = 25;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
