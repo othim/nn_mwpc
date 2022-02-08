@@ -57,7 +57,7 @@ LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib
 
 #LDFLAGS +=  -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
 #LDFLAGS +=  -Wl,--no-as-needed -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lm
-LDFLAGS += -Nmkl -mkl=parallel
+LDFLAGS += -Nmkl -qmkl=parallel 
 
 #LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib
 

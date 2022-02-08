@@ -77,7 +77,7 @@ def observables(obs):
 
     end = time.time()
 
-    #print(obs_vector)
+    print(f'Observable: {obs}')
     print(f'Total time: {1e3*(end-start):0.3f} ms')
 
     # ------------------------------------------
@@ -105,17 +105,18 @@ def phase_shifts(obj):
     T_lab = np.linspace(10,50,100) # MeV
     chn_number = 0
 
-    start = time.time()
-    phases = obj.compute_phase_shift(chn_number,10.0,LECs)
-    end = time.time()
-    print(f'Phase shifts in Stapp convention in radians: {phases}')
+    for chn_number in [0,0,3]:
+        start = time.time()
+        phases = obj.compute_phase_shift(chn_number,10.0,LECs)
+        end = time.time()
+        print(f'Phase shifts in Stapp convention in radians: {phases}')
 
-    print(f'Total time: {1e3*(end-start):0.3f} ms')
+        print(f'Total time: {1e3*(end-start):0.3f} ms')
 
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",25,450.0,True,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",10,450.0,True,True)
 
 phase_shifts(obj)
 observables(obj)
