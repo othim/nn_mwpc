@@ -70,6 +70,10 @@ typedef struct
  * of the Hamiltonian in the given quadreture basis.
  * The potential is assumed to be in a partial wave basis with normalization 
  * <p'|p> = \delta(p'-p)/p^2, so the factor \pi/2 from Landau is removed.
+ * Furthermore the 3-momentum normalization is assumed to be
+ * <p',p> = \delta^3(p'-p) without a (2\pi)^3 factor, which means that a potential
+ * that is written in the above partial wave basis might also need factor of
+ * (2\pi)^(+/-)3 to convert to the correct basis.
  */
 eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,
         qs::quantum_channel chn, const gsl_matrix* V);

@@ -205,8 +205,18 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
 
    // Diagonalize the matrix
    gsl_vector_complex* eval = gsl_vector_complex_alloc(V->size1);
-   gsl_eigen_nonsymm_workspace* ws = gsl_eigen_nonsymm_alloc(V->size1);
-   gsl_eigen_nonsymm(H,eval,ws);
+   gsl_matrix_complex* evec = gsl_matrix_complex_alloc(V->size1, V->size1);
+
+   gsl_eigen_nonsymmv_workspace* ws = gsl_eigen_nonsymm_alloc(V->size1);
+   gsl_eigen_nonsymmv(H,eval,evec,ws);
+   
+   gsl_eigen_nonsymmv_free(ws);
+
+   gsl_eigen_nonsymmv_sort (eval, evec, GSL_EIGEN_SORT_ABS_DESC);
+   ph::eigen_t e;
+
+   e.eigenvalues  = eval;
+   e.eigenvectors = evec;
    
    // Use a test matrix
    /* finds eigenvalues to this...
@@ -221,16 +231,6 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
    gsl_eigen_nonsymm(H_test,eval,ws_test);
    */
    
-   std::cout << "All negetive eigenvalues in deuteron channel: " << std::endl;
-   for (int i = 0; i < (int)V->size1; i++)
-   {
-      if (GSL_REAL(gsl_vector_complex_get(eval,i)) < 0)
-      {
-         std::cout << "(" << GSL_REAL(gsl_vector_complex_get(eval,i)) << " " << GSL_IMAG(gsl_vector_complex_get(eval,i)) << ")" << std::endl;
-      }
-   }
-
-   ph::eigen_t e;
    return e;
 }
 

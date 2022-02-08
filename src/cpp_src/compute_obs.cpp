@@ -51,8 +51,15 @@ void check_interface();
 
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot);
+
 void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot);
+
+void check_binding_energies(std::vector<qs::quantum_channel> chns, 
+        unsigned int number_of_p_points, double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot);
+
+
 void test_f()
 {
 
@@ -875,6 +882,52 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
     }
 }
 
+
+
+void check_binding_energies(std::vector<qs::quantum_channel> chns, 
+        unsigned int number_of_p_points, double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot)
+{
+    std::cout << "Testing binding energies with WPC_LO potential." << std::endl;
+    std::cout << "-------------------------------------------------" << std::endl << std::endl;
+
+
+    // Make grid
+    double* p_grid;
+    double* w_grid;
+    double Lambda = 500.0;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+    double C1S0	= -0.1/100.0; 
+    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    double C3P0 = 0.0;
+    double C3P2 = 0.0;    
+    // Choose terms in LO WPC potential
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
+    terms.push_back("C3P0");
+    terms.push_back("C3P2");
+
+
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    for (auto chn : chns)
+    {
+        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+
+    // Set correct LECs
+    Pot.LECs_["gA2"]  = 1.29*1.29;
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+    Pot.LECs_["C3P0"] = C3P0;
+    Pot.LECs_["C3P2"] = C3P2;
+
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+}
 
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
