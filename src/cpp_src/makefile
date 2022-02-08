@@ -1,8 +1,8 @@
 
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = SUBATOM
+#SYSTEM = MAC
+SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
