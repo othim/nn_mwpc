@@ -99,7 +99,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 25;
+    int J_max = 8;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
