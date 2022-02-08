@@ -2,8 +2,8 @@
 # Choose sytem
 # ------------
 #SYSTEM = MAC
-SYSTEM = SUBATOM
-#SYSTEM=TETRALITH
+#SYSTEM = SUBATOM
+SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
@@ -11,12 +11,12 @@ BLAS_LIB = MKL
 #BLAS_LIB = GSL
 
 # Compiler
-CC = g++
-#CC = icpc
+#CC = g++
+CC = icpc
 
 # Optimization
-OPT = -O3
-#OPT = -Ofast
+#OPT = -O3
+OPT = -Ofast
 # For Mac
 # -------
 ifeq ($(SYSTEM), MAC)
@@ -82,7 +82,7 @@ LDFLAGS += -lgslcblas
 endif
 #LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib
 
-CFLAGS =-Wall -fopenmp -O3 -fPIC -std=c++11 -I$(MKLROOT)/include -I/home/x_olith/gsl/include/gsl -I$(WIGXJPF)/inc
+CFLAGS =-Wall -fopenmp $(OPT) -fPIC -std=c++11 -I$(MKLROOT)/include -I/home/x_olith/gsl/include/gsl -I$(WIGXJPF)/inc
 #CFLAGS += -I/software/sse/easybuild/prefix/software/Python/3.8.2-GCCcore-6.4.0-nsc1/include/python3.8 -I/software/sse/easybuild/prefix/software/pybind11/2.4.3-GCCcore-6.4.0-Python-3.8.2-nsc1/include/python3.8 -I/home/x_olith/.local/include/python3.8 
 CFLAGS += -I/home/x_olith/.conda/envs/nn-mwpc-env/include
 CFLAGS += -I/home/x_olith/.conda/envs/nn-mwpc-env/include/python3.8
