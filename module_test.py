@@ -43,10 +43,11 @@ def observables(obs):
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     # Test to compute many observables at once
     # -----------------------------------------
+    
     print("Many observables at once")
     angles = np.linspace(1,179,50) # in degrees
     angles_l = angles.tolist()
-    energies = [10.0,50.0,200.0] # in MeV
+    energies = [10.0,20.0,100.0] # in MeV
     
     # Time the funtion call
     start = time.time()
@@ -58,7 +59,7 @@ def observables(obs):
     print(f'Total time: {1e3*(end-start):0.3f} ms')
     print(f'Time per energy: {1e3*(end-start)/len(energies):0.3f} ms \n')
     # -----------------------------------------
-
+    
     # Test to compute one observable at the time
     # ------------------------------------------
     print("One observable at the time \n")
@@ -70,7 +71,8 @@ def observables(obs):
     # First solve the LS equation. This saves phase shifts in the object obj.
     # The saved phase shifts can be accessed with obj.get_saved_phase_shifts(chn_number)
     obj.solve_LS(E,[C1S0,C3P0,C3P2,C3S1,gA2])
-    
+    end1 = time.time()
+    print("Solved LS")    
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
     obs = obj.compute_observable("I 0000",ang)
@@ -79,6 +81,7 @@ def observables(obs):
 
     print(f'Observable: {obs}')
     print(f'Total time: {1e3*(end-start):0.3f} ms')
+    print(f'Time to solve LS: {1e3*(end1-start):0.3f} ms')
 
     # ------------------------------------------
 #print(obj.print_LEC_values()) # To confirm they are correct
@@ -103,20 +106,21 @@ def phase_shifts(obj):
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     
     T_lab = np.linspace(10,50,100) # MeV
-    chn_number = 0
 
     for chn_number in [0,0,3]:
+        LS_term = obj.get_chn_LS_term(chn_number)
+        print(f'LS-Term: {LS_term}')
         start = time.time()
-        phases = obj.compute_phase_shift(chn_number,10.0,LECs)
+        phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
         end = time.time()
         print(f'Phase shifts in Stapp convention in radians: {phases}')
-
         print(f'Total time: {1e3*(end-start):0.3f} ms')
 
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
 obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",10,450.0,True,True)
-
+num_chn = obj.get_chn_len()
+print(f'Number of channels: {num_chn}')
 phase_shifts(obj)
 observables(obj)

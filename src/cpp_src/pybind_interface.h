@@ -123,7 +123,8 @@ public:
             std::vector<double> LECs);
     
     /*
-     * Same as 'compute_phase_shift' but accepts a list of energies.
+     * Same as 'compute_phase_shift' but accepts a list of energies. This
+     * function is parallelized over the loop over energies.
      */ 
     std::vector<double> compute_phase_shift_l(int chn_number, 
             std::vector<double> T_lab, std::vector<double> LECs);
@@ -140,14 +141,15 @@ public:
 
     
     /*
-     * Get functions to get the values of conatants used
+     * Get functions
      */
 
     double get_on_shell_momentum(double T_lab);
-
     double get_scale();
-    int get_ang_int_points();
-    int get_momentum_grid_points();
+    int    get_ang_int_points();
+    int    get_momentum_grid_points();
+    int    get_chn_len();
+    std::string get_chn_LS_term(int chn_number);
 
     double get_gA();
     double get_fpi();
@@ -156,13 +158,4 @@ public:
     double get_Mn();
 
 };
-
-/* Here is the code for the pybind11 interface
- */
-
-
-//PYBIND11_MODULE(nn_mwpc, m);
-
-/*
- */
 #endif

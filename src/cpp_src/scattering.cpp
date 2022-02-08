@@ -448,7 +448,7 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
     {
         return std::imag(std::conj(a)*d - std::conj(b)*c)/DSG;
     } else {
-        std::cout << "Unknown observable" << std::endl;
+        std::cout << "Unknown observable: '" << obs << "'" << std::endl;
         return 0;
     }    
 }

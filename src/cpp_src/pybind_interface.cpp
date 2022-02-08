@@ -33,6 +33,10 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("get_momentum_grid_points", &nn_mwpc_interface::get_momentum_grid_points, 
                 py::return_value_policy::copy)
+        .def("get_chn_len", &nn_mwpc_interface::get_chn_len, 
+                py::return_value_policy::copy)
+        .def("get_chn_LS_term", &nn_mwpc_interface::get_chn_LS_term, 
+                py::return_value_policy::copy)
         .def("get_gA", &nn_mwpc_interface::get_gA, py::return_value_policy::copy)
         .def("get_fpi", &nn_mwpc_interface::get_fpi, py::return_value_policy::copy)
         .def("get_mpi", &nn_mwpc_interface::get_mpi, py::return_value_policy::copy)
@@ -49,7 +53,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     // ---------------------------------
     scale_ = 100.0; // Scale of momenutm grid MeV
     number_of_p_points_ = 60; // Number of momentum-grid points
-    ang_int_points_ = 96; // Number of points in angular integration
+    ang_int_points_ = 76; // Number of points in angular integration
     J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
     cutoff_ = cutoff; // Cutoff in LS-equation
     pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
@@ -204,8 +208,7 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
         if (std::abs(angle-90.0) < 0.001) {
             angle = 90.001;
         }
-        double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
-                (constants::Mn+constants::Mp); // In the convention used
+        double rho_T = M_PI*q_on_shell*mu; // In the convention used
         
         std::vector<std::complex<double> > saclay_amplitudes;
         // Convert the angle to radians. This uses the pre-computed phase
@@ -265,8 +268,7 @@ std::vector<double> nn_mwpc_interface::compute_observable_l(const std::string& n
                 if (std::abs(ang-90.0) < 0.001) {
                     ang = 90.001;
                 }
-                rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
-                        (constants::Mn+constants::Mp); // In the convention used in the code
+                rho_T = M_PI*q_on_shell*mu; // In the convention used in the code
                 //std::cout << J_max_in_pot_ << std::endl;            
                 std::vector<std::complex<double> > saclay_amplitudes;
                 saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
@@ -350,6 +352,52 @@ std::vector<double> nn_mwpc_interface::compute_phase_shift(int chn_number, doubl
     return phases_vec;
 }
 /*
+std::vector<double> compute_phase_shift_l(int chn_number, 
+        std::vector<double> T_lab, std::vector<double> LECs)
+{
+
+    int i = 0;
+    for (auto& it: Pot_->LECs_in_use_)
+    {
+         Pot_->LECs_[it] = LECs[i++];
+    }
+
+    qs::quantum_channel chn = chns_[0]; // Just to have it initialized
+    
+    if (chn_number < chns_.size())
+    {
+        chn = chns_[chn_number];
+    } else 
+    {
+        std::cout << "Error: chn_number out of range" << std::endl;
+    }
+
+    double mu, q_on_shell;
+    std::vector<double> phases;
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (int i = 0; i < T_lab.size(); i++)
+        {
+        
+        }
+    }
+
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+        
+    gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+
+    Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(T_lab,chn,pot_V_mtx);
+        
+    gsl_matrix_free(pot_V_mtx);
+    std::vector<double> phases_vec;
+    phases_vec.push_back(phases.delta_p);
+    phases_vec.push_back(phases.delta_m);
+    phases_vec.push_back(phases.epsilon);
+    phases_vec.push_back(phases.delta_uncoupled);
+}
+*/
+/*
 std::vector<double> nn_mwpc_interface::compute_binding_energy( 
         int chn_number, std::vector<double> LECs)
 {
@@ -368,7 +416,6 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     double mu, q_on_shell;
     
     // Make this loop parallel
-    //omp_set_num_threads(8);    
     #pragma omp parallel
     {
         #pragma omp for
@@ -411,6 +458,22 @@ int nn_mwpc_interface::get_ang_int_points()
 int nn_mwpc_interface::get_momentum_grid_points()
 {
     return number_of_p_points_;
+}
+
+int nn_mwpc_interface::get_chn_len()
+{
+    return chns_.size();
+} 
+
+std::string nn_mwpc_interface::get_chn_LS_term(int chn_number)
+{
+    if (!(chn_number < chns_.size()))
+    {
+        std::string s = "Invalid chhannel number";
+        return s;
+    }
+
+    return quantum_channel_to_string(chns_[chn_number]);
 }
 
 double nn_mwpc_interface::get_gA()

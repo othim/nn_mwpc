@@ -9,6 +9,8 @@
 # program that it is a test and just minimal output is printed for easy reading.
 (cd src/cpp_src; ./obs phase test)
 
+(cd src/cpp_src; ./obs test_1S0 no_test)
+
 # Run tests for observables. Run Test of DSG to check also with Andreas code.
 (cd src/cpp_src; ./obs DSG no_test)
 (cd src/python_src; python3 plot_obs2.py DSG)

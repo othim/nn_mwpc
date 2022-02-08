@@ -2,63 +2,84 @@
 # Choose sytem
 # ------------
 #SYSTEM = MAC
-#SYSTEM = LINUX
-SYSTEM = TETRALITH
-
+SYSTEM = SUBATOM
+#SYSTEM=TETRALITH
 # ------------
-# Note that yo might need to remove the -fopenmp flag on mac in the so: target.
+
+# Choose blas library
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
 
 # Compiler
-#CC = g++
-CC = icpc
+CC = g++
+#CC = icpc
 
-# For mac
+# Optimization
+OPT = -O3
+#OPT = -Ofast
+# For Mac
+# -------
 ifeq ($(SYSTEM), MAC)
-	
-CFLAGS2 = -Wall -ggdb -std=c++11 -O3 -stdlib=libc++
-LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  \
-		   -L/usr/local/opt/llvm/lib
 
-# For SO
-CFLAGS = -Wall -fPIC -ggdb -O3 -std=c++11 -stdlib=libc++ \
+CFLAGS2 = -Wall -std=c++11 -stdlib=libc++ $(OPT)
+LDFLAGS =  -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  \
+		   -L/usr/local/opt/llvm/lib -undefined dynamic_lookup
+
+ifeq ($(BLAS_LIB), MKL)
+LDFLAGS += -L/opt/intel/oneapi/mkl/2021.4.0/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
+endif
+ifeq ($(BLAS_LIB), GSL)
+LDFLAGS += -lgslcblas
+endif
+
+CFLAGS = -Wall -fPIC -std=c++11 -stdlib=libc++ $(OPT) \
 		 -I/opt/anaconda3/envs/nn-mwpc-env/include \
 		 -I/opt/anaconda3/include/python3.8 -I/Users/toliver/wigxjpf-1.11/inc/ \
 		 -I/usr/local/Cellar/gsl/2.7/include/gsl -I/usr/local/opt/llvm/include
+endif 
 
-# This flag is needed on mac...
-UNDEF = -undefined dynamic_lookup
-OPENMP =
+# For SUBATOM
+# -----------
+ifeq ($(SYSTEM), SUBATOM)
+
+CFLAGS2 = -Wall -std=c++11 $(OPT)
+LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib -L/usr/local/lib -fopenmp
+
+ifeq ($(BLAS_LIB), MKL)
+
+LDFLAGS  += -L/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64 \
+			-Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+endif
+ifeq ($(BLAS_LIB), GSL)
+LDFLAGS += -lgslcblas
 endif
 
-# For Linux
-ifeq ($(SYSTEM), LINUX)
-
-CFLAGS2 = -Wall -g -O3 -pg -std=c++11
-LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib 
-
-# For SO
-CFLAGS = -Wall -fopenmp -O3 -fPIC -std=c++11 \
+CFLAGS = -Wall -fopenmp -fPIC -std=c++11 $(OPT) \
 		 -I/net/home/toliver/miniconda3/include/python3.8 \
 		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
 		 -I/net/home/toliver/wigxjpf-1.11/inc \
 		 -I/net/home/toliver/phd/nn_mwpc/src/cpp_src/gsl-2.7/gsl
+endif 
 
-UNDEF = 
-OPENMP = -fopenmp
-endif
 
+# Tetralith
+# ---------
 ifeq ($(SYSTEM),TETRALITH)
 
 WIGXJPF=/home/x_olith/wigxjpf-1.11
 
-CFLAGS2 = -Wall -O3 -std=c++11
+CFLAGS2 = -Wall -std=c++11 $(OPT)
 #LDFLAGS = -L$(WIGXJPF)/lib -L$(MKLROOT)/lib/intel64 -L/home/x_olith/gsl/lib -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -ldl
-LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib 
+LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib -fopenmp
 
 #LDFLAGS +=  -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
 #LDFLAGS +=  -Wl,--no-as-needed -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_gnu_thread -ldl -lpthread -lm
-LDFLAGS += -Nmkl -qmkl=parallel 
-
+ifeq ($(BLAS_LIB), MKL)
+LDFLAGS += -Nmkl -qmkl=parallel
+endif
+ifeq ($(BLAS_LIB), GSL)
+LDFLAGS += -lgslcblas
+endif
 #LDFLAGS = -L$(WIGXJPF)/lib -L/home/x_olith/gsl/lib
 
 CFLAGS =-Wall -fopenmp -O3 -fPIC -std=c++11 -I$(MKLROOT)/include -I/home/x_olith/gsl/include/gsl -I$(WIGXJPF)/inc
@@ -67,38 +88,26 @@ CFLAGS += -I/home/x_olith/.conda/envs/nn-mwpc-env/include
 CFLAGS += -I/home/x_olith/.conda/envs/nn-mwpc-env/include/python3.8
 CFLAGS += -DMKL_ILP64 -fopenmp -m64 -I${MKLROOT}/include
 
-OPENMP=-fopenmp
 endif
 
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 				quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
-# If you want to profile with gprof you need to link with that library 
 obs: $(NN_MWPC_FILES)
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP)
-
-# OLD
-main: test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
-	$(CC) $(CFLAGS2) -o main $(LDFLAGS) test.o pot_nn_mwpc.o Term.o quantum_states.o LS_Solver.o scattering.o physics_helpers.o -lgsl -lcblas -lgslcblas -lwigxjpf -lm -lgfortran
-
-run: main
-	./main
+	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
 FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(UNDEF) $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran $(OPENMP)
+	$(CC) -Wall -std=c++11 -shared $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
 
 pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp
 
 compute_obs.o: compute_obs.cpp
 	$(CC) $(CFLAGS) -c compute_obs.cpp
-
-test.o: test.cpp pot_nn_mwpc.h
-	$(CC) $(CFLAGS) -c test.cpp
 
 pot_nn_mwpc.o: pot_nn_mwpc.h
 	$(CC) $(CFLAGS) -c pot_nn_mwpc.cpp
@@ -122,6 +131,6 @@ pot_ext.o: pot_ext.h
 	$(CC) $(CFLAGS) -c pot_ext.cpp
 
 clean:
-	rm main nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o test.o \
+	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
-	   	pot_ext.o compute_obs.o
+	   	pot_ext.o
