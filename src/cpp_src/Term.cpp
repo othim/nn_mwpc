@@ -145,7 +145,7 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned 
     std::vector<double> tmp(z_len);
     double q2;
     
-    for (int i = 0; i < z_len; i++)
+    for (int i = 0; i < (int)z_len; i++)
     {
         q2 = qi*qi + qo*qo - 2*qi*qo*z[i];
         tmp[i] = -(lec/(4.0*constants::fpi*constants::fpi))*(1.0/(q2+constants::mpi*constants::mpi));

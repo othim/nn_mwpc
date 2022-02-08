@@ -56,7 +56,7 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
    
     
     
-    for (int i = 0; i < mom_grid_size_; i++)
+    for (int i = 0; i < (int)mom_grid_size_; i++)
     {
         double p2 = p_grid_[i]*p_grid_[i];
         double el = (2.0*mu)*(fac)*w_grid_[i]*p2/(p2-q2_on_shell); // NO CUTOFF
@@ -73,7 +73,7 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
 
     // Add the last element
     double sum = 0;
-    for (int i=0; i < mom_grid_size_; i++)
+    for (int i=0; i < (int)mom_grid_size_; i++)
     {
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
@@ -172,9 +172,9 @@ gsl_matrix* LS_Solver::setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_ma
 void print_matrix(gsl_matrix* matrix)
 {
    std::cout << "---------" << std::endl;
-   for (std::size_t i = 0; i < matrix->size1; i++)
+   for (int i = 0; i < (int)matrix->size1; i++)
    {
-      for (std::size_t j = 0; j < matrix->size1; j++)
+      for (int j = 0; j < (int)matrix->size1; j++)
       {
          std::cout << gsl_matrix_get(matrix,i,j) << " ";
       }   
@@ -477,7 +477,7 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
         D_vector = gsl_vector_complex_alloc(mom_grid_size_ + 1);
     }
 
-    for (int i = 0; i < mom_grid_size_; i++)
+    for (int i = 0; i < (int)mom_grid_size_; i++)
     {
         double p2 = p_grid_[i]*p_grid_[i];
         double el = (2.0*mu)*(fac)*w_grid_[i]*p2/(p2-q2_on_shell); // NO CUTOFF
@@ -495,7 +495,7 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
 
     // Add the last element. The first part is the same as in the non-complex case.
     double sum = 0;
-    for (int i=0; i < mom_grid_size_; i++)
+    for (int i=0; i < (int)mom_grid_size_; i++)
     {
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
@@ -535,9 +535,9 @@ gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_c
     // Construct F manually with two loops. These are very costly,
     // would like to have a better solution
     // F_ij = \delta_ij + D_j V_ij
-    for (int i = 0; i < F_mtx->size1; i++)
+    for (int i = 0; i < (int)F_mtx->size1; i++)
     {
-        for (int j = 0; j < F_mtx->size2; j++)
+        for (int j = 0; j < (int)F_mtx->size2; j++)
         {
             gsl_complex matrix_el = gsl_complex_mul(gsl_complex_rect(gsl_matrix_get(V_mtx, i,j),0),
                 gsl_vector_complex_get(D_vector,j));
@@ -598,9 +598,9 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     gsl_complex beta  = gsl_complex_rect(0.0,0.0);
 
     gsl_matrix_complex* pot_complex = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
-    for (int i=0; i < F_matrix->size1; i++)
+    for (int i=0; i < (int)F_matrix->size1; i++)
     {
-        for (int j=0; j < F_matrix->size2; j++)
+        for (int j=0; j < (int)F_matrix->size2; j++)
         {
             gsl_matrix_complex_set(pot_complex,i,j,gsl_complex_rect(gsl_matrix_get(pot_V_mtx,i,j),0.0));
         }
@@ -696,9 +696,9 @@ gsl_matrix_complex* LS_Solver::T_matrix_from_R_matrix(const gsl_matrix* R_matrix
     // Make the R-matrix complex
     gsl_matrix_complex* R_complex = gsl_matrix_complex_alloc(R_matrix->size1,R_matrix->size2);
 
-    for (int i = 0; i < R_matrix->size1; i++)
+    for (int i = 0; i < (int)R_matrix->size1; i++)
     {
-        for (int j = 0; j < R_matrix->size2; j++)
+        for (int j = 0; j < (int)R_matrix->size2; j++)
         {
             gsl_complex R_el = gsl_complex_rect(gsl_matrix_get(R_matrix, i,j),0);
             gsl_matrix_complex_set(R_complex,i,j,R_el);

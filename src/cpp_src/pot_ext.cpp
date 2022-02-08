@@ -19,23 +19,6 @@ Potential_ext::~Potential_ext()
 
 gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn)
 {
-   double mu;
-   if (chn.Tz == -1)
-   {
-      mu = constants::Mn/2.0; // nn
-   } else if (chn.Tz == 0)
-   {
-      mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-   } else if (chn.Tz == 1)
-   {
-      mu = constants::Mp/2.0; // pp
-   } else 
-   {
-      #ifdef ENABLE_DEBUG
-         std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
-      #endif
-   }
-
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
    // In the construction of the saved matrix the desired on-shell momentum 
@@ -57,9 +40,9 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
    // i: row index, j: column index
    // These loops populate the matrices everywhere except where
    // the on-shell part will go later.
-   for (std::size_t i = 0; i < mom_grid_size_+1; i++)
+   for (int i = 0; i < (int)mom_grid_size_+1; i++)
    {
-      for (std::size_t j = 0; j < mom_grid_size_+1; j++)
+      for (int j = 0; j < (int)mom_grid_size_+1; j++)
       {
          double V_arr[6]; // Array for data
          
@@ -67,12 +50,12 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
          double p_in  = 0;
          double p_out = 0;
 
-         if (j < mom_grid_size_) {
+         if (j < (int)mom_grid_size_) {
             p_in  = p_grid_[j];
          } else {
             p_in = q_on_shell;
          }
-         if (i < mom_grid_size_) {
+         if (i < (int)mom_grid_size_) {
             p_out = p_grid_[i];
          } else {
             p_out = q_on_shell;

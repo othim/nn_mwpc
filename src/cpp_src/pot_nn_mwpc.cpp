@@ -76,10 +76,10 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
 
    stored_Legendre_polynomials_ = (double**) malloc( (J_max+1) * sizeof(double*));
 
-   for (int i = 0; i < J_max_+1; i++)
+   for (int i = 0; i < (int)J_max_+1; i++)
    {
       stored_Legendre_polynomials_[i] = (double*) malloc(len_z_mesh*sizeof(double));
-      for (int j = 0; j < len_z_mesh; j++)
+      for (int j = 0; j < (int)len_z_mesh; j++)
       {
          stored_Legendre_polynomials_[i][j] = gsl_sf_legendre_Pl(i, z_mesh[j]);
       }
@@ -96,7 +96,7 @@ Potential_mwpc::~Potential_mwpc()
    // Free all memory allocations
    gsl_integration_fixed_free(int_ang_);
   
-   for (int i = 0; i < J_max_; i++)
+   for (int i = 0; i < (int)J_max_; i++)
    {
       free(stored_Legendre_polynomials_[i]);
    }
@@ -125,7 +125,7 @@ Potential_mwpc::~Potential_mwpc()
 */
 int isoFac(int L,int S)
 {
-   int T = (1-L-S & 1); // L+S+T=odd
+   int T = ((1-L-S) & 1); // L+S+T=odd
    return -3*(1-T) + T; // Return factor from \tau_i \cdot \tau_2 in terms of T
 }
 
@@ -146,7 +146,7 @@ double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l, std
    }
    #endif
    double integral = 0;
-   for (int i = 0; i < len_z_mesh; i++)
+   for (int i = 0; i < (int)len_z_mesh; i++)
    {
       integral += w_z_mesh[i] * v_alpha_arr[i] * 
          gsl_pow_int(z_mesh[i],l) * stored_Legendre_polynomials_[J][i];
@@ -385,7 +385,7 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
-   double mu;
+   double mu = 0.0; // Default
    if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
@@ -620,7 +620,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
    unsigned int S = chn.S;
    bool coupled = chn.coupled;
 
-   double mu;
+   double mu =0.0;
    if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
@@ -830,7 +830,7 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
-   double mu;
+   double mu = 0.0;
    if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn

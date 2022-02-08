@@ -86,7 +86,7 @@ gsl_complex ph::trace(gsl_matrix_complex* m)
         return gsl_complex_rect(-1,0);
     }
     gsl_complex trace = gsl_complex_rect(0,0);
-    for (int i = 0; i < m->size1; i++)
+    for (int i = 0; i < (int)m->size1; i++)
     {
         // Add up all the diagonal elements
         gsl_complex_add(trace,gsl_matrix_complex_get(m,i,i));
@@ -127,7 +127,7 @@ void ph::gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,dou
     double* pp = (double*)malloc(Number_of_points*sizeof(double));
     double* ww = (double*)malloc(Number_of_points*sizeof(double));
   
-    for (int i = 0; i < Number_of_points; i++)
+    for (int i = 0; i < (int)Number_of_points; i++)
     {
         double x = p_grid[i];
         pp[i] = scale*tan(pi_4*(x+1));
@@ -157,7 +157,7 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
       }
    }
    // Get reduced mass of system
-   double mu;
+   double mu = 0.0;
    if (chn.Tz == -1)
    {
       mu = constants::Mn/2.0; // nn
@@ -174,26 +174,26 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
    gsl_matrix* H = gsl_matrix_alloc(V->size1,V->size2);
    
    // Construct Hamiltonian
-   for (int i = 0; i < H->size1; i++)
+   for (int i = 0; i < (int)H->size1; i++)
    {
-      for (int j=0; j < H->size2; j++)
+      for (int j=0; j < (int)H->size2; j++)
       {
          // This is to still use the same momenta
          int l = j;
          int k = i;
-         if (!(j<number_of_grid_points))
+         if (!(j<(int)number_of_grid_points))
          {
             l = j-number_of_grid_points;
          }
-         if (!(i<number_of_grid_points))
+         if (!(i<(int)number_of_grid_points))
          {
             k = i-number_of_grid_points;
          }
          double p2 = p[l]*p[l];
          
          // These two gives the same answer...
-         //double el = gsl_matrix_get(V,i,j)*p[l]*p[k]*sqrt(w[l]*w[k]);
-         double el = gsl_matrix_get(V,i,j)*p2*w[l];
+         double el = gsl_matrix_get(V,i,j)*p[l]*p[k]*sqrt(w[l]*w[k]);
+         //double el = gsl_matrix_get(V,i,j)*p2*w[l];
          if (i==j) {
             el += p2/(2.0*mu);
          }
@@ -222,7 +222,7 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
    */
    
    std::cout << "All negetive eigenvalues in deuteron channel: " << std::endl;
-   for (int i = 0; i < V->size1; i++)
+   for (int i = 0; i < (int)V->size1; i++)
    {
       if (GSL_REAL(gsl_vector_complex_get(eval,i)) < 0)
       {
@@ -244,9 +244,9 @@ double ph::rad_to_deg(double in)
 void ph::print_m(gsl_matrix* matrix)
 {
    std::cout << "---------" << std::endl;
-   for (std::size_t i = 0; i < matrix->size1; i++)
+   for (int i = 0; i < (int)matrix->size1; i++)
    {
-      for (std::size_t j = 0; j < matrix->size1; j++)
+      for (int j = 0; j < (int)matrix->size1; j++)
       {
          std::cout << gsl_matrix_get(matrix,i,j) << " ";
       }   

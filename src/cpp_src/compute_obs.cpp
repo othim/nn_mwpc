@@ -192,7 +192,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     double q_on_shell;
     
 
-    for (int c_i = 0; c_i < chns.size(); c_i++)
+    for (int c_i = 0; c_i < (int)chns.size(); c_i++)
     {
     
         qs::quantum_channel chn = chns[c_i]; // 1S0 channel
@@ -218,7 +218,6 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
         if (!TEST) {
             std::cout << std::endl;
         }
-        double D_energies[300];
         double D_delta_uncoupled[300];
         double D_delta_m[300];
         double D_delta_p[300];
@@ -230,7 +229,6 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             int i = 0;
             while(infile >> E >> d)
             {
-                D_energies[i] = E;
                 D_delta_uncoupled[i] = d;
                 i++;
             }
@@ -240,7 +238,6 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             int i = 0;
             while(infile >> E >> dm >> dp >> e)
             {
-                D_energies[i] = E;
                 D_delta_m[i] = dm;
                 D_delta_p[i] = dp;
                 D_eps[i] = e;
@@ -465,13 +462,11 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         }
 
         // Read and save the data to arrays
-        double D_theta[180];
         double D_obs[180];
         double theta, obs;
         int k = 0;
         while(infile >> theta >> obs)
         {
-            D_theta[k] = theta;
             D_obs[k] = obs;
             k++;
             //std::cout << obs << std::endl;
@@ -751,6 +746,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
         start = std::clock();
         double obs = sc::compute_observable(saclay_amplitudes, "I 0000");
         end = std::clock();
+        obs = obs+1.0; // Just to not get unused warning 
         if (ang == 1) {
             std::cout << "Compute OBS from Sac. amp.: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl << std::endl;
         }
@@ -777,6 +773,7 @@ void check_interface()
    
     obj->solve_LS(10.0,LECs);
     double a = obj->compute_observable("I 0000", 80.0);
+    a = a + 1.0;
     delete obj;
     std::cout << "Done!" << std::endl; 
 }
@@ -877,9 +874,12 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
 
     }
 }
+
+
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
 {
+/*
     std::cout << "Testing speed of code with LO WPC potential and the observable DSG" << std::endl << std::endl;
 
     //std::clock_t start, end;   
@@ -937,4 +937,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
     
     // Claculate error and print it 
+    */
 }
+
+

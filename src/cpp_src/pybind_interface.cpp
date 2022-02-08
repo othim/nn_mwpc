@@ -230,7 +230,7 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
 std::vector<double> nn_mwpc_interface::get_saved_phase_shifts(int chn_number)
 {
             
-    if (!(chn_number < chns_.size()))
+    if (!(chn_number < (int)chns_.size()))
     {
         std::cout << "Error: chn_number out of range" << std::endl;
     } 
@@ -327,7 +327,7 @@ std::vector<double> nn_mwpc_interface::compute_phase_shift(int chn_number, doubl
 
     qs::quantum_channel chn = chns_[0]; // Just to have it initialized
     
-    if (chn_number < chns_.size())
+    if (chn_number < (int)chns_.size())
     {
         chn = chns_[chn_number];
     } else 
@@ -419,7 +419,7 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     #pragma omp parallel
     {
         #pragma omp for
-        for (int i = 0; i < chns_.size(); i++)
+        for (int i = 0; i < (int)chns_.size(); i++)
         {
             //int th_id = omp_get_thread_num();
             //std::cout << "Hello from thread: " << th_id << std::endl;
@@ -462,12 +462,12 @@ int nn_mwpc_interface::get_momentum_grid_points()
 
 int nn_mwpc_interface::get_chn_len()
 {
-    return chns_.size();
+    return (int)chns_.size();
 } 
 
 std::string nn_mwpc_interface::get_chn_LS_term(int chn_number)
 {
-    if (!(chn_number < chns_.size()))
+    if (!(chn_number < (int)chns_.size()))
     {
         std::string s = "Invalid chhannel number";
         return s;

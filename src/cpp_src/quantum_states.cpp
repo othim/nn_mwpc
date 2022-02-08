@@ -115,7 +115,7 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
             std::cout << "Channel " << j << ": J=" << key.J << " S=" << key.S << " T=" << key.T << 
                 " Tz=" << key.Tz << " pi=" << key.pi << " coup=" << coup << std::endl;
         }
-        for (int i=0; i < (*it).second.size(); i++)
+        for (int i=0; i < (int)(*it).second.size(); i++)
         {
             in_out_state sm = (*it).second[i];
             if (print) {
