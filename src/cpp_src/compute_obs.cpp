@@ -156,7 +156,10 @@ int main(int argc, char** argv)
         check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "test_1S0") {
         check_1S0(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
+    } else if (std::string(argv[1]) == "DIAG") {
+        check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     }
+
 
     ph::physics_helpers_free();
     return 0;
@@ -895,11 +898,12 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     // Make grid
     double* p_grid;
     double* w_grid;
-    double Lambda = 500.0;
+    double Lambda = 450.0;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
     double C1S0	= -0.1/100.0; 
-    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    //double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    double C3S1 = -0.08/100.0;
     double C3P0 = 0.0;
     double C3P2 = 0.0;    
     // Choose terms in LO WPC potential
@@ -927,6 +931,26 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     Pot.LECs_["C3P2"] = C3P2;
 
     LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+    
+    double q_on_shell;
+    double mu;
+    qs::quantum_channel chn = chns[3]; // 1S0    
+    
+    // q_on_shell not needed
+    LS_Solver::get_mu_q_on_shell(0, chn, &mu, &q_on_shell);
+    gsl_matrix* pot_V_mtx = Pot.get_matrix_no_onshell(chn, true);
+    
+    ph::eigen_t diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
+   
+    std::cout << "The eigenvalues in " << quantum_channel_to_string(chn) << " is: "
+        << std::endl;
+    ph::print_v_complex(diag_res.eigenvalues);    
+
+    gsl_matrix_complex_free(diag_res.eigenvectors);
+    gsl_vector_complex_free(diag_res.eigenvalues); 
+    delete[] pot_V_mtx;
+    delete[] p_grid;
+    delete[] w_grid;
 }
 
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 

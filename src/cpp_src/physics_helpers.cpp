@@ -207,7 +207,7 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
    gsl_vector_complex* eval = gsl_vector_complex_alloc(V->size1);
    gsl_matrix_complex* evec = gsl_matrix_complex_alloc(V->size1, V->size1);
 
-   gsl_eigen_nonsymmv_workspace* ws = gsl_eigen_nonsymm_alloc(V->size1);
+   gsl_eigen_nonsymmv_workspace* ws = gsl_eigen_nonsymmv_alloc(V->size1);
    gsl_eigen_nonsymmv(H,eval,evec,ws);
    
    gsl_eigen_nonsymmv_free(ws);
@@ -280,7 +280,7 @@ void ph::print_m_complex(gsl_matrix_complex* matrix)
    std::cout << "---------" << std::endl;
 }
 
-void print_v_complex(gsl_vector_complex* vec)
+void ph::print_v_complex(gsl_vector_complex* vec)
 {
    std::cout << "---------" << std::endl;
    for (std::size_t i = 0; i < vec->size; i++)
