@@ -949,22 +949,34 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
 
     LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
     
-    double q_on_shell;
-    double mu;
-    qs::quantum_channel chn = chns[3]; // 1S0    
-    
-    // q_on_shell not needed
-    LS_Solver::get_mu_q_on_shell(0, chn, &mu, &q_on_shell);
+    qs::quantum_channel chn = chns[3]; // 3S1-3D1
+    // WPC potential
+    // ------------- 
     gsl_matrix* pot_V_mtx = Pot.get_matrix_no_onshell(chn, true);
-    
     ph::eigen_t diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
-   
-    std::cout << "The eigenvalues in " << quantum_channel_to_string(chn) << " is: "
+    std::cout << "The eigenvalues in 3S1-3D1 LO MWPC" << quantum_channel_to_string(chn) << " is: "
         << std::endl;
     ph::print_v_complex(diag_res.eigenvalues);    
-
     gsl_matrix_complex_free(diag_res.eigenvectors);
     gsl_vector_complex_free(diag_res.eigenvalues); 
+    delete[] pot_V_mtx;
+    // ------------
+    // Nijmegen1
+    // ------------
+    Lambda = 10000.0;
+    double mu,q_on_shell;
+    LS_Solver::get_mu_q_on_shell(0.0, chn, &mu, &q_on_shell);
+    
+    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    pot_V_mtx = nijmegen.get_matrix(q_on_shell,chn);
+    diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
+    std::cout << "The eigenvalues in 3S1-3D1 LO nijmegen1" << quantum_channel_to_string(chn) << " is: "
+        << std::endl;
+    ph::print_v_complex(diag_res.eigenvalues);    
+    gsl_matrix_complex_free(diag_res.eigenvectors);
+    gsl_vector_complex_free(diag_res.eigenvalues); 
+
+
     delete[] pot_V_mtx;
     delete[] p_grid;
     delete[] w_grid;
