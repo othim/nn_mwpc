@@ -187,7 +187,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     terms.push_back("C1S0");
     terms.push_back("C3S1");
   
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0, 6);
 /* 
    for (auto chn : chns)
    {
@@ -381,7 +381,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     terms.push_back("C1S0");
     terms.push_back("C3S1");
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,6);
    
     for (auto chn : chns)
     {
@@ -401,7 +401,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     std::vector<std::string> terms2;
     terms2.push_back("OPEP"); // To just test elements use just OPEP
 
-    Potential_mwpc OPE = Potential_mwpc(terms2,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda);
+    Potential_mwpc OPE = Potential_mwpc(terms2,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda,6);
   
     
     for (auto chn : chns)
@@ -642,7 +642,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
 {
     std::cout << "Testing speed of code with LO WPC potential and the observable DSG" << std::endl << std::endl;
-
+    int cut_pow = 6;
     std::clock_t start, end;   
     
     // Make grid
@@ -659,7 +659,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     terms.push_back("C1S0");
     terms.push_back("C3S1");
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,cut_pow);
     
     std::cout << "Saving potential matrices" << std::endl;
     start = std::clock();   
@@ -793,7 +793,7 @@ void check_interface()
     std::string observable = "I 0000";
     std::vector<double> LECs = {-0.112927/100.0,-0.087340/100.0,1.289*1.289};
 
-    nn_mwpc_interface* obj = new nn_mwpc_interface("WPC_LO",25,450.0,true, true);
+    nn_mwpc_interface* obj = new nn_mwpc_interface("WPC_LO",25,450.0,6,true, true);
     
     std::cout << "Object created" << std::endl;
     std::vector<double> res = obj->compute_observable_l(observable,angles,energies,LECs);
@@ -816,7 +816,7 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
     // kinematics p -> n that I have produced. When I use the same kinematics as
     // Andreas I get absolute errros of 10^{-5} when I produced this test data.
     files.push_back("../../data/phase_shift_1S0_Andreas_corrected.dat");
-    
+    int cut_pow = 6; 
     for (auto& data : files)
     {
         // Open file
@@ -861,7 +861,7 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         terms.push_back("C3P2");
 
 
-        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda);
+        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow);
         
         std::cout << "Saving potential matrices" << std::endl;
         for (auto chn : chns)
@@ -910,7 +910,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
 {
     std::cout << "Testing binding energies with WPC_LO potential." << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
-
+    int cut_pow = 6;
 
     // Make grid
     double* p_grid;
@@ -932,7 +932,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     terms.push_back("C3P2");
 
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow);
     
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
@@ -961,7 +961,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     gsl_vector_complex_free(diag_res.eigenvalues); 
     delete[] pot_V_mtx;
     // ------------
-    // Nijmegen1
+    // Nijmegen1  E = -2.224575 (nn-on-line)
     // ------------
     Lambda = 10000.0;
     double mu,q_on_shell;

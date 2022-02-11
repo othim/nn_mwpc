@@ -119,7 +119,7 @@ def phase_shifts(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",10,450.0,True,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",10,450.0,4,True,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)

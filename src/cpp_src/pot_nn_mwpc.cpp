@@ -6,7 +6,7 @@ struct my_f_params { double qi; double qo; int J; int l; Term* term; Potential_m
 
 // Constructor
 Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
-   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda)
+   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow)
 {
    // Init constants
    N_GLI_PWA_ = N_GLI_PWA;
@@ -15,7 +15,7 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    mom_grid_size_ = mom_grid_size;
    J_max_ = J_max;
    cutoff_Lambda_ = cutoff_Lambda;
-   cut_pow_ = 6;   
+   cut_pow_ = cut_pow;   
    sharp_cutoff_ = false;
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)

@@ -10,7 +10,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(nn_mwpc, m) 
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<const std::string&,int,double,bool,bool>())
+        .def(py::init<const std::string&,int,double,int,bool,bool>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
         .def("compute_observable", &nn_mwpc_interface::compute_observable,
@@ -46,7 +46,7 @@ PYBIND11_MODULE(nn_mwpc, m)
 #endif
 
 nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name, 
-        int J_max_chn, double cutoff, bool pre_comp_pot, bool rel_corr)
+        int J_max_chn, double cutoff, int cut_pow, bool pre_comp_pot, bool rel_corr)
 {
 
     // ------ CONSTANTS TO CHANGE ------
@@ -56,6 +56,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     ang_int_points_ = 76; // Number of points in angular integration
     J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
     cutoff_ = cutoff; // Cutoff in LS-equation
+    cut_pow_ = cut_pow;
     pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
     rel_corr_ = rel_corr;
 
@@ -92,7 +93,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct potential
         Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_);
+                number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)
@@ -121,7 +122,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct potential
         Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_);
+                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)

@@ -58,6 +58,7 @@ private:
     int J_max_in_pot_;   
     bool rel_corr_;
     double cutoff_;
+    int cut_pow_;
     bool pre_comp_pot_;
     double* p_grid_;
     double* w_grid_;
@@ -75,10 +76,11 @@ private:
 public:
 
     /*
-     * Constructor where the models are defined.
+     * Constructor where the models are defined. cut_pow it the exponent in 
+     * the regularization exp( (p/\Lambda)^cut_pow). 4 or 6 is a good choice
      */
     nn_mwpc_interface(const std::string& model_name, int J_max_chn, 
-            double cutoff, bool pre_comp_pot, bool rel_corr);
+            double cutoff, int cut_pow,  bool pre_comp_pot, bool rel_corr);
     ~nn_mwpc_interface();
     
     /*
