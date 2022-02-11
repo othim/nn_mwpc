@@ -199,31 +199,29 @@ void nn_mwpc_interface::solve_LS(double T_lab, std::vector<double> LECs)
 
 double nn_mwpc_interface::compute_observable(const std::string& name, double angle)
 {
-    double obs = 0.0;
-    
     double mu, q_on_shell;
     LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
-    if (name != "SGT")
-    {
-        if (std::abs(angle-90.0) < 0.001) {
-            angle = 90.001;
-        }
-        double rho_T = M_PI*q_on_shell*mu; // In the convention used
+    
+    // If the observable is omcputed with the optical theorem
+    if (name=="SGT" || name=="SGTL" || name=="SGTT") {
+        angle = 0;
+    }
+
+    // To avoid numerical instability
+    if (std::abs(angle-90.0) < 0.001) {
+        angle = 90.001;
+    }
+    double rho_T = M_PI*q_on_shell*mu; // In the convention used
+    
+    std::vector<std::complex<double> > saclay_amplitudes;
+    // Convert the angle to radians. This uses the pre-computed phase
+    // shifts phase_shifts_ that are stored in the class.
+    saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phase_shifts_, 
+            angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
         
-        std::vector<std::complex<double> > saclay_amplitudes;
-        // Convert the angle to radians. This uses the pre-computed phase
-        // shifts phase_shifts_ that are stored in the class.
-        saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phase_shifts_, 
-                angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
-            
-        // Compute the observable from the amplitudes
-        obs = sc::compute_observable(saclay_amplitudes, name);
-    } else 
-    {
-        // Compute the observable from the amplitudes
-        obs = sc::compute_total_cross_section(chns_, phase_shifts_, q_on_shell, 
-                J_max_in_pot_);
-    } 
+    // Compute the observable from the amplitudes
+    double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name);
+    
     return obs;
 }
 
@@ -254,39 +252,41 @@ std::vector<double> nn_mwpc_interface::compute_observable_l(const std::string& n
     }
     // Compute the phase shifts with those couplings
     std::vector<double> obs_vec;
-    double mu, q_on_shell, rho_T;
+    double mu, q_on_shell;
 
     for (auto Tl : T_lab)
     {
         std::vector<Phase_shifts_chn> phases_vec = compute_phase_shifts(Tl);
         LS_Solver::get_mu_q_on_shell(Tl,chns_[0], &mu,&q_on_shell);
-        double obs;
-        if (name != "SGT")
+        
+        for (auto angle : angles)
         {
-            for (auto ang : angles)
-            {
-                if (std::abs(ang-90.0) < 0.001) {
-                    ang = 90.001;
-                }
-                rho_T = M_PI*q_on_shell*mu; // In the convention used in the code
-                //std::cout << J_max_in_pot_ << std::endl;            
-                std::vector<std::complex<double> > saclay_amplitudes;
-                saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
-                        ang*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
-            
-                // Compute the observable from the amplitudes
-                obs = sc::compute_observable(saclay_amplitudes, name);
-                obs_vec.push_back(obs);
+            // If the observable is omcputed with the optical theorem
+            if (name=="SGT" || name=="SGTL" || name=="SGTT") {
+                angle = 0;
             }
-        } else 
-        {
-            rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/
-                    (constants::Mn+constants::Mp); // In the convention used in the code
+
+            // To avoid numerical instability
+            if (std::abs(angle-90.0) < 0.001) {
+                angle = 90.001;
+            }
+            double rho_T = M_PI*q_on_shell*mu; // In the convention used
             
+            std::vector<std::complex<double> > saclay_amplitudes;
+            // Convert the angle to radians. This uses the pre-computed phase
+            // shifts phase_shifts_ that are stored in the class.
+            saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
+                    angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+                
             // Compute the observable from the amplitudes
-            obs = sc::compute_total_cross_section(chns_, phases_vec, q_on_shell, J_max_in_pot_);
+            double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name);
+
             obs_vec.push_back(obs);
-        } 
+            // If angle independent observable: Ignore loop over angles 
+            if (name=="SGT" || name=="SGTL" || name=="SGTT") {
+                break;
+            }
+        }
     }
     /* 
      * This vector contains the observables in a long array where all the

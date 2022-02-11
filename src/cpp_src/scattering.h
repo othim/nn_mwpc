@@ -68,11 +68,17 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
        C_nn00 <-> obs="C nn00"
        C_llll <-> obs="C llll"
        etc.
+    Total cross sections also:
+        obs="SGT"
+        obs="SGTT"
+        obs="SGTL"
     This follows the notation in Table III in 
     Formalism of nucleon-nucleon elastic scattering experiments. 
     Journal de Physique, 1978, 39 (1), pp.1-32.
+
+    q_on_shell in the on shell momentum in MeV
 */
-double compute_observable(std::vector<std::complex<double> > sac_amp,std::string obs);
+double compute_observable(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs);
 
 /*
  * This function computes the total cross section SGT. The return unit is mb.

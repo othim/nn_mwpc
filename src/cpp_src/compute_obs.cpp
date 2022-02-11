@@ -152,6 +152,12 @@ int main(int argc, char** argv)
     } else if (std::string(argv[1]) == "SGT") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, 
                 J_max_in_pot,"SGT", OPE_inclue);
+    } else if (std::string(argv[1]) == "SGTL") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, 
+                J_max_in_pot,"SGTL", OPE_inclue);
+    } else if (std::string(argv[1]) == "SGTT") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, 
+                J_max_in_pot,"SGTT", OPE_inclue);
     } else if (std::string(argv[1]) == "MWPC") {
         check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "test_1S0") {
@@ -422,6 +428,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = "AYY";
     } else if (obs_string == "SGT") {
         obs_string2 = "SGT"; // Special
+    } else {
+        obs_string2 = obs_string;
     }
 
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
@@ -451,7 +459,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         std::vector<Phase_shifts_chn> phases_vec;
         //start = std::clock();
         std::string data;
-        if (obs_string2 != "SGT")
+        if (obs_string2 != "SGT" && obs_string2 != "SGTL" && obs_string2 != "SGTT")
         {
             std::cout << "Testing " + obs_string2 + " with T_lab=" << Tl << " MeV" << std::endl;
     
@@ -459,7 +467,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             data = "../../data/np_" + obs_string2 + "_" + std::to_string((int)Tl) + "_nijm1.txt";   
         } else
         {
-            data = "../../data/np_SGT_nijm1.txt";
+            data = "../../data/np_" + obs_string2 +  "_nijm1.txt";
         }
         // Open file
         std::ifstream infile(data);
@@ -511,30 +519,39 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         
         std::ofstream myfile;
         std::string filename;
-        if (obs_string2 != "SGT") {
+        
+        if (obs_string2 == "SGT" || obs_string2 == "SGTT" || obs_string2 == "SGTL")
+        {
+            filename = "../../data/out_" + obs_string2 + ".txt"; 
+        } else 
+        {
             filename = "../../data/out_" + obs_string2 + "_" + std::to_string((int)Tl) + ".txt"; 
-        } else {
-            filename = "../../data/out_SGT.txt"; 
         }
         myfile.open(filename);
 
 
         double errors[180];
         double mean_error = 0;
-        if (obs_string == "SGT")
+        if (obs_string == "SGT" || obs_string == "SGTT" || obs_string == "SGTL")
         {
+            // Get Saclay amplitudes
+            std::vector<std::complex<double> > saclay_amplitudes;
             std::cout << "Energy \t obs \t correct \t abs. rel. error" << std::endl;    
             int e = i+1;
             // Loop over energies
             LS_Solver::get_mu_q_on_shell(energies[e-1],chns[0], &mu,&q_on_shell);
-            double obs = sc::compute_total_cross_section(chns, phases_vec,
-                        q_on_shell,l_max);
+            rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+            saclay_amplitudes = sc::compute_Saclay_amplitudes(chns, phases_vec, 0, q_on_shell, rho_T, l_max);
+
+            // Compute the observable from the amplitudes
+            double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_string);
+            
             if (D_obs[e-1] != 0) {
                 errors[e-1] = std::abs((D_obs[e-1] - obs)/D_obs[e-1]);
             } else {
                 errors[e-1] = 0;
             }
-            //std::cout << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] <<"\t" <<  errors[e-1] << std::endl << std::endl;
+            std::cout << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] <<"\t" <<  errors[e-1] << std::endl << std::endl;
             myfile << energies[e-1] << "\t" << obs << "\t" << D_obs[e-1] << "\t" << errors[e-1] << std::endl;
         } 
         else
@@ -557,7 +574,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 
                 // Compute the observable from the amplitudes
 
-                double obs = sc::compute_observable(saclay_amplitudes, obs_string);
+                double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_string);
             
                 //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
                 if (D_obs[ang-1] != 0) {
@@ -754,7 +771,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
         } 
         // Compute the observable from the amplitudes
         start = std::clock();
-        double obs = sc::compute_observable(saclay_amplitudes, "I 0000");
+        double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, "I 0000");
         end = std::clock();
         obs = obs+1.0; // Just to not get unused warning 
         if (ang == 1) {

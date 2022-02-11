@@ -11,6 +11,10 @@
 
 (cd src/cpp_src; ./obs test_1S0 no_test)
 
+(cd src/cpp_src; ./obs SGT  no_test)
+(cd src/cpp_src; ./obs SGTT no_test)
+(cd src/cpp_src; ./obs SGTL no_test)
+
 # Run tests for observables. Run Test of DSG to check also with Andreas code.
 (cd src/cpp_src; ./obs DSG no_test)
 (cd src/python_src; python3 plot_obs2.py DSG)
@@ -24,4 +28,3 @@
 (cd src/cpp_src; ./obs CKK no_test)
 (cd src/python_src; python3 plot_obs.py CKK)
 
-(cd src/cpp_src; ./obs SGT no_test)

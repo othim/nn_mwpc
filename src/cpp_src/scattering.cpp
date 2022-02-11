@@ -321,7 +321,7 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
 }
 
 
-double compute_observable(std::vector<std::complex<double> > sac_amp,std::string obs)
+double compute_observable(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs)
 {
     // The vector of sac_amp contains a,b,c,d,e in order
     std::complex<double> a = sac_amp[0];
@@ -447,6 +447,18 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,std::string
     } else if (obs == "M n0ml" || obs == "N 0nlm")
     {
         return std::imag(std::conj(a)*d - std::conj(b)*c)/DSG;
+    } else if (obs == "SGT")
+    {
+        double fac = std::sqrt(constants::MeVm2_to_mbarn);
+        return ((2*M_PI)/q_on_shell)*std::imag(a+b)*fac;
+    } else if (obs == "SGTL")
+    {
+        double fac = M_PI*std::sqrt(constants::MeVm2_to_mbarn)/q_on_shell;
+        return -4.0*std::imag(c-d)*fac; 
+    } else if (obs == "SGTT")
+    {
+        double fac = M_PI*std::sqrt(constants::MeVm2_to_mbarn)/q_on_shell;
+        return -4.0*std::imag(c+d)*fac; 
     } else {
         std::cout << "Unknown observable: '" << obs << "'" << std::endl;
         return 0;
