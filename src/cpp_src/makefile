@@ -16,7 +16,7 @@ CC = g++
 
 # Optimization
 OPT = -O3
-#OPT = -Ofast
+#OPT = -O3 # -Ofast can have some optimazation that deviate from c standard
 # For Mac
 # -------
 ifeq ($(SYSTEM), MAC)
