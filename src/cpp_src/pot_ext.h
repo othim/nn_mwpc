@@ -46,6 +46,6 @@ public:
      * This function returns the potneital matrix without an 
      * on-shell point.
      */
-    gsl_matrix*  get_matrix_no_on_shell(qs::quantum_channel chn);
+    gsl_matrix*  get_matrix_no_onshell(qs::quantum_channel chn);
 };
 #endif

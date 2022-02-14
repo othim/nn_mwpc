@@ -963,16 +963,28 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     // ------------
     // Nijmegen1  E = -2.224575 (nn-on-line)
     // ------------
+    double E_nijmegen = -2.224575;
     Lambda = 10000.0;
     double mu,q_on_shell;
     LS_Solver::get_mu_q_on_shell(0.0, chn, &mu, &q_on_shell);
     
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
-    pot_V_mtx = nijmegen.get_matrix(q_on_shell,chn);
+    pot_V_mtx = nijmegen.get_matrix_no_onshell(chn);
     diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
     std::cout << "The eigenvalues in 3S1-3D1 LO nijmegen1" << quantum_channel_to_string(chn) << " is: "
         << std::endl;
     ph::print_v_complex(diag_res.eigenvalues);    
+    std::cout << "Nijmegen1 binding energy: -2.224575 MeV" << std::endl;
+    
+    for (int i = 0; i < (int)diag_res.eigenvalues->size; i++)
+    {
+        double E = GSL_REAL(gsl_vector_complex_get(diag_res.eigenvalues,i));
+        if (E < 0.0)
+        {
+            std::cout << "This code: " << E << " MeV" << std::endl;
+            std::cout << "Relative error: " << (E-E_nijmegen)/E_nijmegen << std::endl; 
+        }
+    }
     gsl_matrix_complex_free(diag_res.eigenvectors);
     gsl_vector_complex_free(diag_res.eigenvalues); 
 

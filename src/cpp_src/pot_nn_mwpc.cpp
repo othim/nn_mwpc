@@ -884,7 +884,8 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
             double rel_factor_out = sqrt(2*mu/E_rel_out);
             rel_fac = rel_factor_in*rel_factor_out;
          }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))
+             *exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          rel_fac *= cutoff_regulator;
          if (sharp_cutoff_) {
             if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {

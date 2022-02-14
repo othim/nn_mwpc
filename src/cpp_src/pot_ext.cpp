@@ -119,5 +119,80 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
    return matrix_data;
 }
     
-//gsl_matrix*  Potential_ext::get_matrix_no_on_shell(qs::quantum_channel chn)
-//{}
+gsl_matrix* Potential_ext::get_matrix_no_onshell(qs::quantum_channel chn)
+{
+   #ifdef ENABLE_DEBUG
+      std::cerr << "get_matrix_no_onshell()" << std::endl;
+   #endif
+
+   // Allocate gsl matrices in the case of coupled and uncoupled channels.
+   // The matrix becomes twise as large in the coupled case
+   // In the construction of the saved matrix the desired on-shell momentum 
+   // that the matrix element will be evaluated on are unknown. These matrix elements needs
+   // to be computed at runtime
+   gsl_matrix* matrix_data;
+   if (chn.coupled) {
+      matrix_data = gsl_matrix_alloc((2*mom_grid_size_),(2*mom_grid_size_));
+   } else {
+      matrix_data = gsl_matrix_alloc(mom_grid_size_,mom_grid_size_);
+   }
+
+   // For each grid point
+   
+   // i: row index, j: column index
+   // These loops populate the matrices everywhere except where
+   // the on-shell part will go later.
+   for (int i = 0; i < (int)mom_grid_size_; i++)
+   {
+      for (int j = 0; j < (int)mom_grid_size_; j++)
+      {
+         double V_arr[6]; // Array for data
+         
+         // Outgoing momentum is row index
+         double p_in  = p_grid_[j];
+         double p_out = p_grid_[i];
+
+         // Compute relativistic factors
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))
+             *exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
+         
+         my_element_V_arr(p_in,p_out,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
+        
+         // This is the same as in pot_nn_mwpc
+         // ---------------------------------- 
+         if (!chn.coupled)
+         {
+            if (chn.S==0) 
+            {
+               // Take S=0 element of V_arr and multiply by the relativistic factor
+               gsl_matrix_set(matrix_data,j,i,V_arr[0]*cutoff_regulator);
+            } else if (chn.S==1)
+            {
+               // Take S=1 element of V_arr
+               if (chn.J != 0)
+               {
+                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*cutoff_regulator);
+               } else // For J=0,S=1,L=1 case
+               {
+                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*cutoff_regulator); // Take pp element to get L=1
+               }
+            }
+
+         } else 
+         {
+            // The matrix is constructed as [[mm,mp],[pm,pp]]
+            gsl_matrix_set(matrix_data,j,i,V_arr[3]*cutoff_regulator); //mm
+            // Offsett with mom_grid_size_+1, sinze the one is for the
+            // on-shell part of the matrix that will be added later
+            
+            //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
+            //std::cout << p_in << " " << p_out << std::endl;
+            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*cutoff_regulator); //mp
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*cutoff_regulator); //pm
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*cutoff_regulator); //pp
+         }
+         // ---------------------------------
+      }
+   }
+   return matrix_data;
+}
