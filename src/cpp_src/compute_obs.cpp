@@ -145,6 +145,10 @@ int main(int argc, char** argv)
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"A 00mm", OPE_inclue);
     } else if (std::string(argv[1]) == "AYY") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"C nn00", OPE_inclue);
+    } else if (std::string(argv[1]) == "DT") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"K 0nn0", OPE_inclue);
+    } else if (std::string(argv[1]) == "PT") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P 0n00", OPE_inclue);
     } else if (std::string(argv[1]) == "SPEED") {
         check_speed(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "INT") {

@@ -30,3 +30,8 @@
 (cd src/cpp_src; ./obs CKK no_test)
 (cd src/python_src; python3 plot_obs.py CKK)
 
+(cd src/cpp_src; ./obs DT no_test)
+(cd src/python_src; python3 plot_obs.py DT)
+
+(cd src/cpp_src; ./obs PT no_test)
+(cd src/python_src; python3 plot_obs.py PT)
