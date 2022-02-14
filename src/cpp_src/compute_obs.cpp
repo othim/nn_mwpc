@@ -908,7 +908,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
         unsigned int number_of_p_points, double scale,unsigned int ang_int_points, 
         unsigned int J_max_in_pot)
 {
-    std::cout << "Testing binding energies with WPC_LO potential." << std::endl;
+    std::cout << "Testing binding energies with Nijmegen1 potential." << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
     int cut_pow = 6;
 
@@ -954,9 +954,11 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     // ------------- 
     gsl_matrix* pot_V_mtx = Pot.get_matrix_no_onshell(chn, true);
     ph::eigen_t diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
-    std::cout << "The eigenvalues in 3S1-3D1 LO MWPC" << quantum_channel_to_string(chn) << " is: "
-        << std::endl;
-    ph::print_v_complex(diag_res.eigenvalues);    
+    if (!TEST) {
+        std::cout << "The eigenvalues in 3S1-3D1 LO MWPC" << quantum_channel_to_string(chn) << " is: "
+            << std::endl;
+        ph::print_v_complex(diag_res.eigenvalues);    
+    }
     gsl_matrix_complex_free(diag_res.eigenvectors);
     gsl_vector_complex_free(diag_res.eigenvalues); 
     delete[] pot_V_mtx;
@@ -971,9 +973,11 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
     pot_V_mtx = nijmegen.get_matrix_no_onshell(chn);
     diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
-    std::cout << "The eigenvalues in 3S1-3D1 LO nijmegen1" << quantum_channel_to_string(chn) << " is: "
-        << std::endl;
-    ph::print_v_complex(diag_res.eigenvalues);    
+    if (!TEST) {
+        std::cout << "The eigenvalues in 3S1-3D1 LO nijmegen1" << quantum_channel_to_string(chn) << " is: "
+            << std::endl;
+        ph::print_v_complex(diag_res.eigenvalues);    
+    }
     std::cout << "Nijmegen1 binding energy: -2.224575 MeV" << std::endl;
     
     for (int i = 0; i < (int)diag_res.eigenvalues->size; i++)
