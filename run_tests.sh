@@ -11,6 +11,8 @@
 
 (cd src/cpp_src; ./obs test_1S0 no_test)
 
+(cd src/cpp_src; ./obs DIAG test)
+
 (cd src/cpp_src; ./obs SGT  no_test)
 (cd src/cpp_src; ./obs SGTT no_test)
 (cd src/cpp_src; ./obs SGTL no_test)
