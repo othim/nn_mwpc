@@ -50,10 +50,10 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
 void check_interface();
 
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
-        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot);
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string);
 
-void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
-        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot);
+void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string);
 
 void check_binding_energies(std::vector<qs::quantum_channel> chns, 
         unsigned int number_of_p_points, double scale,unsigned int ang_int_points, 
@@ -162,12 +162,14 @@ int main(int argc, char** argv)
     } else if (std::string(argv[1]) == "SGTT") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, 
                 J_max_in_pot,"SGTT", OPE_inclue);
-    } else if (std::string(argv[1]) == "MWPC") {
-        check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "test_1S0") {
-        check_1S0(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
+        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, "1S0");
+    } else if (std::string(argv[1]) == "test_3P0") {
+        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, "3P0");
     } else if (std::string(argv[1]) == "DIAG") {
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
+    } else if (std::string(argv[1]) == "MWPC") {
+        check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
     }
 
 
@@ -812,10 +814,11 @@ void check_interface()
     delete obj;
     std::cout << "Done!" << std::endl; 
 }
-void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
-        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
+
+void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string)
 {
-    std::cout << "Testing 1S0 phase shifts with the WPC_LO potential." << std::endl;
+    std::cout << "Testing " << chn_string << " phase shifts with the WPC_LO potential." << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
     std::cout << "First, oposite np kinematics then correct kinematics" << std::endl;
     std::vector<std::string> files;
@@ -824,6 +827,7 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
     // kinematics p -> n that I have produced. When I use the same kinematics as
     // Andreas I get absolute errros of 10^{-5} when I produced this test data.
     files.push_back("../../data/phase_shift_1S0_Andreas_corrected.dat");
+    
     int cut_pow = 6; 
     for (auto& data : files)
     {
@@ -857,7 +861,7 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
         double C1S0	= -0.1/100.0; 
-        double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+        double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
         double C3P0 = 0.0;
         double C3P2 = 0.0;    
         // Choose terms in LO WPC potential
@@ -890,7 +894,16 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         double mu;
         double max = 0;
         double mean = 0;
-        qs::quantum_channel chn = chns[0]; // 1S0    
+        
+        qs::quantum_channel chn;
+        for (int i = 0; i < (int)chns.size(); i++)
+        {
+            chn = chns[i];
+            if (quantum_channel_to_string(chn) == chn_string) {
+                break;
+            }
+
+        }
         
         for (int i = 0; i < 350; i++)
         {
@@ -900,7 +913,8 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
             
             double err = std::abs(D_p[i] - phases.delta_uncoupled*180.0/M_PI);
             //std::cout << std::setprecision(10);
-            //std::cout << D_E[i] << "   " << phases.delta_uncoupled*180.0/M_PI << std::endl;
+            std::cout << D_E[i] << "   " << phases.delta_uncoupled*180.0/M_PI << std::endl;
+            
             max = std::max(max, err);
             mean += err; 
             delete[] pot_V_mtx;
@@ -909,7 +923,6 @@ void check_1S0(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
 
     }
 }
-
 
 
 void check_binding_energies(std::vector<qs::quantum_channel> chns, 
@@ -1007,10 +1020,9 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
 }
 
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
-        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot)
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string)
 {
-/*
-    std::cout << "Testing speed of code with LO WPC potential and the observable DSG" << std::endl << std::endl;
+    std::cout << "Testing phase shifts of LO MWPC code" << std::endl << std::endl;
 
     //std::clock_t start, end;   
     
@@ -1018,9 +1030,11 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     double* p_grid;
     double* w_grid;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-
-    double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
-    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    
+    double Lambda = 500.0;
+    int cut_pow = 6;
+    double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
     double C3P0 = 0.0;
     double C3P2 = 0.0;    
     // Choose terms in LO WPC potential
@@ -1032,7 +1046,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     terms.push_back("C3P2");
 
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow);
     
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
@@ -1041,33 +1055,48 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     }
 
     // Set correct LECs
-    Pot.LECs_["gA2"]  = constants::gA*constants::gA;
+    Pot.LECs_["gA2"]  = 1.29*1.29;
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
     Pot.LECs_["C3P0"] = C3P0;
     Pot.LECs_["C3P2"] = C3P2;
 
-    //int l_max = 50;
-    double Lambda = 450.0;
 
     LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
    
     double q_on_shell;
     double mu;
     //double rho_T;
-    
-    double Tl = 50.0; // MeV
-
-    // Compute all the phase shifts in the channels
-    
-    int i = 1;
-    qs::quantum_channel chn = chns[i];    
-    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-    gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
-    Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
-    
-    // Claculate error and print it 
-    */
+    qs::quantum_channel chn = chns[0];
+    for (int i = 0; i < (int)chns.size(); i++)
+    {
+        chn = chns[i];
+        if (quantum_channel_to_string(chn) == chn_string) {
+            break;
+        }
+    }
+    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
+    if (chn.coupled) {
+        std::cout  << "E (MeV) |  uncoup | dm | dp | epsilon (all in deg)" << std::endl;
+    } else {
+        std::cout  << "E (MeV) |  uncoup (deg)" << std::endl;
+    }
+    for (int i = 0; i < 350; i++) 
+    {
+        double Tl = (double)(i+1);
+        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+        Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+        
+        double x = 180.0/M_PI;        
+        if (chn.coupled) {
+            std::cout << Tl << "   " <<  phases.delta_m*x << "   "
+                << phases.delta_p*x << "   " << phases.epsilon*x << std::endl;
+        } else {
+            std::cout  << Tl << "   " << phases.delta_uncoupled*x << std::endl;
+        } 
+        gsl_matrix_free(pot_V_mtx);
+    } 
 }
 
 
