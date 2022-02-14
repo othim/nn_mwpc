@@ -426,6 +426,10 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = "DSG";
     } else if (obs_string == "P n000") {
         obs_string2 = "PB";
+    } else if (obs_string == "K 0nn0") {
+        obs_string2 = "DT";
+    } else if (obs_string == "P 0n00") {
+        obs_string2 = "PT";
     } else if (obs_string == "A 00mm") {
         obs_string2 = "CKK";
     } else if (obs_string == "C nn00") {
