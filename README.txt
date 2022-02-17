@@ -75,7 +75,7 @@ EXTERNAL LIBRARIES NEEDED
 - gsl
 - pybind11
 - intel MKL (oneapi)
-( - ic
+
 COMPILING
 
 1. The first thing you need to do is to compile the external fortran code for the
@@ -92,7 +92,7 @@ e.g. 'make obs'.
 
 If you use link to MKL instead of GSL you need some additional tricks. This is 
 worth is because you can expect a speedup in the solution of LS-equation by a
-factor 2-3 depending on the systems. If you compile with the MKL flag in the 
+factor 2-3 depending on the system. If you compile with the MKL flag in the 
 makefile you will likely get errors that there are some missing shared library
 files. Sometimes even worse, you will just get segfaults... The solution is a 
 combination of what follows depending on the system you use.
@@ -114,7 +114,9 @@ combination of what follows depending on the system you use.
 
     don't ask me why.....
 
-    3. You must tell OpenMP and MKL how many threads they should use by running
+    3. You must tell OpenMP and MKL how many threads they should use by running.
+    The number of MKL threads should be one and the nnumber of openMP threads
+    depends on the machine and what you run. More is not always better!
     - 'export MKL_NUM_THREADS=1'
     - 'export OMP_NUM_THREADS=16'
 
@@ -122,7 +124,8 @@ combination of what follows depending on the system you use.
     SUBATOM computers. Note that the export and setting of enviroment variables 
     needs to be done each time you go into a new terminal session.
 
-    5. On Tetralith you just need to run the setvars.sh script and 
+    5. On Tetralith you just need to run the setvars.sh script, set the thread
+    variables and run:
     'export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib'
 
 Note that the linking arguments might need a change since they are specific to

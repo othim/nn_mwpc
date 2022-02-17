@@ -35,7 +35,7 @@ def observables(obs):
 
     # Just some test values
     C1S0 = -0.112927/100.0
-    C3S1 = -0.087340/100.0
+    C3S1 = -0.076340/100.0
     gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 1.3e-8;
     C3P2 = 0.1e-8;
@@ -64,7 +64,7 @@ def observables(obs):
     # ------------------------------------------
     print("One observable at the time \n")
     ang = 10.0 # deg
-    E   = 50.0 # MeV
+    E   = 0.000001 # MeV
 
     # Time the funtion call
     start = time.time()
@@ -75,7 +75,7 @@ def observables(obs):
     print("Solved LS")    
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
-    obs = obj.compute_observable("I 0000",ang)
+    obs = obj.compute_observable("SGT",ang)
 
     end = time.time()
 
@@ -116,11 +116,33 @@ def phase_shifts(obj):
         print(f'Phase shifts in Stapp convention in radians: {phases}')
         print(f'Total time: {1e3*(end-start):0.3f} ms')
 
+def diagonalization(obj):
+    print('\n \nTesting diagonalization \n')
+
+
+    C1S0 = -0.112927/100.0
+    C3S1 = -0.089/100.0
+    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    C3P0 = 1.3e-8;
+    C3P2 = 0.1e-8;
+
+    LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
+    chn_number = 3
+    start = time.time()
+    eigs = obj.compute_binding_energy(chn_number,LECs)
+    end = time.time()
+    print(f'Eigenvalues in {obj.get_chn_LS_term(chn_number)} for LECs:')
+    obj.print_LEC_values()
+    print(np.transpose(eigs))
+    print(np.transpose(eigs).shape)
+    print(f'Total time: {1e3*(end-start):0.3f} ms')
+
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",10,450.0,4,True,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",2,450.0,6,True,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)
 observables(obj)
+diagonalization(obj)

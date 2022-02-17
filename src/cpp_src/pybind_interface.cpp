@@ -21,6 +21,8 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("compute_phase_shift",&nn_mwpc_interface::compute_phase_shift,
                 py::return_value_policy::copy)
+        .def("compute_binding_energy",&nn_mwpc_interface::compute_binding_energy,
+                py::return_value_policy::copy)
         .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,
                 py::return_value_policy::copy)
         .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, 
@@ -398,12 +400,39 @@ std::vector<double> compute_phase_shift_l(int chn_number,
     phases_vec.push_back(phases.delta_uncoupled);
 }
 */
-/*
 std::vector<double> nn_mwpc_interface::compute_binding_energy( 
         int chn_number, std::vector<double> LECs)
 {
+    int i = 0;
+    for (auto& it: Pot_->LECs_in_use_)
+    {
+         Pot_->LECs_[it] = LECs[i++];
+    }
+
+    qs::quantum_channel chn = chns_[0]; // Just to have it initialized
+    
+    if (chn_number < (int)chns_.size())
+    {
+        chn = chns_[chn_number];
+    } else 
+    {
+        std::cout << "Error: chn_number out of range" << std::endl;
+    }
+
+    gsl_matrix* pot_V_mtx = Pot_->get_matrix_no_onshell(chn, rel_corr_);
+    
+    ph::eigen_t diag_res = ph::solve_SE(p_grid_, w_grid_, number_of_p_points_, chn, pot_V_mtx);
+    
+    std::vector<double> eigenvalues;
+    for (int i = 0; i < pot_V_mtx->size1; i++) {
+        eigenvalues.push_back(GSL_REAL(gsl_vector_complex_get(diag_res.eigenvalues,i)));
+    }
+
+    gsl_matrix_complex_free(diag_res.eigenvectors);
+    gsl_vector_complex_free(diag_res.eigenvalues); 
+    gsl_matrix_free(pot_V_mtx);
+    return eigenvalues;
 }
-*/
 
 /*
  * Helper functions

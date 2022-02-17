@@ -941,7 +941,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
 
     double C1S0	= -0.1/100.0; 
     //double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
-    double C3S1 = -0.08/100.0;
+    double C3S1 = -0.081/100.0;
     double C3P0 = 0.0;
     double C3P2 = 0.0;    
     // Choose terms in LO WPC potential
