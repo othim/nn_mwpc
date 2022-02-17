@@ -424,7 +424,7 @@ std::vector<double> nn_mwpc_interface::compute_binding_energy(
     ph::eigen_t diag_res = ph::solve_SE(p_grid_, w_grid_, number_of_p_points_, chn, pot_V_mtx);
     
     std::vector<double> eigenvalues;
-    for (int i = 0; i < pot_V_mtx->size1; i++) {
+    for (int i = 0; i < (int)pot_V_mtx->size1; i++) {
         eigenvalues.push_back(GSL_REAL(gsl_vector_complex_get(diag_res.eigenvalues,i)));
     }
 
