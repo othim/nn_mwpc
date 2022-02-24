@@ -10,7 +10,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(nn_mwpc, m) 
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<const std::string&,int,double,int,bool,bool>())
+        .def(py::init<const std::string&,int,double,int,bool,bool,bool>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
         .def("compute_observable", &nn_mwpc_interface::compute_observable,
@@ -48,7 +48,8 @@ PYBIND11_MODULE(nn_mwpc, m)
 #endif
 
 nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name, 
-        int J_max_chn, double cutoff, int cut_pow, bool pre_comp_pot, bool rel_corr)
+        int J_max_chn, double cutoff, int cut_pow, 
+        bool sharp_cutoff, bool pre_comp_pot, bool rel_corr)
 {
 
     // ------ CONSTANTS TO CHANGE ------
@@ -59,6 +60,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
     cutoff_ = cutoff; // Cutoff in LS-equation
     cut_pow_ = cut_pow;
+    sharp_cutoff_ = sharp_cutoff;
     pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
     rel_corr_ = rel_corr;
 
@@ -74,19 +76,19 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     // Initialize physics helpers
     ph::physics_helpers_init();
 
-    // Construct the quantum states and quantum channels
-    std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
-            Tz_min, Tz_max, print);
-     
-    // Construct the quantum scattering channels from the states
-    chns_ = get_channels(states, print);   
-
     // Make GL grid
     ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
     
     // These are the pre-determined models
     if ("WPC_LO"==model_name)
     {
+        // Construct the quantum states and quantum channels
+        std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
+                Tz_min, Tz_max, print);
+     
+        // Construct the quantum scattering channels from the states
+        chns_ = get_channels(states, print);   
+
         // Choose terms in potential
         std::vector<std::string> terms;
         terms.push_back("OPEP");
@@ -95,7 +97,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct potential
         Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_);
+                number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)
@@ -113,7 +115,13 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
     } else if("MWPC_LO_1"==model_name)
     { 
-    
+        // Construct the quantum states and quantum channels
+        std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
+                Tz_min, Tz_max, print);
+         
+        // Construct the quantum scattering channels from the states
+        chns_ = get_channels(states, print);   
+        
         // Choose terms in potential
         std::vector<std::string> terms;
         terms.push_back("OPEP");
@@ -124,7 +132,62 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct potential
         Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_);
+                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
+        Pot_ext_ = nullptr;
+
+        if (pre_comp_pot_)
+        {
+            // Save potential
+            for (auto chn : chns_)
+            {
+                Pot_->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
+            }
+        }
+
+        // Construct LS Solver
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
+                cutoff_,rel_corr_);
+
+    } else if("MWPC_LO_J"==model_name)
+    { 
+        /* This potential is the same as the one in 
+         * PhysRevC.103.054304.
+         * The channels that are included are:
+         * 1s0, 3s1-3d1, 1p1, 3p0, 3p1, 3p2-3f2.
+         * These are all channels with l \leq 1 and coupled channels are
+         * included if some part of it has l \leq 1.
+         * The regulator used is exp((p/\Lambda)^4 \theta(\Lambda + 300 - p)
+         * where \theta(x) = 1 if x > 0, otherwise 0.
+         */
+        J_max = 2; // Not changable 
+        // Construct the quantum states and quantum channels
+        std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
+                Tz_min, Tz_max, print);
+         
+        // Construct the quantum scattering channels from the states
+        chns_ = get_channels(states, print);   
+        
+        // Delete channel 5 and 6 
+        chns_.erase(chns_.begin() + 6);
+        chns_.erase(chns_.begin() + 5);
+        
+        std::cout << "Channels in this (MWPC_LO_J) potential: " << std::endl;
+        for (auto& chn : chns_) 
+        {
+            std::cout << quantum_channel_to_string(chn) << std::endl;
+        }
+
+        // Choose terms in potential
+        std::vector<std::string> terms;
+        terms.push_back("OPEP");
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("C3P0");
+        terms.push_back("C3P2");
+
+        // Construct potential
+        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)

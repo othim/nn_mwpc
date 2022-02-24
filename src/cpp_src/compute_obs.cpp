@@ -669,7 +669,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     terms.push_back("C1S0");
     terms.push_back("C3S1");
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,cut_pow);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,cut_pow,false);
     
     std::cout << "Saving potential matrices" << std::endl;
     start = std::clock();   
@@ -803,7 +803,7 @@ void check_interface()
     std::string observable = "I 0000";
     std::vector<double> LECs = {-0.112927/100.0,-0.087340/100.0,1.289*1.289};
 
-    nn_mwpc_interface* obj = new nn_mwpc_interface("WPC_LO",25,450.0,6,true, true);
+    nn_mwpc_interface* obj = new nn_mwpc_interface("WPC_LO",25,450.0,6,false, true, true);
     
     std::cout << "Object created" << std::endl;
     std::vector<double> res = obj->compute_observable_l(observable,angles,energies,LECs);
@@ -873,7 +873,7 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         terms.push_back("C3P2");
 
 
-        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow);
+        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow,false);
         
         std::cout << "Saving potential matrices" << std::endl;
         for (auto chn : chns)
@@ -953,7 +953,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     terms.push_back("C3P2");
 
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow,false);
     
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
@@ -1046,7 +1046,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     terms.push_back("C3P2");
 
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow);
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
     
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
