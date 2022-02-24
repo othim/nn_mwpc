@@ -120,8 +120,8 @@ def diagonalization(obj):
     print('\n \nTesting diagonalization \n')
 
 
-    C1S0 = -0.112927/100.0
-    C3S1 = -0.089/100.0
+    C1S0 = -0.117/100.0
+    C3S1 = -0.108/100.0
     gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 1.3e-8;
     C3P2 = 0.1e-8;
