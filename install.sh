@@ -13,3 +13,4 @@ cp src/cpp_src/nn_mwpc.so .
 
 pip install .
 
+git rev-parse HEAD > nn_mwpc_install_hash.txt
