@@ -91,17 +91,18 @@ CFLAGS += -DMKL_ILP64 -fopenmp -m64 -I${MKLROOT}/include
 endif
 
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
+CDBONN_FILES = cdbonn_interface.o cdbonn.o # Compiled separately from Fortran code
 NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 				quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 obs: $(NN_MWPC_FILES)
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) -lgsl -lm  -lwigxjpf -lgfortran
+	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
 FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(LDFLAGS)  $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
+	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
 
 pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp
