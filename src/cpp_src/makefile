@@ -58,7 +58,7 @@ CFLAGS = -Wall -fopenmp -fPIC -std=c++11 $(OPT) \
 		 -I/net/home/toliver/miniconda3/include/python3.8 \
 		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
 		 -I/net/home/toliver/wigxjpf-1.11/inc \
-		 -I/net/home/toliver/phd/nn_mwpc/src/cpp_src/gsl-2.7/gsl
+		 -I/net/home/toliver/gsl-2.7/gsl
 endif 
 
 

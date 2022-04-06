@@ -13,6 +13,8 @@
 
 /test
 
-/nn_mwpce.egg-info
+/data
+
+/nn_mwpc.egg-info
 
 nn_mwpc.so
