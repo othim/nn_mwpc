@@ -12,8 +12,8 @@ LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom
     // Init variables
     mom_grid_size_ = mom_grid_size;
     cutoff_enabled_ = cutoff_enabled;
-    cutoff_Lambda_ = cutoff_Lambda;
-    relcorr_enabled_ = relcorr_enabled;
+    cutoff_Lambda_ = cutoff_Lambda; // TODO: remove
+    relcorr_enabled_ = relcorr_enabled; // TODO: remove
     
     // Make GL-grid
     ph::gauss_legendre_inf_mesh(mom_grid_size_,mom_grid_scale,&p_grid_,&w_grid_);

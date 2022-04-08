@@ -48,4 +48,29 @@ public:
      */
     gsl_matrix*  get_matrix_no_onshell(qs::quantum_channel chn);
 };
+
+
+void cdbonn_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr);
+void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr);
+extern "C" {
+    void cdbonn_fort_interface(double *qi,
+			  double *qo,
+			  int *coup,
+			  int *S,
+			  int *J,
+			  int *T,
+			  int *Tz,
+			  double *pot);
+}
+
+extern "C" {
+    void nijmegen_fort_interface(double *qi,
+			  double *qo,
+			  int *coup,
+			  int *S,
+			  int *J,
+			  int *T,
+			  int *Tz,
+			  double *pot);
+}
 #endif

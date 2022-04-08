@@ -43,7 +43,7 @@ endif
 ifeq ($(SYSTEM), SUBATOM)
 
 CFLAGS2 = -Wall -std=c++11 $(OPT)
-LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl/lib -L/usr/local/lib -fopenmp
+LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl-2.7/lib -L/usr/local/lib -fopenmp
 
 ifeq ($(BLAS_LIB), MKL)
 

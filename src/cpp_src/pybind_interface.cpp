@@ -13,6 +13,8 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def(py::init<const std::string&,int,double,int,bool,bool,bool>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
+        .def("solve_LS_ext_pot", &nn_mwpc_interface::solve_LS_ext_pot,
+                py::return_value_policy::copy)
         .def("compute_observable", &nn_mwpc_interface::compute_observable,
                 py::return_value_policy::copy)
         .def("get_saved_phase_shifts", &nn_mwpc_interface::get_saved_phase_shifts,
@@ -205,29 +207,43 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
     } else if("nijmegen1"==model_name)
     {
+        // Construct the quantum states and quantum channels
+        std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
+                Tz_min, Tz_max, print);
+     
+        // Construct the quantum scattering channels from the states
+        chns_ = get_channels(states, print);   
         // TODO: implement this 
         // Construct potential
         Pot_ = nullptr;
-        Pot_ext_ = nullptr;
-
-        if (pre_comp_pot_)
-        {
-            // Save potential
-            for (auto chn : chns_)
-            {
-                Pot_->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
-            }
-        }
+        Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, &nijm_correct_arg);
 
         // Construct LS Solver
         LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
                 cutoff_,rel_corr_);
 
-    } else
+    } else if ("cdbonn"==model_name)
     {
-        std::cout << "Error, not a valid model_name" << std::endl;
+        // Construct the quantum states and quantum channels
+        std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
+                Tz_min, Tz_max, print);
+     
+        // Construct the quantum scattering channels from the states
+        chns_ = get_channels(states, print);   
+        Pot_ = nullptr;
+        Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, &cdbonn_correct_arg);
+        
+        
+        // Can't precompute this potential (which is kind of stupid...)
+        // Construct the LS_Solver
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
+                cutoff_,rel_corr_);
+    }else
+    {
+        std::cout << "Error, not a valid potential model name" << std::endl;
     }
     //std::cout << J_max_in_pot_ << std::endl;
+    std::cout << "Done!" << std::endl;
 }
 /*
 nn_mwpc_interface::initialize()
@@ -260,8 +276,12 @@ void nn_mwpc_interface::solve_LS(double T_lab, std::vector<double> LECs)
     energy_saved_ = T_lab;
 }
 
-
-    
+void nn_mwpc_interface::solve_LS_ext_pot(double T_lab)
+{
+    // Compute the phase shifts
+    phase_shifts_ = compute_phase_shifts(T_lab);
+    energy_saved_ = T_lab;
+}
 
 double nn_mwpc_interface::compute_observable(const std::string& name, double angle)
 {
@@ -519,9 +539,17 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
             qs::quantum_channel chn = chns_[i];
 
             LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-        
-            gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
-
+             
+            gsl_matrix* pot_V_mtx;
+            
+            // Depending in what kind of potential that is used
+            if (Pot_ext_ == nullptr) {
+                pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+            } else {
+                std::cout << chn.J << std::endl;
+                pot_V_mtx = Pot_ext_->get_matrix(q_on_shell, chn);
+            }
+            std::cout << "Phase shifts done" << std::endl;
             Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(Tl,chn,pot_V_mtx);
         
             gsl_matrix_free(pot_V_mtx);

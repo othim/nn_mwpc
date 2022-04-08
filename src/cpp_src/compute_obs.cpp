@@ -9,28 +9,14 @@
 #include <ctime>
 #include <algorithm>
 #include "pybind_interface.h"
+#include "pot_ext.h"
 /*
  * This function can be called if this file is linked with 
  * the .o files from the fortran libray compiled.
  */
-extern "C" {
-    void nijmegen_fort_interface(double *qi,
-			  double *qo,
-			  int *coup,
-			  int *S,
-			  int *J,
-			  int *T,
-			  int *Tz,
-			  double *pot);
-}
 
-// This function is not complete!!!
-void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
-{
-    int coup = (int)coupled;
-    nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
-}
+
 /*
  * Function declarations
  */
@@ -803,14 +789,19 @@ void check_interface()
     std::string observable = "I 0000";
     std::vector<double> LECs = {-0.112927/100.0,-0.087340/100.0,1.289*1.289};
 
-    nn_mwpc_interface* obj = new nn_mwpc_interface("WPC_LO",25,450.0,6,false, true, true);
+    nn_mwpc_interface* obj = new nn_mwpc_interface("cdbonn",25,450.0,6,false, true, true);
     
     std::cout << "Object created" << std::endl;
-    std::vector<double> res = obj->compute_observable_l(observable,angles,energies,LECs);
+
+    obj->solve_LS_ext_pot(10.0);
+    double o = obj->compute_observable("SGT", 50.0);
+    std::cout << o << std::endl;
+    
+    //std::vector<double> res = obj->compute_observable_l(observable,angles,energies,LECs);
    
-    obj->solve_LS(10.0,LECs);
-    double a = obj->compute_observable("I 0000", 80.0);
-    a = a + 1.0;
+    //obj->solve_LS(10.0,LECs);
+    //double a = obj->compute_observable("I 0000", 80.0);
+    //a = a + 1.0;
     delete obj;
     std::cout << "Done!" << std::endl; 
 }
@@ -991,7 +982,9 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     double mu,q_on_shell;
     LS_Solver::get_mu_q_on_shell(0.0, chn, &mu, &q_on_shell);
     
-    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    //Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &cdbonn_correct_arg);
+    pot_V_mtx = nijmegen.get_matrix(10.0,chn);
     pot_V_mtx = nijmegen.get_matrix_no_onshell(chn);
     diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
     if (!TEST) {

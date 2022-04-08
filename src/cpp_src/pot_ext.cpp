@@ -1,7 +1,42 @@
 #include "pot_ext.h"
 
+extern "C" {
+    void cdbonn_fort_interface(double *qi,
+			  double *qo,
+			  int *coup,
+			  int *S,
+			  int *J,
+			  int *T,
+			  int *Tz,
+			  double *pot);
+}
 
+// This function is not complete!!!
+void cdbonn_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
+{
+    int coup = (int)coupled;
+    cdbonn_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
+}
+
+extern "C" {
+    void nijmegen_fort_interface(double *qi,
+			  double *qo,
+			  int *coup,
+			  int *S,
+			  int *J,
+			  int *T,
+			  int *Tz,
+			  double *pot);
+}
+
+// This function is not complete!!!
+void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
+{
+    int coup = (int)coupled;
+    nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
+
+}
 Potential_ext::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
         void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr))
 {
@@ -66,9 +101,11 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
       
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
-         //std::cout << chn.coupled << " " << chn.J << std::endl;
+         
+         std::cout << chn.coupled << " " << chn.J << " " <<  chn.S << " " << chn.T << std::endl << " ------- " << std::endl;
          my_element_V_arr(p_in,p_out,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
-         // ---------------------------------------------------
+         std::cout << "-----" << std::endl;
+         //---------------------------------------------------
          //std::cout << "Rel fac: " << rel_fac << std::endl;
          /*for (int i= 0; i < 6; i++)
          {

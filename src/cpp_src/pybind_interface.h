@@ -94,6 +94,11 @@ public:
      * are in MeV^{-n} depending on which LEC it is.
      */
     void solve_LS(double T_lab, std::vector<double> LECs);
+    /*
+     * Same as above but without LEC argument if the potential in 
+     * the model does not have any LECs
+     */
+    void solve_LS_ext_pot(double T_lab);
 
     /*
      * Methods that computes observables from the saved phase shifts. The 
