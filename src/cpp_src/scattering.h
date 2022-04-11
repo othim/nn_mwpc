@@ -75,11 +75,26 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
     This follows the notation in Table III in 
     Formalism of nucleon-nucleon elastic scattering experiments. 
     Journal de Physique, 1978, 39 (1), pp.1-32.
+    
+    Here:
+        l \propto k_i + k_f
+        m \propto k_f - k_i
+        n \propto k_i x k_f
+
+    Other notations for these vectors can be:
 
     q_on_shell in the on shell momentum in MeV
 */
 double compute_observable(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs);
 
+/*
+ * This function computes the observables that are defined in the lab frame.
+ * The formalisam follows
+ *
+    Formalism of nucleon-nucleon elastic scattering experiments. 
+    Journal de Physique, 1978, 39 (1), pp.1-32.
+ */
+double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs, double angle);
 /*
  * This function computes the total cross section SGT. The return unit is mb.
  */

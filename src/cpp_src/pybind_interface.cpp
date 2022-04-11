@@ -306,7 +306,14 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
             angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
         
     // Compute the observable from the amplitudes
-    double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name);
+    double obs;
+    // The A 00kk is an observable that is defined in terms of other vectors
+    // than the n,l,m. That is why the _lab function is used.
+    if (name == "A 00kk") {
+        obs = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, name, angle);
+    } else {
+        obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name);
+    }
     
     return obs;
 }

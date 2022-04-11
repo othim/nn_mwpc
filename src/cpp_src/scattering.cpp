@@ -465,6 +465,21 @@ double compute_observable(std::vector<std::complex<double> > sac_amp, double q_o
     }    
 }
 
+double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs, double angle)
+{
+    if (obs = "A 00kk") {
+        double tmp_ll = compute_observable(sac_amp,q_on_shell, "C ll00");        
+        double tmp_lm = compute_observable(sac_amp,q_on_shell, "C lm00");        
+        double tmp_mm = compute_observable(sac_amp,q_on_shell, "C mm00");        
+        return tmp_ll*std::cos(angle/2.0)*std::cos(angle/2.0)+
+            tmp_lm*std::sin(angle) + 
+            tmp_mm*std::sin(angle/2.0)*std::sin(angle/2.0);
+    } else {
+        std::cout << "Unknown observable: '" << obs << "'" << std:endl;
+        return 0;
+    }
+}
+
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
     std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,int l_max)
 {
