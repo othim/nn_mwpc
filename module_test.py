@@ -75,7 +75,7 @@ def observables(obs):
     print("Solved LS")    
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
-    obs = obj.compute_observable("SGT",ang)
+    obs = obj.compute_observable("A 00kk",ang)
 
     end = time.time()
 

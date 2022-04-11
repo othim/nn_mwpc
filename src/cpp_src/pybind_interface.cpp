@@ -213,8 +213,6 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
      
         // Construct the quantum scattering channels from the states
         chns_ = get_channels(states, print);   
-        // TODO: implement this 
-        // Construct potential
         Pot_ = nullptr;
         Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, &nijm_correct_arg);
 
@@ -232,7 +230,6 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         chns_ = get_channels(states, print);   
         Pot_ = nullptr;
         Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, &cdbonn_correct_arg);
-        
         
         // Can't precompute this potential (which is kind of stupid...)
         // Construct the LS_Solver
@@ -310,7 +307,7 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
     // The A 00kk is an observable that is defined in terms of other vectors
     // than the n,l,m. That is why the _lab function is used.
     if (name == "A 00kk") {
-        obs = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, name, angle);
+        obs = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, name, angle*M_PI/180.0);
     } else {
         obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name);
     }

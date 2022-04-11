@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 def observables(obs):
     print("\n \nTesting observables \n")
     print("One observable at the time \n")
-    ang = 70.0 # deg
-    E   = 50.0 # MeV
+    ang = 10.0 # deg
+    E   = 200.0 # MeV
 
     # Time the funtion call
     start = time.time()
@@ -29,7 +29,7 @@ def observables(obs):
     print("Solved LS")    
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
-    obs = obj.compute_observable("SGT",ang)
+    obs = obj.compute_observable("A 00kk",ang)
     end = time.time()
 
     print(f'Observable: {obs}')
@@ -93,8 +93,8 @@ def diagonalization(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("cdbonn",6,10000.0,6,False,True,True)
+obj = nn_mwpc.nn_mwpc_interface("nijmegen1",8,10000.0,6,False,True,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 observables(obj)
-diagonalization(obj)
+#diagonalization(obj)
