@@ -102,9 +102,9 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
       
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          
-         std::cout << chn.coupled << " " << chn.J << " " <<  chn.S << " " << chn.T << std::endl << " ------- " << std::endl;
+         //std::cout << chn.coupled << " " << chn.J << " " <<  chn.S << " " << chn.T << std::endl << " ------- " << std::endl;
          my_element_V_arr(p_in,p_out,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
-         std::cout << "-----" << std::endl;
+         //std::cout << "-----" << std::endl;
          //---------------------------------------------------
          //std::cout << "Rel fac: " << rel_fac << std::endl;
          /*for (int i= 0; i < 6; i++)
