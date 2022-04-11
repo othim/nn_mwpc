@@ -550,7 +550,7 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
             if (Pot_ext_ == nullptr) {
                 pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
             } else {
-                std::cout << chn.J << std::endl;
+                //std::cout << chn.J << std::endl;
                 pot_V_mtx = Pot_ext_->get_matrix(q_on_shell, chn);
             }
             //std::cout << "Phase shifts done" << std::endl;
