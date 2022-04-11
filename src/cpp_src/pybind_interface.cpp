@@ -549,7 +549,7 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
                 std::cout << chn.J << std::endl;
                 pot_V_mtx = Pot_ext_->get_matrix(q_on_shell, chn);
             }
-            std::cout << "Phase shifts done" << std::endl;
+            //std::cout << "Phase shifts done" << std::endl;
             Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(Tl,chn,pot_V_mtx);
         
             gsl_matrix_free(pot_V_mtx);
