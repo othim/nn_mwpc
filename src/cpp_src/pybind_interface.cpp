@@ -56,8 +56,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
-    scale_ = 100.0; // Scale of momenutm grid MeV
-    number_of_p_points_ = 60; // Number of momentum-grid points
+    scale_ = 300.0; // Scale of momenutm grid MeV (100)
+    number_of_p_points_ = 100; // Number of momentum-grid points (60)
     ang_int_points_ = 76; // Number of points in angular integration
     J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
     cutoff_ = cutoff; // Cutoff in LS-equation
