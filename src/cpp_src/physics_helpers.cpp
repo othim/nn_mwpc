@@ -117,8 +117,10 @@ void ph::gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,dou
     // Make grid from -1 to 1
    
     const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
-    gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Number_of_points, -1.0, 1.0, 0, 0);
-   
+    //gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Number_of_points, -1.0, 1.0, 0, 0);
+    //-
+    gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Number_of_points, 0.0, 4300, 0, 0);
+    //- 
     double* p_grid = gsl_integration_fixed_nodes(int_ang_);
     double* w_grid = gsl_integration_fixed_weights(int_ang_);
     // Make transformation
@@ -130,9 +132,17 @@ void ph::gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,dou
     for (int i = 0; i < (int)Number_of_points; i++)
     {
         double x = p_grid[i];
-        pp[i] = scale*tan(pi_4*(x+1));
-        ww[i] = (scale*pi_4/(cos(pi_4*(x+1))*cos(pi_4*(x+1))))*w_grid[i];
+        //pp[i] = scale*tan(pi_4*(x+1));
+        //ww[i] = (scale*pi_4/(cos(pi_4*(x+1))*cos(pi_4*(x+1))))*w_grid[i];
+        
+        
+        pp[i] = x;
+        ww[i] = w_grid[i];
+        
+        std::cout << x << " " << pp[i] << std::endl;
     }
+    int a;
+    std::cin >> a;
     *p = pp;
     *w = ww;
 }
