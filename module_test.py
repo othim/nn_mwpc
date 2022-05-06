@@ -140,7 +140,7 @@ def diagonalization(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,450.0,6,True,True,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,450.0,6,True,True,True,60)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)
