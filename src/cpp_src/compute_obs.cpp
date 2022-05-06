@@ -194,7 +194,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
 
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
 
     double mu;
     double q_on_shell;
@@ -429,7 +429,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     }
 
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
    
     double q_on_shell;
     double mu;
@@ -674,7 +674,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     int l_max = 50;
     double Lambda = 450.0;
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grisd);
    
     double q_on_shell;
     double mu;
@@ -879,7 +879,7 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         Pot.LECs_["C3P0"] = C3P0;
         Pot.LECs_["C3P2"] = C3P2;
 
-        LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+        LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
        
         double q_on_shell;
         double mu;
@@ -959,7 +959,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     Pot.LECs_["C3P0"] = C3P0;
     Pot.LECs_["C3P2"] = C3P2;
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
     
     qs::quantum_channel chn = chns[3]; // 3S1-3D1
     // WPC potential
@@ -1055,7 +1055,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     Pot.LECs_["C3P2"] = C3P2;
 
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,scale,true,Lambda,true);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
    
     double q_on_shell;
     double mu;

@@ -161,8 +161,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
-                cutoff_,rel_corr_);
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, p_grid_,w_grid_);
 
     } else if("MWPC_LO_J"==model_name)
     { 
@@ -216,8 +215,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
-                cutoff_,rel_corr_);
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_,p_grid_,w_grid_);
 
     } else if("nijmegen1"==model_name)
     {
@@ -231,8 +229,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, &nijm_correct_arg);
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
-                cutoff_,rel_corr_);
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, p_grid_,w_grid_);
 
     } else if ("cdbonn"==model_name)
     {
@@ -247,8 +244,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         
         // Can't precompute this potential (which is kind of stupid...)
         // Construct the LS_Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
-                cutoff_,rel_corr_);
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_,p_grid_,w_grid_);
     }else
     {
         std::cout << "Error, not a valid potential model name" << std::endl;
