@@ -10,7 +10,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(nn_mwpc, m) 
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<const std::string&,int,double,int,bool,bool,bool>())
+        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
         .def("solve_LS_ext_pot", &nn_mwpc_interface::solve_LS_ext_pot,
@@ -51,13 +51,14 @@ PYBIND11_MODULE(nn_mwpc, m)
 
 nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name, 
         int J_max_chn, double cutoff, int cut_pow, 
-        bool sharp_cutoff, bool pre_comp_pot, bool rel_corr)
+        bool sharp_cutoff, bool pre_comp_pot, bool rel_corr,
+        double number_of_p_points)
 {
 
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
-    scale_ = 85.0; // Scale of momenutm grid MeV (100)
-    number_of_p_points_ = 15; // Number of momentum-grid points (60)
+    scale_ = 100.0; // Scale of momenutm grid MeV (100)
+    number_of_p_points_ = number_of_p_points; // Number of momentum-grid points (60)
     ang_int_points_ = 76; // Number of points in angular integration
     J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
     cutoff_ = cutoff; // Cutoff in LS-equation
@@ -78,9 +79,22 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     // Initialize physics helpers
     ph::physics_helpers_init();
 
-    // Make GL grid
-    ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
+    //double sharp_cut = cutoff_+300.0;
+    //std::cout << "Sharp cut: " << sharp_cut << std::endl;
+    //ph::gauss_legendre_finite_mesh(number_of_p_points_,0,sharp_cut,&p_grid_,&w_grid_);
+    //ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
     
+    // Make GL grid
+    if (!sharp_cutoff)
+    {
+        ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
+    } else 
+    {
+        // Make GL-grid that is finite. Since we use a sharp cutoff this grid is fine
+        double sharp_cut = cutoff_+300.0;
+        ph::gauss_legendre_finite_mesh(number_of_p_points_,0,sharp_cut,&p_grid_,&w_grid_);
+    }
+
     // These are the pre-determined models
     if ("WPC_LO"==model_name)
     {

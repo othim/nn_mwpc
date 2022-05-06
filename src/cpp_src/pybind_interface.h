@@ -81,7 +81,8 @@ public:
      * the regularization exp( (p/\Lambda)^cut_pow). 4 or 6 is a good choice
      */
     nn_mwpc_interface(const std::string& model_name, int J_max_chn, 
-            double cutoff, int cut_pow, bool sharp_cutoff, bool pre_comp_pot, bool rel_corr);
+            double cutoff, int cut_pow, bool sharp_cutoff, bool pre_comp_pot, 
+            bool rel_corr, double number_of_p_points);
     ~nn_mwpc_interface();
     
     /*
