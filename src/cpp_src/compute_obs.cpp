@@ -359,10 +359,12 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     std::cout << "Testing observables with the nijmegen1 potential" << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
     //std::clock_t start, end;   
+    double Lambda = 10000.0;
     // Make grid
     double* p_grid;
     double* w_grid;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    //ph::gauss_legendre_finite_mesh(number_of_p_points,0,8000,&p_grid,&w_grid);
 
     double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
@@ -388,7 +390,6 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 
     // Choose terms in OPE potential
     
-    double Lambda = 10000.0;
     int l_max = 50;
     std::vector<std::string> terms2;
     terms2.push_back("OPEP"); // To just test elements use just OPEP
@@ -630,8 +631,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
    
       //std::cout << Tl << "\t \t" << cross_section << std::endl;
     } 
-    delete[] p_grid;
-    delete[] w_grid;
+    //delete[] p_grid;
+    //delete[] w_grid;
 }
 
 void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
@@ -1007,8 +1008,8 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
 
 
     delete[] pot_V_mtx;
-    delete[] p_grid;
-    delete[] w_grid;
+    //delete[] p_grid;
+    //delete[] w_grid;
 }
 
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
