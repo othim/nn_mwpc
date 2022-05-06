@@ -126,8 +126,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, scale_,
-                cutoff_,rel_corr_);
+        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_,p_grid_,w_grid_);
 
     } else if("MWPC_LO_1"==model_name)
     { 

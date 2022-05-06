@@ -672,9 +672,8 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     Pot.LECs_["C3S1"] = C3S1;
 
     int l_max = 50;
-    double Lambda = 450.0;
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grisd);
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
    
     double q_on_shell;
     double mu;
