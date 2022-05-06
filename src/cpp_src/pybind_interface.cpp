@@ -79,11 +79,6 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     // Initialize physics helpers
     ph::physics_helpers_init();
 
-    //double sharp_cut = cutoff_+300.0;
-    //std::cout << "Sharp cut: " << sharp_cut << std::endl;
-    //ph::gauss_legendre_finite_mesh(number_of_p_points_,0,sharp_cut,&p_grid_,&w_grid_);
-    //ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
-    
     // Make GL grid
     if (!sharp_cutoff)
     {
