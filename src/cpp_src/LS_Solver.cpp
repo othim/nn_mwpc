@@ -24,8 +24,6 @@ LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom
 // Destructor
 LS_Solver::~LS_Solver()
 {
-    delete[] p_grid_;
-    delete[] w_grid_;
 }
 
 gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu)
