@@ -59,8 +59,8 @@ private:
 
 public:
 
-   LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size=100,
-      double mom_grid_scale=100.0, bool cutoff_enabled_ = true, double cutoff_Lambda_ = 450.0, bool relcorr_enabled = true);
+   LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size,
+           double* p_grid, double* w_grid);
 
    ~LS_Solver();
    void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);

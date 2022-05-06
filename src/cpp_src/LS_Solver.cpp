@@ -4,19 +4,21 @@
 
 // Constructor
 LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size,
-    double mom_grid_scale, bool cutoff_enabled, double cutoff_Lambda, bool relcorr_enabled)
+    double* p_grid, double* w_grid)
 {
     #ifdef ENABLE_DEBUG
         std::cout << "LS_Solver()" << std::endl;
     #endif
     // Init variables
     mom_grid_size_ = mom_grid_size;
-    cutoff_enabled_ = cutoff_enabled;
-    cutoff_Lambda_ = cutoff_Lambda; // TODO: remove
-    relcorr_enabled_ = relcorr_enabled; // TODO: remove
+    p_grid_ = p_grid;
+    w_grid_ = w_grid;
+    //cutoff_enabled_ = cutoff_enabled;
+    //cutoff_Lambda_ = cutoff_Lambda; // TODO: remove
+    //relcorr_enabled_ = relcorr_enabled; // TODO: remove
     
     // Make GL-grid
-    ph::gauss_legendre_inf_mesh(mom_grid_size_,mom_grid_scale,&p_grid_,&w_grid_);
+    //ph::gauss_legendre_inf_mesh(mom_grid_size_,mom_grid_scale,&p_grid_,&w_grid_);
 }
 
 // Destructor
