@@ -56,6 +56,12 @@ double CG_coeff(int J_2, int M_2, int j1_2, int j2_2, int m1_2, int m2_2);
  */
 void gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,double** p,double** w);
 
+/*
+ * This function fills the passed arrays with Gauss-Legendre quadratur points
+ * for the intervall [min,max]
+ */
+void gauss_legendre_finite_mesh(unsigned int Number_of_points, double min,
+        double max,double** p,double** w);
 
 
 typedef struct 

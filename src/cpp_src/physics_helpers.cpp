@@ -110,17 +110,38 @@ double ph::CG_coeff(int J_2, int M_2, int j1_2, int j2_2, int m1_2, int m2_2)
     return std::pow(-1.0,j1_2/2.0+j2_2/2.0+M_2/2.0)*std::sqrt(J_2 + 1)*wig;
 } 
 
-
+void ph::gauss_legendre_finite_mesh(unsigned int Number_of_points, double min, 
+        double max, double**p, double** w)
+{
+    const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
+    // Make GL-grid from -1 to 1
+    gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, 
+            Number_of_points, min, max, 0, 0);
+    
+    double* p_grid = gsl_integration_fixed_nodes(int_ang_);
+    double* w_grid = gsl_integration_fixed_weights(int_ang_);
+    
+    double* pp = (double*)malloc(Number_of_points*sizeof(double));
+    double* ww = (double*)malloc(Number_of_points*sizeof(double));
+  
+    for (int i = 0; i < (int)Number_of_points; i++)
+    {
+        pp[i] = p_grid[i];
+        ww[i] = w_grid[i];
+        //std::cout << pp[i] << "   " << ww[i] << std::endl;
+    }
+    *p = pp;
+    *w = ww;
+}
 
 void ph::gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,double** p,double** w)
 {
     // Make grid from -1 to 1
-   
     const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
-    //gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Number_of_points, -1.0, 1.0, 0, 0);
-    //-
-    gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Number_of_points, 0.0, 4300, 0, 0);
-    //- 
+    gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, Number_of_points, -1.0, 1.0, 0, 0);
+    
+    //gsl_integration_fixed_workspace* int_ang_ = gsl_integration_fixed_alloc(T, 
+    //        Number_of_points, 0, 4300, 0, 0);
     double* p_grid = gsl_integration_fixed_nodes(int_ang_);
     double* w_grid = gsl_integration_fixed_weights(int_ang_);
     // Make transformation
@@ -132,17 +153,13 @@ void ph::gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,dou
     for (int i = 0; i < (int)Number_of_points; i++)
     {
         double x = p_grid[i];
-        //pp[i] = scale*tan(pi_4*(x+1));
-        //ww[i] = (scale*pi_4/(cos(pi_4*(x+1))*cos(pi_4*(x+1))))*w_grid[i];
-        
-        
-        pp[i] = x;
-        ww[i] = w_grid[i];
-        
-        std::cout << x << " " << pp[i] << std::endl;
+        pp[i] = scale*tan(pi_4*(x+1));
+        ww[i] = (scale*pi_4/(cos(pi_4*(x+1))*cos(pi_4*(x+1))))*w_grid[i];
+        //pp[i] = p_grid[i];
+        //ww[i] = w_grid[i];
+        //std::cout << pp[i] << "   " << ww[i] << std::endl;
+
     }
-    int a;
-    std::cin >> a;
     *p = pp;
     *w = ww;
 }
