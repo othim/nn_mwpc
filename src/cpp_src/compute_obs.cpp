@@ -792,7 +792,7 @@ void check_interface()
     std::string observable = "I 0000";
     std::vector<double> LECs = {-0.112927/100.0,-0.087340/100.0,1.289*1.289};
 
-    nn_mwpc_interface* obj = new nn_mwpc_interface("cdbonn",25,450.0,6,false, true, true,60);
+    nn_mwpc_interface* obj = new nn_mwpc_interface("cdbonn",25,450.0,6,false, true, true,60,false);
     
     std::cout << "Object created" << std::endl;
 
