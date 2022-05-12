@@ -1,14 +1,14 @@
 
 # Choose sytem
 # ------------
-#SYSTEM = MAC
-SYSTEM = SUBATOM
+SYSTEM = MAC
+#SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
-BLAS_LIB = MKL
-#BLAS_LIB = GSL
+#BLAS_LIB = MKL
+BLAS_LIB = GSL
 
 # Compiler
 CC = g++
@@ -22,7 +22,7 @@ OPT = -O3
 ifeq ($(SYSTEM), MAC)
 
 CFLAGS2 = -Wall -std=c++11 -stdlib=libc++ $(OPT)
-LDFLAGS =  -undefined dynamic_lookup -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11/  \
+LDFLAGS =  -undefined dynamic_lookup -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.3.0/lib/gcc/11/  \
 		   -L/usr/local/opt/llvm/lib 
 
 ifeq ($(BLAS_LIB), MKL)
