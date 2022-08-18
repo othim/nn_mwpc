@@ -248,9 +248,11 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
                     std::cout << "wig1: " <<  wig1 << std::endl;
                     std::cout << "wig2: " << wig2 << std::endl;*/
                     
-                    // OLD
+                    // Correct
                     std::complex<double> add = std::pow(imag_u,(li-lo)) * (std::complex<double>) (2.0*J+1)*sqrt(2*li+1)*y_lm*wig1*wig2*T_el;
-                    // ---
+                    
+                    //Test
+                    //std::complex<double> add = (std::complex<double>) (2.0*J+1)*sqrt(2*li+1)*y_lm*wig1*wig2*T_el;
                     
                     //std::complex<double> add = std::pow(imag_u,(li-lo)) * (std::complex<double>) (2.0*J+1)*sqrt(1/(4*M_PI))*y_lm*wig1*wig2*T_el;
                     

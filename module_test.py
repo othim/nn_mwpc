@@ -64,7 +64,7 @@ def observables(obs):
     # ------------------------------------------
     print("One observable at the time \n")
     ang = 10.0 # deg
-    E   = 0.000001 # MeV
+    E   = 30 # MeV
 
     # Time the funtion call
     start = time.time()
