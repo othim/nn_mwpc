@@ -45,6 +45,8 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
         unsigned int number_of_p_points, double scale,unsigned int ang_int_points, 
         unsigned int J_max_in_pot);
 
+void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string);
 
 void test_f()
 {
@@ -96,7 +98,7 @@ int main(int argc, char** argv)
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
-    bool print = false;
+    bool print = true;
     bool OPE_inclue = false;
     
  
@@ -156,6 +158,8 @@ int main(int argc, char** argv)
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "MWPC") {
         check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
+    } else if (std::string(argv[1]) == "T") {
+        check_T_matrix(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
     }
 
 
@@ -1098,3 +1102,122 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
 }
 
 
+void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string)
+{
+    std::cout << "Testing how the T matrix elements look" << std::endl << std::endl;
+    
+    //std::cout << " These tests are done with the finite p-mesh" << std::endl;
+    //std::clock_t start, end;   
+    
+    // Make grid
+    double* p_grid;
+    double* w_grid;
+    double Lambda = 500.0;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    
+    int cut_pow = 6;
+    double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    double C3P0 = 0.0;
+    double C3P2 = 0.0;    
+    // Choose terms in LO WPC potential
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
+    terms.push_back("C3P0");
+    terms.push_back("C3P2");
+
+
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    for (auto chn : chns)
+    {
+        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+
+    // Set correct LECs
+    Pot.LECs_["gA2"]  = 1.29*1.29;
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+    Pot.LECs_["C3P0"] = C3P0;
+    Pot.LECs_["C3P2"] = C3P2;
+
+
+    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+   
+    double q_on_shell;
+    double mu;
+    //double rho_T
+    qs::quantum_channel chn = chns[0];
+    for (int i = 0; i < (int)chns.size(); i++)
+    {
+        chn = chns[i];
+        if (quantum_channel_to_string(chn) == chn_string) {
+            break;
+        }
+    }
+    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
+    if (chn.coupled) {
+        std::cout  << "E (MeV) |  uncoup | dm | dp | epsilon (all in deg)" << std::endl;
+    } else {
+        std::cout  << "E (MeV) |  uncoup (deg)" << std::endl;
+    }
+    for (int i = 0; i < 200; i+=30) 
+    {
+        double Tl = (double)(i+1);
+        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+        Phase_shifts_chn phases_T = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+        Phase_shifts_chn phases_R = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+        
+        std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, pot_V_mtx);
+        
+        std::vector<Phase_shifts_chn> phases;
+        phases.push_back(phases_T);
+        std::vector<qs::quantum_channel> chns_vec;
+        chns_vec.push_back(chn);
+        std::vector<std::complex<double>*> T_elem_vec = 
+            sc::T_from_phase_shifts(phases, chns_vec,0.0);
+        
+
+        double x = 180.0/M_PI;        
+        if (chn.coupled) {
+            std::cout << "T: " << Tl << "   " <<  phases_T.delta_m*x << "   "
+                << phases_T.delta_p*x << "   " << phases_T.epsilon*x << std::endl;
+            std::cout << "R: " << Tl << "   " <<  phases_R.delta_m*x << "   "
+                << phases_R.delta_p*x << "   " << phases_R.epsilon*x << std::endl;
+        } else {
+            std::cout  << "T: " << Tl << "   " << phases_T.delta_uncoupled*x << std::endl;
+            std::cout  << "R: " << Tl << "   " << phases_R.delta_uncoupled*x << std::endl;
+        } 
+
+
+                
+        std::complex<double>* S_R = sc::S_from_Stapp(phases_R.delta_m, phases_R.delta_p,
+                phases_R.epsilon);
+        std::complex<double>* S_T = sc::S_from_Stapp(phases_T.delta_m, phases_T.delta_p,
+                phases_T.epsilon);
+        const std::complex<double> imag_u(0.0,1.0);
+        std::complex<double> fac = -imag_u*4.0*mu*q_on_shell;
+        for (int k=0; k < 3; k++)
+        {
+            std::cout << "S_T: " << S_T[k] << "  " << std::endl;
+            std::cout << "S_R: " << S_R[k] << "  " << std::endl;
+            std::cout << "T_dir: " << fac*T_elem[k] << "  " << std::endl;
+            std::cout << "T_phase: " << T_elem_vec[0][k] << "  " << std::endl;
+
+        }
+
+        std::cout << "Telem: " <<  1.0-fac*T_elem[0] << "   " << -fac*T_elem[2] << 
+            "   " << 1.0-fac*T_elem[1] << std::endl;
+        
+        delete[] S_T;
+        delete[] S_R;
+        delete[] T_elem;
+        gsl_matrix_free(pot_V_mtx);
+    } 
+}

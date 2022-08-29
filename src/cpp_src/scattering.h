@@ -131,4 +131,7 @@ std::complex<double>* S_from_Stapp(double dm, double dp, double eps);
  */
 std::complex<double>* S_from_BB(double dm, double dp, double eps);
 
+
+std::vector<std::complex<double>*> T_from_phase_shifts(std::vector<Phase_shifts_chn> phases, std::vector<qs::quantum_channel> chns_vec,double rho_T);
+
 }

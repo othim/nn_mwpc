@@ -73,6 +73,7 @@ public:
    gsl_matrix_complex* setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
    Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
    
+    std::complex<double>* solve_in_chn_T_Telem(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
    gsl_matrix_complex* T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho);
 
