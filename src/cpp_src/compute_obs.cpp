@@ -1166,7 +1166,7 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     } else {
         std::cout  << "E (MeV) |  uncoup (deg)" << std::endl;
     }
-    for (int i = 0; i < 200; i+=30) 
+    for (int i = 50; i < 100; i+=1) 
     {
         double Tl = (double)(i+1);
         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
@@ -1202,18 +1202,20 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         std::complex<double>* S_T = sc::S_from_Stapp(phases_T.delta_m, phases_T.delta_p,
                 phases_T.epsilon);
         const std::complex<double> imag_u(0.0,1.0);
-        std::complex<double> fac = -imag_u*4.0*mu*q_on_shell;
+        // Since I convert to the 2/pi convention earlier
+        std::complex<double> fac = -imag_u*4.0*mu*q_on_shell; 
         for (int k=0; k < 3; k++)
         {
             std::cout << "S_T: " << S_T[k] << "  " << std::endl;
             std::cout << "S_R: " << S_R[k] << "  " << std::endl;
             std::cout << "T_dir: " << fac*T_elem[k] << "  " << std::endl;
             std::cout << "T_phase: " << T_elem_vec[0][k] << "  " << std::endl;
+            std::cout << "-----" << std::endl;
 
         }
 
-        std::cout << "Telem: " <<  1.0-fac*T_elem[0] << "   " << -fac*T_elem[2] << 
-            "   " << 1.0-fac*T_elem[1] << std::endl;
+        std::cout << "Telem: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
+            "   " << fac*T_elem[2] << std::endl;
         
         delete[] S_T;
         delete[] S_R;
