@@ -293,13 +293,22 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
       } 
    }
    double fac = gsl_pow_int(2*M_PI,-3);
-
+    
+   /*
+    * The minus sign on the last two potetnial terms is from the fact that 
+    * we use the Machleidt convention. This comes from the fact that 
+    * relation betweent the M-matrix and the partial wave amplitudes.
+    * If you choose to have them positive, the off diagonal T-matrix
+    * elements change sign, and hence the mixing angle. This means that 
+    * to keep the observables unchanges the factor i^(l'-l) must be excluded
+    * from the M-T_matrix relation.
+    */
    V_arr[0] = V_uncoupled_S0*fac;
    V_arr[1] = V_uncoupled_S1*fac;
    V_arr[2] = V_coupled_pp*fac;
    V_arr[3] = V_coupled_mm*fac;
-   V_arr[4] = V_coupled_pm*fac;
-   V_arr[5] = V_coupled_mp*fac;
+   V_arr[4] = -V_coupled_pm*fac;
+   V_arr[5] = -V_coupled_mp*fac;
 }
 /*
    This funtion performs the partial wave decomposition, which depends on the tensor structure of the 
