@@ -105,31 +105,31 @@ so: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
 
 pybind_interface.o: pybind_interface.cpp
-	$(CC) $(CFLAGS) $(PY_BIND) -c pybind_interface.cpp
+	$(CC) $(CFLAGS) $(PY_BIND) $(FLAGS) -c pybind_interface.cpp
 
 compute_obs.o: compute_obs.cpp
-	$(CC) $(CFLAGS) -c compute_obs.cpp
+	$(CC) $(CFLAGS) $(FLAGS) -c compute_obs.cpp
 
 pot_nn_mwpc.o: pot_nn_mwpc.h
-	$(CC) $(CFLAGS) -c pot_nn_mwpc.cpp
+	$(CC) $(CFLAGS) $(FLAGS) -c pot_nn_mwpc.cpp
 
 Term.o: Term.h
-	$(CC) $(CFLAGS) -c Term.cpp
+	$(CC) $(CFLAGS) $(FLAGS) -c Term.cpp
 
 LS_Solver.o: LS_Solver.h
-	$(CC) $(CFLAGS) -c LS_Solver.cpp
+	$(CC) $(CFLAGS) $(FLAGS) -c LS_Solver.cpp
 
 quantum_states.o: quantum_states.h
-	$(CC) $(CFLAGS) -c quantum_states.cpp
+	$(CC) $(CFLAGS) $(FLAGS) -c quantum_states.cpp
 
 scattering.o: scattering.h
-	$(CC) $(CFLAGS) -c scattering.cpp
+	$(CC) $(CFLAGS) $(FLAGS) -c scattering.cpp
 
 physics_helpers.o: physics_helpers.h 
-	$(CC) $(CFLAGS) -c physics_helpers.cpp	
+	$(CC) $(CFLAGS) $(FLAGS) -c physics_helpers.cpp	
 
 pot_ext.o: pot_ext.h
-	$(CC) $(CFLAGS) -c pot_ext.cpp
+	$(CC) $(CFLAGS) $(FLAGS) -c pot_ext.cpp
 
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \

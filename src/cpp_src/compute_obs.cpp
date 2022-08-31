@@ -90,7 +90,7 @@ int main(int argc, char** argv)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 60; // Number of momentum-grid points
+    unsigned int number_of_p_points = 120; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     
     // Do precomputations
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
     } else if (std::string(argv[1]) == "WPC_p") {
         check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]),true);
     } else if (std::string(argv[1]) == "WPC_p_all") {
-        check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, false);
+        check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, true);
     } else if (std::string(argv[1]) == "DIAG") {
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "MWPC") {
@@ -833,12 +833,8 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
     // Make constants the same
     // -----------------------
     // Set the constants to the values Andreas use
-    /*constants::gA  = 1.29;
-    constants::fpi = 92.4;
-    constants::mpi = 138.039;
-    constants::Mp  = 938.2720;
-    constants::Mn  = 939.5653;
-    */
+    
+    std::cout << constants::fpi << std::endl;
 
     double Lambda = 500.0;
     double C1S0	= -0.1/100.0; 
@@ -949,7 +945,7 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
             chn_string_full = "3S-D1";
         } else if (chn_string=="3P2" || chn_string=="3F2" || chn_string=="E2")
         {
-            chn_string_full = "3S-D1";
+            chn_string_full = "3P-F2";
         }
         // Take just the relevant channel
         qs::quantum_channel chn;
@@ -963,9 +959,14 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         
         double max_err  = 0;
         double mean_err = 0;
+        std::cout << std::setw(5) << "T_lab" << "   " << std::setw(10) << 
+            "data" << "   " << std::setw(10) << "C_phase" 
+            << "   " << std::setw(8) << "err" << std::endl;
         for (int i = 0; i < 350; i++)
         {
             LS_Solver::get_mu_q_on_shell(D_E[i], chn, &mu, &q_on_shell);
+            
+            // Use other convention to match the results of andreas code
             gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
             Phase_shifts_chn phases = solver.solve_in_chn_R(D_E[i],chn,pot_V_mtx);
             
@@ -1018,8 +1019,9 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
             double err = std::abs(D_phase[i] - C_phase);
             if (print_all)
             {
-            std::cout << D_E[i] << "   " << C_phase 
-                << "   " << err << std::endl;
+            std::cout << std::setw(5) << D_E[i] << "   " << std::setw(10) << 
+                D_phase[i] << "   " << std::setw(10) << C_phase 
+                << "   " << std::setw(8) << err << std::endl;
             
             }
             max_err = std::max(max_err, err);
@@ -1029,14 +1031,14 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         }
         std::cout << "Mean error (deg): " << mean_err/350.0 << std::endl <<
             "Max error (deg): " << max_err << std::endl;
-        double tol = 1e-4;
+        double tol = 2e-4;
         if (mean_err/350.0<tol && max_err<tol)
         {
-            std::cout << "Test: OK" << std::endl;
+            std::cout << "Test: OK (abs.tol=" << tol << ")" << std::endl;
             return true;
         } else 
         {   
-            std::cout << "Test: FAILED" << std::endl;
+            std::cout << "Test: FAILED (abs.tol=" << tol << ")" << std::endl;
             return false;
         }
     }
@@ -1057,7 +1059,7 @@ bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of
     chn_strings.push_back("E1");
     chn_strings.push_back("3P2");
     chn_strings.push_back("3F2");
-    chn_strings.push_back("3E2");
+    chn_strings.push_back("E2");
 
     bool success = true;
     for(int i=0; i<chn_strings.size();i++)
