@@ -54,32 +54,41 @@ private:
    bool relcorr_enabled_;
 
    gsl_vector*  setup_D_vector(double q_on_shell, bool coupled, double mu);
-   gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, gsl_matrix* V_mtx);
+   gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, 
+           gsl_matrix* V_mtx);
   
 
 public:
 
-   LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size,
-           double* p_grid, double* w_grid);
+    LS_Solver(std::vector<qs::quantum_channel> channels, 
+            unsigned int mom_grid_size, double* p_grid, double* w_grid);
 
-   ~LS_Solver();
-   void gauss_legendre_inf_mesh(unsigned int Numper_of_points, double scale,double** p,double** w);
+    ~LS_Solver();
+    void gauss_legendre_inf_mesh(unsigned int Numper_of_points, 
+            double scale,double** p,double** w);
 
-   // Returns an array of phase shifts in the convention: Stapp
-   Phase_shifts_chn solve_in_chn_R(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
+    // Returns an array of phase shifts in the convention: Stapp
+    Phase_shifts_chn solve_in_chn_R(double T_lab, qs::quantum_channel chn, 
+            gsl_matrix* pot_V_mtx);
 
+    double* solve_in_chn_R_Relem(double T_lab, 
+            qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
-   gsl_vector_complex* setup_D_vector_complex(double q_on_shell, bool coupled, double mu);
-   gsl_matrix_complex* setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
-   Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
+    gsl_vector_complex* setup_D_vector_complex(double q_on_shell, bool coupled, 
+            double mu);
+    gsl_matrix_complex* setup_F_matrix_complex(bool coupled, 
+            gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
+    Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, 
+            gsl_matrix* pot_V_mtx);
    
-    std::complex<double>* solve_in_chn_T_Telem(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
+    std::complex<double>* solve_in_chn_T_Telem(double T_lab, 
+            qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
-   gsl_matrix_complex* T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho);
+    std::complex<double>* T_matrix_from_R_matrix(double Rmm, 
+            double Rmp, double Rpp, double mu, double q_on_shell);
 
-  
-
-    static void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell);
+    static void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, 
+            double* mu, double* q_on_shell);
 };
 
 #endif

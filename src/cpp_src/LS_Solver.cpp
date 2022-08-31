@@ -433,6 +433,104 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     return phase_shifts; // This conversion just affects the coupled channels
 }
 
+double* LS_Solver::solve_in_chn_R_Relem(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
+{
+    #ifdef ENABLE_DEBUG
+        std::cerr << "solve_in_chn()" << std::endl;
+    #endif
+    // Compute reduced mass mu, which depends on the isospin-prijection.
+    #ifdef TIME
+        std::clock_t start, end;
+        start = std::clock(); 
+    #endif    
+    
+    double mu;
+    double q_on_shell;
+    get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
+
+    //std::cout << "q_on_shell=" << q_on_shell << std::endl;
+    // rho = 2*q*mu   
+    // This is a convecntion dependent parameter that relates the 
+    // R-matrix to the T/S matrices. rho will be different if a different 
+    // normalization for the |klm> quantum states is choosen. To see the conventions
+    // Used in this code see the README.md file.
+    double rho = M_PI*q_on_shell*mu;
+
+    //std::cout << "Potential" << std::endl;
+    //print_matrix(pot_V_mtx);
+   
+    // Setup D-vector
+    gsl_vector* D_vector = setup_D_vector(q_on_shell,chn.coupled,mu);
+    //print_vector(D_vector);
+    // Setup F-matrix
+    gsl_matrix* F_matrix = setup_F_matrix(chn.coupled,D_vector,pot_V_mtx);
+    
+    #ifdef TIME
+        end = std::clock();
+        std::cout << "Time D,F: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << std::endl;
+        start = std::clock();
+    #endif  
+    // Solve the matrix equation F*R = V
+        
+    // LU decompose
+    gsl_permutation* perm = gsl_permutation_alloc(F_matrix->size1);
+    int signum;
+    
+    gsl_linalg_LU_decomp(F_matrix,perm,&signum);
+   
+    // Invert from LU decompusition
+    gsl_matrix* inverse = gsl_matrix_alloc(F_matrix->size1,F_matrix->size2);
+    gsl_linalg_LU_invert(F_matrix,perm,inverse);
+   
+    gsl_matrix* R_result = gsl_matrix_alloc(F_matrix->size1,F_matrix->size2);
+    
+    gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, inverse, pot_V_mtx, 0.0, R_result); 
+   
+    // Get the matrix elements corresponding to the on-shell R-matrix
+    #ifdef TIME
+        end = std::clock();
+        std::cout << "Time invert: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << std::endl;
+        start = std::clock();
+    #endif
+    
+    double* Relem = new double[4];
+    if (chn.coupled) 
+    {
+        // on-shell R-matrix is 2x2
+        double R_pp,R_mm,R_mp;
+        R_mm = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
+        R_mp = gsl_matrix_get(R_result,2*mom_grid_size_+1,mom_grid_size_);
+        R_pp = gsl_matrix_get(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
+        //std::cout << "R-matrix elements" << std::endl;
+        //std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
+
+        Relem[0] = R_mm;
+        Relem[1] = R_mp;
+        Relem[2] = R_pp;
+        Relem[3] = 0.0;
+        
+    } else 
+    {
+        // on-shell R-matrix is 1x1
+        double R = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
+        Relem[0] = 0.0;
+        Relem[1] = 0.0;
+        Relem[2] = 0.0;
+        Relem[3] = R;
+        
+    }
+
+
+    // Delete temporary pointers
+    gsl_vector_free(D_vector);
+    gsl_matrix_free(R_result);
+
+    gsl_matrix_free(F_matrix);
+    gsl_matrix_free(inverse);
+    gsl_permutation_free(perm);
+
+    return Relem; // This conversion just affects the coupled channels
+}
 /*
     This function returns the T on-shell T-matrix from the phase shifts phase_shifts
     which needs to be entered in the Stapp convention. If the channel is uncoupled the 
@@ -778,38 +876,41 @@ std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab, qs::quantum_
     return T;
 }
 
-gsl_matrix_complex* LS_Solver::T_matrix_from_R_matrix(const gsl_matrix* R_matrix,double rho)
+std::complex<double>* LS_Solver::T_matrix_from_R_matrix(double Rmm, double Rmp, 
+        double Rpp, double mu, double q_on_shell)
 {
-    gsl_matrix_complex* T = gsl_matrix_complex_alloc(R_matrix->size1,R_matrix->size2);
-
-    // Apply the formula
-    // R = T + i*pi*T*\delta(E-H_0)R
-    // in the momentum basis R is expressed (no 2/pi factor in normalization).
-    // This gives T = R(1+i\rhoR)^{-1}.
-
+    // In the basis convention without 2/pi factor the relation between the 
+    // R and T matrix in the partial wave basis reads
+    // R = T + i*pi*\mu*q(E) R T
+    // where there is a matrix product over l'l implicit.
+    
+    std::cout << Rmm << "  " << Rmp << "  " << Rpp << std::endl;
     // Make the R-matrix complex
-    gsl_matrix_complex* R_complex = gsl_matrix_complex_alloc(R_matrix->size1,R_matrix->size2);
+    const int size = 2;
+    gsl_matrix_complex* R_complex = gsl_matrix_complex_alloc(size,size);
+    
+    // Set the matrix elements
+    double f = 1.0;
+    gsl_matrix_complex_set(R_complex,0,0,gsl_complex_rect(f*Rmm,0));
+    gsl_matrix_complex_set(R_complex,0,1,gsl_complex_rect(1.0*f*Rmp,0));
+    gsl_matrix_complex_set(R_complex,1,0,gsl_complex_rect(1.0*f*Rmp,0));
+    gsl_matrix_complex_set(R_complex,1,1,gsl_complex_rect(f*Rpp,0));
 
-    for (int i = 0; i < (int)R_matrix->size1; i++)
-    {
-        for (int j = 0; j < (int)R_matrix->size2; j++)
-        {
-            gsl_complex R_el = gsl_complex_rect(gsl_matrix_get(R_matrix, i,j),0);
-            gsl_matrix_complex_set(R_complex,i,j,R_el);
-        }
-    }
-
-    gsl_matrix_complex* temp_matrix = gsl_matrix_complex_alloc(R_matrix->size1,R_matrix->size2);
-
+    std::cout << "R_complex:" << std::endl;
+    ph::print_m_complex(R_complex);
+    
+    // Make the other matrix
+    gsl_matrix_complex* temp_matrix = gsl_matrix_complex_alloc(R_complex->size1
+            ,R_complex->size2);
     gsl_matrix_complex_set_identity(temp_matrix);
     
-    gsl_complex alpha = gsl_complex_rect(0.0,rho);
+    double fac = M_PI*mu*q_on_shell;
+    gsl_complex alpha = gsl_complex_rect(0.0,fac);
     gsl_complex beta  = gsl_complex_rect(1.0,0.0);
     
+    // temp_matrix = 1 + fac*R
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans,alpha,
         temp_matrix, R_complex,beta, temp_matrix);
-
-    // Now tmp_matrix is (1+i\rho R)
 
     // Invert tmp_matrix
     // LU decompose
@@ -818,28 +919,50 @@ gsl_matrix_complex* LS_Solver::T_matrix_from_R_matrix(const gsl_matrix* R_matrix
     gsl_linalg_complex_LU_decomp(temp_matrix,perm,&signum);
 
     // Invert from LU decompusition
- 
-    gsl_matrix_complex* inverse = gsl_matrix_complex_alloc(temp_matrix->size1,temp_matrix->size2);
-    gsl_linalg_complex_LU_invert(temp_matrix,perm,inverse); // Some error here
+    gsl_matrix_complex* inverse = 
+        gsl_matrix_complex_alloc(temp_matrix->size1,temp_matrix->size2);
+    gsl_linalg_complex_LU_invert(temp_matrix,perm,inverse);
 
+    std::cout << "inverse:" << std::endl;
+    ph::print_m_complex(inverse);
+
+    // Performs inverse <- inverse*R_complex
     gsl_complex alpha2 = gsl_complex_rect(1.0,0.0);
     gsl_complex beta2  = gsl_complex_rect(0.0,0.0);
-
-    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha2, R_complex, inverse, beta2, T); 
-
-    gsl_matrix_complex_free(inverse);
-
-    gsl_matrix_complex_free(R_complex);
-    gsl_matrix_complex_free(temp_matrix);
-    gsl_permutation_free(perm);
-
+    gsl_matrix_complex* tmp = 
+        gsl_matrix_complex_alloc(temp_matrix->size1,temp_matrix->size2);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha2,inverse,R_complex, beta2, 
+            tmp); 
+    
+    std::cout << "tmp:" << std::endl;
+    ph::print_m_complex(tmp);
+    // Now inverse is the T-matrix
+    
+    std::complex<double>* T = new std::complex<double>[4];
+    
     gsl_complex T_pp,T_mm,T_mp;
-    T_mm = gsl_matrix_complex_get(T,mom_grid_size_,mom_grid_size_);
-    T_mp = gsl_matrix_complex_get(T,2*mom_grid_size_+1,mom_grid_size_);
-    T_pp = gsl_matrix_complex_get(T,2*mom_grid_size_+1,2*mom_grid_size_+1);
+    T_mm = gsl_matrix_complex_get(tmp,0,0);
+    T_mp = gsl_matrix_complex_get(tmp,1,0);
+    T_pp = gsl_matrix_complex_get(tmp,1,1);
+    
+    T[0].real(GSL_REAL(T_mm));
+    T[0].imag(GSL_IMAG(T_mm));
+
+    T[1].real(GSL_REAL(T_mp));
+    T[1].imag(GSL_IMAG(T_mp));
+
+    T[2].real(GSL_REAL(T_pp));
+    T[2].imag(GSL_IMAG(T_pp));
+
     std::cout << GSL_REAL(T_mm) << "," << GSL_IMAG(T_mm) << std::endl;
     std::cout << GSL_REAL(T_mp) << "," << GSL_IMAG(T_mp) << std::endl;
     std::cout << GSL_REAL(T_pp) << "," << GSL_IMAG(T_pp) << std::endl;
+    
+    gsl_matrix_complex_free(inverse);
+    gsl_matrix_complex_free(R_complex);
+    gsl_matrix_complex_free(temp_matrix);
+    gsl_matrix_complex_free(tmp);
+    gsl_permutation_free(perm);
 
     return T;
 }

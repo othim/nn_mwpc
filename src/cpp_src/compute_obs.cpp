@@ -150,10 +150,8 @@ int main(int argc, char** argv)
     } else if (std::string(argv[1]) == "SGTT") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, 
                 J_max_in_pot,"SGTT", OPE_inclue);
-    } else if (std::string(argv[1]) == "test_1S0") {
-        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, "1S0");
-    } else if (std::string(argv[1]) == "test_3P0") {
-        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, "3P0");
+    } else if (std::string(argv[1]) == "WPC_p") {
+        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
     } else if (std::string(argv[1]) == "DIAG") {
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "MWPC") {
@@ -817,14 +815,32 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string)
 {
     std::cout << "Testing " << chn_string << " phase shifts with the WPC_LO potential." << std::endl;
+    std::cout << "Channel: " << chn_string << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
     std::cout << "First, oposite np kinematics then correct kinematics" << std::endl;
     std::vector<std::string> files;
-    files.push_back("../../data/phase_shift_1S0_Andreas.dat");
+    files.push_back("../../data/phase_shifts_Andreas_original_part.txt");
     // This file constains the phase shifts produced when I have the correct
     // kinematics p -> n that I have produced. When I use the same kinematics as
     // Andreas I get absolute errros of 10^{-5} when I produced this test data.
-    files.push_back("../../data/phase_shift_1S0_Andreas_corrected.dat");
+    //files.push_back("../../data/phase_shift_1S0_Andreas_corrected.dat");
+    
+    // Make constants the same
+    // -----------------------
+    // Set the constants to the values Andreas use
+    /*constants::gA  = 1.29;
+    constants::fpi = 92.4;
+    constants::mpi = 138.039;
+    constants::Mp  = 938.2720;
+    constants::Mn  = 939.5653;
+    */
+
+    double Lambda = 500.0;
+    double C1S0	= -0.1/100.0; 
+    double C3S1	= -0.13/100.0;
+    double C3P0 = 0.0;
+    double C3P2 = 0.0;    
+    // -----------------------
     
     int cut_pow = 6; 
     for (auto& data : files)
@@ -841,27 +857,59 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
 
         // Read and save the data to arrays
         double D_E[350];
-        double D_p[350];
-        double E, phase;
+        double D_1S0[350];
+        double D_3S1[350];
+        double D_3D1[350];
+        double D_E1[350];
+        double D_1P1[350];
+        double D_3P1[350];
+        double D_3P0[350];
+        double D_3P2[350];
+        double D_3F2[350];
+        double D_E2[350];
+        
+        double E, a1S0, a3S1, aE1, a1P1, a3P1, a3P0, a3P2, aE2, a3F2, a3D1;
         int k = 0;
-        while(infile >> E >> phase)
+        //# Tlab,np 1S0,np 3S1, np E1, np 1P1, np 3P1, np 3P0, np 3P2, np E2,    
+        //  np 3D1, np 3F2 
+
+        // Read the first line, the heading
+        std::string heading;
+        std::getline(infile, heading);
+        //std::cout << heading << std::endl;
+        while(infile >> E >> a1S0 >> a3S1 >> aE1 >> a1P1 >> a3P1 >>
+                a3P0 >> a3P2 >> aE2 >> a3D1 >> a3F2) 
         {
-            D_E[k] = E;
-            D_p[k] = phase;
+            D_E[k]   = E;
+            D_1S0[k] = a1S0;
+            
+            D_3S1[k] = a3S1;
+            D_3D1[k] = a3D1;
+            D_E1[k]  = aE1;
+            
+            D_1P1[k] = a1P1;
+            D_3P1[k] = a3P1;
+            D_3P0[k] = a3P0;
+            
+            D_3P2[k] = a3P2;
+            D_3F2[k] = a3F2;
+            D_E2[k]  = aE2;
+
+            /*std::cout << E << "   " << a1S0 << "   " << a3S1 << "   " << 
+                aE1 << "   " << a1P1 << "   " << a3P1 << "   " << 
+                a3P0 << "   " << a3P2 << "   " << "   " << aE2 << "   " 
+                << a3D1 << "   " << a3F2 << std::endl;
+            */
             k++;
             //std::cout << E << "   " << phase << std::endl;
         }
+        std::cout << "File read " << std::endl;
         
         // Make grid
         double* p_grid;
         double* w_grid;
-        double Lambda = 500.0;
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
-        double C1S0	= -0.1/100.0; 
-        double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
-        double C3P0 = 0.0;
-        double C3P2 = 0.0;    
         // Choose terms in LO WPC potential
         std::vector<std::string> terms;
         terms.push_back("OPEP"); // To just test elements use just OPEP
@@ -871,7 +919,8 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         terms.push_back("C3P2");
 
 
-        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow,false);
+        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,
+                w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow,false);
         
         std::cout << "Saving potential matrices" << std::endl;
         for (auto chn : chns)
@@ -890,34 +939,89 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
        
         double q_on_shell;
         double mu;
-        double max = 0;
-        double mean = 0;
         
+        std::string chn_string_full = chn_string;
+        if (chn_string=="3S1" || chn_string=="3D1" ||chn_string=="E1")
+        {
+            chn_string_full = "3S-D1";
+        } else if (chn_string=="3P2" || chn_string=="3F2" || chn_string=="E2")
+        {
+            chn_string_full = "3S-D1";
+        }
+        // Take just the relevant channel
         qs::quantum_channel chn;
         for (int i = 0; i < (int)chns.size(); i++)
         {
             chn = chns[i];
-            if (quantum_channel_to_string(chn) == chn_string) {
+            if (quantum_channel_to_string(chn) == chn_string_full) {
                 break;
             }
-
         }
         
+        double max_err  = 0;
+        double mean_err = 0;
         for (int i = 0; i < 350; i++)
         {
             LS_Solver::get_mu_q_on_shell(D_E[i], chn, &mu, &q_on_shell);
             gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
             Phase_shifts_chn phases = solver.solve_in_chn_R(D_E[i],chn,pot_V_mtx);
             
-            double err = std::abs(D_p[i] - phases.delta_uncoupled*180.0/M_PI);
-            //std::cout << std::setprecision(10);
-            std::cout << D_E[i] << "   " << phases.delta_uncoupled*180.0/M_PI << std::endl;
             
-            max = std::max(max, err);
-            mean += err; 
+            double* D_phase = nullptr;
+            double C_phase  = 0.0;
+            if (chn_string == "1S0")
+            {
+                D_phase = D_1S0;
+                C_phase = phases.delta_uncoupled*180.0/M_PI;
+                
+            } else if (chn_string == "1P1")
+            {
+                D_phase = D_1P1;
+                C_phase = phases.delta_uncoupled*180.0/M_PI;
+            } else if (chn_string == "3P0")
+            {
+                D_phase = D_3P0;
+                C_phase = phases.delta_uncoupled*180.0/M_PI;
+            } else if (chn_string == "3P1")
+            {
+                D_phase = D_3P1;
+                C_phase = phases.delta_uncoupled*180.0/M_PI;
+            } else if (chn_string == "3S1")
+            {
+                D_phase = D_3S1;
+                C_phase = phases.delta_m*180.0/M_PI;
+            } else if (chn_string == "3D1")
+            {
+                D_phase = D_3D1;
+                C_phase = phases.delta_p*180.0/M_PI;
+            } else if (chn_string == "E1")
+            {
+                D_phase = D_E1;
+                C_phase = phases.epsilon*180.0/M_PI;
+            } else if (chn_string == "3P2")
+            {
+                D_phase = D_3P2;
+                C_phase = phases.delta_m*180.0/M_PI;
+            } else if (chn_string == "3F2")
+            {
+                D_phase = D_3F2;
+                C_phase = phases.delta_p*180.0/M_PI;
+            } else if (chn_string == "E2")
+            {
+                D_phase = D_E2;
+                C_phase = phases.epsilon*180.0/M_PI;
+            }
+            
+            double err = std::abs(D_phase[i] - C_phase);
+            std::cout << D_E[i] << "   " << C_phase 
+                << "   " << err << std::endl;
+            max_err = std::max(max_err, err);
+            mean_err += err; 
+
             delete[] pot_V_mtx;
         }
-        std::cout << "Mean error (deg): " << mean/350.0 << ". Max error (deg): " << max << std::endl;
+        std::cout << "Mean error (deg): " << mean_err/350.0 << 
+            ". Max error (deg): " << max_err << std::endl;
 
     }
 }
@@ -1171,15 +1275,24 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         double Tl = (double)(i+1);
         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+        
+        // Solve for the T-matrix
         Phase_shifts_chn phases_T = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
-        Phase_shifts_chn phases_R = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+
+        // Solve fot the R-matrix
+        Phase_shifts_chn phases_R = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
         
+        // Solve for the T matrix and take the matrix elemets directly
         std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, pot_V_mtx);
-        
+        double* R_elem = solver.solve_in_chn_R_Relem(Tl, chn, pot_V_mtx);
+        std::complex<double>* Tel_from_Rel = solver.T_matrix_from_R_matrix
+            (R_elem[0], R_elem[1], R_elem[2], mu, q_on_shell);
+
         std::vector<Phase_shifts_chn> phases;
         phases.push_back(phases_T);
         std::vector<qs::quantum_channel> chns_vec;
         chns_vec.push_back(chn);
+        
         std::vector<std::complex<double>*> T_elem_vec = 
             sc::T_from_phase_shifts(phases, chns_vec,0.0);
         
@@ -1211,12 +1324,14 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
             std::cout << "T_dir: " << fac*T_elem[k] << "  " << std::endl;
             std::cout << "T_phase: " << T_elem_vec[0][k] << "  " << std::endl;
             std::cout << "-----" << std::endl;
-
         }
 
         std::cout << "Telem: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
             "   " << fac*T_elem[2] << std::endl;
-        
+        std::cout << "Tel from R: " <<  fac*Tel_from_Rel[0] << "   " << fac*Tel_from_Rel[1] << 
+            "   " << fac*Tel_from_Rel[2] << std::endl;
+        std::cout << "Relem: " <<  R_elem[0] << "   " << R_elem[1] << 
+            "   " << R_elem[2] << std::endl;
         delete[] S_T;
         delete[] S_R;
         delete[] T_elem;
