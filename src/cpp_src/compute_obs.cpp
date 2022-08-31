@@ -40,7 +40,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
 
 bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, 
-        unsigned int J_max_in_pot, std::string chn_string, bool print_all);
+        unsigned int J_max_in_pot, std::string chn_string, bool print_all,double* computed);
 
 bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, 
@@ -156,9 +156,11 @@ int main(int argc, char** argv)
         check_observable(chns, number_of_p_points, scale, ang_int_points, 
                 J_max_in_pot,"SGTT", OPE_inclue);
     } else if (std::string(argv[1]) == "WPC_p") {
-        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]),true);
+        double* dat=nullptr;
+        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]),true,dat);
+        delete[] dat;
     } else if (std::string(argv[1]) == "WPC_p_all") {
-        check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, true);
+        check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, false);
     } else if (std::string(argv[1]) == "DIAG") {
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "MWPC") {
@@ -819,23 +821,27 @@ void check_interface()
 
 bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, 
-        unsigned int J_max_in_pot, std::string chn_string, bool print_all)
+        unsigned int J_max_in_pot, std::string chn_string, bool print_all, double** computed)
 {
-    std::cout << std::endl << "Testing  phase shifts with the WPC_LO potential." << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout  << "Testing  phase shifts with the WPC_LO potential." << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
     std::cout << "Channel: " << chn_string << std::endl;
     std::vector<std::string> files;
-    files.push_back("../../data/phase_shifts_Andreas_original_part.txt");
+    //files.push_back("../../data/phase_shifts_Andreas_original_part.txt");
+    
+    
     // This file constains the phase shifts produced when I have the correct
     // kinematics p -> n that I have produced. When I use the same kinematics as
-    // Andreas I get absolute errros of 10^{-5} when I produced this test data.
-    //files.push_back("../../data/phase_shift_1S0_Andreas_corrected.dat");
+    // Andreas I get absolute errros of 10^{-5} w.r.t. the
+    // original testfile phase_shifts_Andreas_original_part.txt 
+    // when I produced this test data.
+    files.push_back("../../data/data_gen_corr_Andreas.txt");
     
     // Make constants the same
     // -----------------------
     // Set the constants to the values Andreas use
     
-    std::cout << constants::fpi << std::endl;
-
     double Lambda = 500.0;
     double C1S0	= -0.1/100.0; 
     double C3S1	= -0.13/100.0;
@@ -869,6 +875,10 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         double D_3F2[350];
         double D_E2[350];
         
+        const int nrow = 350;
+        
+        double* computed_tmp = new double[nrow];
+
         double E, a1S0, a3S1, aE1, a1P1, a3P1, a3P0, a3P2, aE2, a3F2, a3D1;
         int k = 0;
         //# Tlab,np 1S0,np 3S1, np E1, np 1P1, np 3P1, np 3P0, np 3P2, np E2,    
@@ -959,9 +969,12 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         
         double max_err  = 0;
         double mean_err = 0;
-        std::cout << std::setw(5) << "T_lab" << "   " << std::setw(10) << 
-            "data" << "   " << std::setw(10) << "C_phase" 
-            << "   " << std::setw(8) << "err" << std::endl;
+        if (printall)
+        {
+            std::cout << std::setw(5) << "T_lab" << "   " << std::setw(10) << 
+                "data" << "   " << std::setw(10) << "C_phase" 
+                << "   " << std::setw(8) << "err" << std::endl;
+        }
         for (int i = 0; i < 350; i++)
         {
             LS_Solver::get_mu_q_on_shell(D_E[i], chn, &mu, &q_on_shell);
@@ -1015,11 +1028,12 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
                 D_phase = D_E2;
                 C_phase = phases.epsilon*180.0/M_PI;
             }
-            
+            computed_tmp[i] = C_phase;
             double err = std::abs(D_phase[i] - C_phase);
             if (print_all)
             {
-            std::cout << std::setw(5) << D_E[i] << "   " << std::setw(10) << 
+            std::cout << std::setw(5) << D_E[i] << "   " << std::setprecision(8) 
+                << std::setw(10) << 
                 D_phase[i] << "   " << std::setw(10) << C_phase 
                 << "   " << std::setw(8) << err << std::endl;
             
@@ -1029,18 +1043,26 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
 
             delete[] pot_V_mtx;
         }
+        *computed = computed_tmp;
         std::cout << "Mean error (deg): " << mean_err/350.0 << std::endl <<
             "Max error (deg): " << max_err << std::endl;
         double tol = 2e-4;
         if (mean_err/350.0<tol && max_err<tol)
         {
-            std::cout << "Test: OK (abs.tol=" << tol << ")" << std::endl;
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << "******** Test: OK (abs.tol=" << tol << ") ********" << std::endl;
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << std::endl << std::endl << std::endl;
             return true;
         } else 
         {   
-            std::cout << "Test: FAILED (abs.tol=" << tol << ")" << std::endl;
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << "******** Test: FAILED (abs.tol=" << tol << ") ********" << std::endl;
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << std::endl << std::endl << std::endl;
             return false;
         }
+
     }
     return false;
 }
@@ -1049,29 +1071,53 @@ bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of
         double scale,unsigned int ang_int_points, 
         unsigned int J_max_in_pot, bool print_all)
 {
+    std::cout << std::endl << "------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "************************************************" << std::endl;
+    std::cout << "******** STARTING TEST OF PHASE SHIFTS *********" << std::endl;
+    std::cout << "************************************************" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    //# Tlab,np 1S0,np 3S1, np E1, np 1P1, np 3P1, np 3P0, np 3P2, np E2,    
+    //  np 3D1, np 3F2 
     std::vector<std::string> chn_strings;
     chn_strings.push_back("1S0");
-    chn_strings.push_back("1P1");
-    chn_strings.push_back("3P0");
-    chn_strings.push_back("3P1");
     chn_strings.push_back("3S1");
-    chn_strings.push_back("3D1");
     chn_strings.push_back("E1");
+    chn_strings.push_back("1P1");
+    chn_strings.push_back("3P1");
+    chn_strings.push_back("3P0");
     chn_strings.push_back("3P2");
-    chn_strings.push_back("3F2");
     chn_strings.push_back("E2");
+    chn_strings.push_back("3D1");
+    chn_strings.push_back("3F2");
 
     bool success = true;
+
+    int nrows = 350;
+    int ncol  = 10;
+    
+    double* all_data[ncol]; 
     for(int i=0; i<chn_strings.size();i++)
     {
         std::string chn_string = chn_strings[i];
         bool suc = check_chn(chns, number_of_p_points, scale, ang_int_points, 
-            J_max_in_pot, chn_string, print_all);
+            J_max_in_pot, chn_string, print_all, &all_data[i]);
         if (suc==false) {success=false;}
+        //std::cout << std::setprecision(8) << std::setw(10) << 
+        //    all_data[0][349] << "   ";   
     }
+
+    std::cout << std::endl << "------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "************************************************" << std::endl;
+    std::cout << "****************** TEST DONE *******************" << std::endl;
+    std::cout << "************************************************" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
     if (success)
     {
-        std::cout << std::endl << "Tests OK in chns: ";
+        std::cout << "Tests OK in chns: ";
     } else 
     {
         std::cout << "Tests FAILED in chns: ";
@@ -1081,6 +1127,25 @@ bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of
         std::cout << chn_strings[j] << " ";
     }
     std::cout << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    if (print_all)
+    {
+        for(int i=0; i<nrows; i++)
+        {
+            std::cout << std::setprecision(4) << std::setw(5) << i+1 << "   ";   
+            for(int j=0; j<ncol; j++)
+            {
+                std::cout << std::setprecision(6) << std::setw(10) << 
+                    (all_data[j])[i] << "   ";   
+            }
+            std::cout << std::endl;
+        }
+    }
+    for(int i=0; i<ncol; i++)
+    {
+        delete[] all_data[i];
+    }
 
     return success;
 }
