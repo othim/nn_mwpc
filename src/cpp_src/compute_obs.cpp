@@ -38,8 +38,13 @@ void check_interface();
 void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string);
 
-void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
-        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string);
+bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot, std::string chn_string, bool print_all);
+
+bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot, bool print_all);
 
 void check_binding_energies(std::vector<qs::quantum_channel> chns, 
         unsigned int number_of_p_points, double scale,unsigned int ang_int_points, 
@@ -151,7 +156,9 @@ int main(int argc, char** argv)
         check_observable(chns, number_of_p_points, scale, ang_int_points, 
                 J_max_in_pot,"SGTT", OPE_inclue);
     } else if (std::string(argv[1]) == "WPC_p") {
-        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
+        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]),true);
+    } else if (std::string(argv[1]) == "WPC_p_all") {
+        check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, false);
     } else if (std::string(argv[1]) == "DIAG") {
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "MWPC") {
@@ -159,8 +166,7 @@ int main(int argc, char** argv)
     } else if (std::string(argv[1]) == "T") {
         check_T_matrix(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
     }
-
-
+    
     ph::physics_helpers_free();
     return 0;
 }
@@ -811,13 +817,12 @@ void check_interface()
     std::cout << "Done!" << std::endl; 
 }
 
-void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
-        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string)
+bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot, std::string chn_string, bool print_all)
 {
-    std::cout << "Testing " << chn_string << " phase shifts with the WPC_LO potential." << std::endl;
+    std::cout << std::endl << "Testing  phase shifts with the WPC_LO potential." << std::endl;
     std::cout << "Channel: " << chn_string << std::endl;
-    std::cout << "-------------------------------------------------" << std::endl << std::endl;
-    std::cout << "First, oposite np kinematics then correct kinematics" << std::endl;
     std::vector<std::string> files;
     files.push_back("../../data/phase_shifts_Andreas_original_part.txt");
     // This file constains the phase shifts produced when I have the correct
@@ -903,7 +908,6 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
             k++;
             //std::cout << E << "   " << phase << std::endl;
         }
-        std::cout << "File read " << std::endl;
         
         // Make grid
         double* p_grid;
@@ -922,7 +926,6 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,
                 w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow,false);
         
-        std::cout << "Saving potential matrices" << std::endl;
         for (auto chn : chns)
         {
             Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
@@ -1013,19 +1016,72 @@ void check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
             }
             
             double err = std::abs(D_phase[i] - C_phase);
+            if (print_all)
+            {
             std::cout << D_E[i] << "   " << C_phase 
                 << "   " << err << std::endl;
+            
+            }
             max_err = std::max(max_err, err);
             mean_err += err; 
 
             delete[] pot_V_mtx;
         }
-        std::cout << "Mean error (deg): " << mean_err/350.0 << 
-            ". Max error (deg): " << max_err << std::endl;
-
+        std::cout << "Mean error (deg): " << mean_err/350.0 << std::endl <<
+            "Max error (deg): " << max_err << std::endl;
+        double tol = 1e-4;
+        if (mean_err/350.0<tol && max_err<tol)
+        {
+            std::cout << "Test: OK" << std::endl;
+            return true;
+        } else 
+        {   
+            std::cout << "Test: FAILED" << std::endl;
+            return false;
+        }
     }
+    return false;
 }
 
+bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot, bool print_all)
+{
+    std::vector<std::string> chn_strings;
+    chn_strings.push_back("1S0");
+    chn_strings.push_back("1P1");
+    chn_strings.push_back("3P0");
+    chn_strings.push_back("3P1");
+    chn_strings.push_back("3S1");
+    chn_strings.push_back("3D1");
+    chn_strings.push_back("E1");
+    chn_strings.push_back("3P2");
+    chn_strings.push_back("3F2");
+    chn_strings.push_back("3E2");
+
+    bool success = true;
+    for(int i=0; i<chn_strings.size();i++)
+    {
+        std::string chn_string = chn_strings[i];
+        bool suc = check_chn(chns, number_of_p_points, scale, ang_int_points, 
+            J_max_in_pot, chn_string, print_all);
+        if (suc==false) {success=false;}
+    }
+    if (success)
+    {
+        std::cout << std::endl << "Tests OK in chns: ";
+    } else 
+    {
+        std::cout << "Tests FAILED in chns: ";
+    }
+    for(int j=0; j<chn_strings.size(); j++)
+    {
+        std::cout << chn_strings[j] << " ";
+    }
+    std::cout << std::endl;
+
+    return success;
+}
 
 void check_binding_energies(std::vector<qs::quantum_channel> chns, 
         unsigned int number_of_p_points, double scale,unsigned int ang_int_points, 
