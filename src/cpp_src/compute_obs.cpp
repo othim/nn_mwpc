@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 20;
+    int J_max = 8;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -1077,6 +1077,20 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         double scale,unsigned int ang_int_points, 
         unsigned int J_max_in_pot, bool print_all)
 {
+    // Construct the quantum states
+    std::cout << "Constructing quantum states..." << std::endl;
+    int J_max = 20;
+    int J_min = 0;
+    int Tz_min = 0;
+    int Tz_max = 0;
+    bool print = true;
+    
+    std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
+     
+    // Construct the quantum scattering channels from the states
+    std::cout << "Contruction scattering channels..." << std::endl;
+    chns = get_channels(states, print);   
+    
     std::cout << "------------------------------------------------" << std::endl;
     std::cout << "     Testing PB with the WPC_LO potential.      " << std::endl;
     std::cout << "------------------------------------------------" << std::endl;

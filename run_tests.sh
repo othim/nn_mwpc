@@ -16,6 +16,7 @@
 # the test data and define change Mn <-> Mp in the rel.kinematics.
 (cd src/cpp_src; make obs FLAGS=-DANDREAS_CONST)
 (cd src/cpp_src; ./obs WPC_p_all no)
+(cd src/cpp_src; ./obs WPC_PB no)
 
 # Run test that checks my code with the Nijmegen potential agains Andreas code
 # with the Nijmegen potential. The error corves should be spot on each other.
@@ -28,6 +29,7 @@
 (cd src/cpp_src; make clean)
 (cd src/cpp_src; make obs)
 (cd src/cpp_src; ./obs WPC_p_all no)
+(cd src/cpp_src; ./obs WPC_PB no)
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
