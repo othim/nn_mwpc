@@ -307,9 +307,9 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
                 error = std::max(error,err);
             } else 
             {
-                if (phases.delta_m < 0) {
-                    phases.delta_m = phases.delta_m + M_PI;
-                }
+                //if (phases.delta_m < 0) {
+                //    phases.delta_m = phases.delta_m + M_PI;
+                //}
 
                 //double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
                 //double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
@@ -370,14 +370,14 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 {
     std::cout << "Testing observables with the nijmegen1 potential" << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
-    std::cout << "This test is now with a finite mesh" << std::endl;
+    std::cout << "This test is now with an ifinite mesh" << std::endl;
     //std::clock_t start, end;   
     double Lambda = 5000.0;
     // Make grid
     double* p_grid;
     double* w_grid;
-    //ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-    ph::gauss_legendre_finite_mesh(number_of_p_points,0,8000,&p_grid,&w_grid);
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    //ph::gauss_legendre_finite_mesh(number_of_p_points,0,8000,&p_grid,&w_grid);
 
     double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]

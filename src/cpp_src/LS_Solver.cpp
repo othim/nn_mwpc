@@ -456,7 +456,8 @@ double* LS_Solver::solve_in_chn_R_Relem(double T_lab, qs::quantum_channel chn, g
     // R-matrix to the T/S matrices. rho will be different if a different 
     // normalization for the |klm> quantum states is choosen. To see the conventions
     // Used in this code see the README.md file.
-    double rho = M_PI*q_on_shell*mu;
+    
+    //double rho = M_PI*q_on_shell*mu;
 
     //std::cout << "Potential" << std::endl;
     //print_matrix(pot_V_mtx);
@@ -790,7 +791,7 @@ std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab, qs::quantum_
     double q_on_shell;
     get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
 
-    double rho = (2.0/M_PI)*M_PI*q_on_shell*mu; 
+    //double rho = (2.0/M_PI)*M_PI*q_on_shell*mu; 
     // Depends on convention conncted to the factor 'fac' in D.
     // The transformation of T-matrix elements becomes correct when
     // a factor of 2.0/M_PI is added...
