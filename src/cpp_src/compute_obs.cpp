@@ -53,6 +53,9 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
 void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string);
 
+bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot, bool print_all);
 void test_f()
 {
 
@@ -99,7 +102,7 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 8;
+    int J_max = 20;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -161,6 +164,8 @@ int main(int argc, char** argv)
         delete[] dat;
     } else if (std::string(argv[1]) == "WPC_p_all") {
         check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, false);
+    } else if (std::string(argv[1]) == "WPC_PB") {
+        check_observable_LO_WPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, true);
     } else if (std::string(argv[1]) == "DIAG") {
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "MWPC") {
@@ -1064,6 +1069,163 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
             return false;
         }
 
+    }
+    return false;
+}
+
+bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, 
+        unsigned int J_max_in_pot, bool print_all)
+{
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "     Testing PB with the WPC_LO potential.      " << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    std::vector<std::string> files;
+    
+    #if defined(ANDREAS_CONST)
+    files.push_back("../../data/PB_30_MeV_Andreas_original.txt");
+    #else
+    // This file constains the phase shifts produced when I have the correct
+    // kinematics p -> n that I have produced. When I use the same kinematics as
+    // Andreas I get absolute errros of 10^{-5} w.r.t. the
+    // original testfile phase_shifts_Andreas_original_part.txt 
+    // when I produced this test data.
+    files.push_back("../../data/PB_30_MeV_Andreas_corr.txt");
+    #endif
+    // Make constants the same
+    // -----------------------
+    // Set the constants to the values Andreas use
+    
+    double Lambda = 500.0;
+    double C1S0	= -0.1/100.0; 
+    double C3S1	= -0.13/100.0;
+    double C3P0 = 0.0;
+    double C3P2 = 0.0;    
+    // -----------------------
+    
+    int cut_pow = 6; 
+    for (auto& data : files)
+    {
+        // Open file
+        std::ifstream infile(data);
+        if (infile.is_open())
+        {
+            std::cout << "File" + data + " loaded: OK" << std::endl;
+        } else
+        {
+            std::cout << "File" + data + ": Failed" << std::endl;
+        }
+
+        // Read the first line, the heading
+        std::string heading;
+        std::getline(infile, heading);
+        //std::cout << heading << std::endl;
+        double D_t_cm[180];
+        double D_PB[180];
+        int k=0;
+        double t_cm, t_lab,PB, th;
+        while(infile >> t_cm >> t_lab >> th >> PB >> th >> th >> th >> th) 
+        {
+            D_t_cm[k] = t_cm;
+            D_PB[k]   = PB;
+            std::cout << t_cm << "   " << PB << std::endl;
+            k++;
+        }
+        
+        // Make grid
+        double* p_grid;
+        double* w_grid;
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+
+        // Choose terms in LO WPC potential
+        std::vector<std::string> terms;
+        terms.push_back("OPEP"); // To just test elements use just OPEP
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("C3P0");
+        terms.push_back("C3P2");
+
+
+        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,
+                w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow,false);
+        
+        for (auto chn : chns)
+        {
+            Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+        }
+        
+        // Set correct LECs
+        Pot.LECs_["gA2"]  = 1.29*1.29;
+        Pot.LECs_["C1S0"] = C1S0;
+        Pot.LECs_["C3S1"] = C3S1;
+        Pot.LECs_["C3P0"] = C3P0;
+        Pot.LECs_["C3P2"] = C3P2;
+
+        LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+       
+        
+        
+        double Tl = 30.0; // MeV
+        std::string obs_string = "P n000";
+        double q_on_shell;
+        double mu;
+        std::vector <Phase_shifts_chn> phases_vec;
+        for (auto chn : chns)
+        {
+            LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+            gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
+            Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+            phases_vec.push_back(phases);
+            gsl_matrix_free(pot_V_mtx);
+        }
+
+        double rho_T = M_PI*q_on_shell*mu; // In the convention used
+
+        double max_err  = 0;
+        double mean_err = 0;
+        for (int i = 0; i < 179; i++)
+        {
+            double angle = (double)(i+1);
+            std::vector<std::complex<double> > saclay_amplitudes;
+            // Convert the angle to radians. This uses the pre-computed phase
+            // shifts phase_shifts_ that are stored in the class.
+            if (std::abs(angle-90.0)<1e-4)
+            {
+                angle = 90.001;
+            }
+            saclay_amplitudes = sc::compute_Saclay_amplitudes(chns, phases_vec, 
+                angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot);
+            
+            double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_string);
+            
+            double err = std::abs(D_PB[i] - obs)/std::abs(obs);
+            if (print_all)
+            {
+                std::cout << std::setw(5) << angle << "   "<< std::setw(10) << D_PB[i] << "   " << std::setprecision(8) 
+                    << std::setw(10) <<  obs << "   " << std::setw(10) << err << std::endl;
+            }
+            max_err = std::max(max_err, err);
+            mean_err += err; 
+
+        }
+        std::cout << "Mean rel. error (%): " << 100.0*mean_err/179.0 << std::endl <<
+            "Max rel. error (%): " << 100.0*max_err << std::endl;
+        double tol = 2e-4;
+        if (mean_err/350.0<tol && max_err<tol)
+        {
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << "******** Test: OK (abs.tol=" << tol << ") ********" << std::endl;
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << std::endl << std::endl << std::endl;
+            return true;
+        } else 
+        {   
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << "******** Test: FAILED (abs.tol=" << tol << ") ********" << std::endl;
+            std::cout << "------------------------------------------------" << std::endl;
+            std::cout << std::endl << std::endl << std::endl;
+            return false;
+        }
     }
     return false;
 }
