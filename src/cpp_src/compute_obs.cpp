@@ -27,7 +27,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 void create_ext_pot();
 
 void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
-   unsigned int J_max_in_pot);
+   unsigned int J_max_in_pot,bool TEST);
 
 
 void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
@@ -40,7 +40,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
 
 bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, 
-        unsigned int J_max_in_pot, std::string chn_string, bool print_all,double* computed);
+        unsigned int J_max_in_pot, std::string chn_string, bool print_all,double** computed);
 
 bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, 
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
     if (std::string(argv[1]) == "phase") {
-        check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot);
+        check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, J_max_in_pot,TEST);
     }
     
     // Check observables
@@ -159,9 +159,8 @@ int main(int argc, char** argv)
         check_observable(chns, number_of_p_points, scale, ang_int_points, 
                 J_max_in_pot,"SGTT", OPE_inclue);
     } else if (std::string(argv[1]) == "WPC_p") {
-        double* dat=nullptr;
-        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]),true,dat);
-        delete[] dat;
+        double* all_data[10]; 
+        check_chn(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]),true,&all_data[0]);
     } else if (std::string(argv[1]) == "WPC_p_all") {
         check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, false);
     } else if (std::string(argv[1]) == "WPC_PB") {
@@ -179,7 +178,7 @@ int main(int argc, char** argv)
 }
 
 void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
-   unsigned int J_max_in_pot)
+   unsigned int J_max_in_pot,bool TEST)
 {
     std::cout << "Testing phase shifts with the nijmegen1 potential" << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
@@ -306,7 +305,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             {
                 //double err =std::abs((phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1])/D_delta_uncoupled[E-1]);
                 double err =std::abs(phases.delta_uncoupled*180.0/M_PI - D_delta_uncoupled[E-1]);
-                if (!TEST) {
+                if (TEST) {
                     std::cout << T_lab << "   " << err << std::endl;
                 }
                 error = std::max(error,err);
@@ -325,14 +324,11 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
                 double eps = std::abs(phases.epsilon*180.0/M_PI  - D_eps[E-1]);         
                 
                 if (TEST)
-                {
-                } else 
                 { 
                     std::cout << phases.delta_m*180/M_PI << "  " << D_delta_m[E-1] << std::endl;
                     std::cout << phases.delta_p*180/M_PI << "  " << D_delta_p[E-1] << std::endl;
                     std::cout << phases.epsilon*180/M_PI << "  " << D_eps[E-1] << std::endl;
                     std::cout << std::cos(2*phases.epsilon)*std::sin(phases.delta_m + phases.delta_p) << std::endl;
-                
                     std::cout << T_lab << "   -   " << em << "   " << ep << "   " << eps << std::endl;
                     //std::cout << T_lab << "   " << phases.delta_m << "   " << phases.delta_p << "    " << phases.epsilon << std::endl; 
                 }
