@@ -110,9 +110,9 @@ int main(int argc, char** argv)
     bool OPE_inclue = false;
     
  
-    if (std::string(argv[2]) == "test")
+    if (std::string(argv[2]) == "nijm")
     {
-        TEST = true;
+        TEST = false;
         if (std::string(argv[1]) == "phase") {
             J_max = 5;
         }
@@ -269,7 +269,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
             }
         }
 
-        if (!TEST)
+        if (TEST)
         {
             std::cout << "E_lab d-uncoup \t dm \t dp \t eps " << std::endl; 
         }
@@ -318,7 +318,10 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
                 //double em = std::abs((phases.delta_m*180.0/M_PI - D_delta_m[E-1])/D_delta_m[E-1]);         
                 //double ep = std::abs((phases.delta_p*180.0/M_PI   - D_delta_p[E-1])/D_delta_p[E-1]);         
                 //double eps = std::abs((phases.epsilon*180.0/M_PI  - D_eps[E-1])/D_eps[E-1]);         
-                
+                if (phases.delta_m < 0.0) {
+                    phases.delta_m = phases.delta_m + M_PI;
+                    phases.epsilon = -phases.epsilon;
+                }
                 double em = std::abs(phases.delta_m*180.0/M_PI - D_delta_m[E-1]);
                 double ep = std::abs(phases.delta_p*180.0/M_PI   - D_delta_p[E-1]);         
                 double eps = std::abs(phases.epsilon*180.0/M_PI  - D_eps[E-1]);         
@@ -341,21 +344,15 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
 
         std::cout << "Max. abs err. (deg): " << error << "   " << error_m << "   " << error_p << "   " << error_eps;
         
-        if (TEST)
-        {
-            bool passed = false;
-            if (error < TOL && error_m < TOL && error_p < TOL && error_eps < TOL) {
-                passed = true;
-            }
-            if (passed) {
-                std::cout << " | Passed: YES" << std::endl;
-            } else {
-                std::cout << " | Passed: NO" << std::endl;
-            }
-        } else
-        { 
-            std::cout << std::endl;
-        } 
+        bool passed = false;
+        if (error < TOL && error_m < TOL && error_p < TOL && error_eps < TOL) {
+            passed = true;
+        }
+        if (passed) {
+            std::cout << " | Passed: YES" << std::endl;
+        } else {
+            std::cout << " | Passed: NO" << std::endl;
+        }
 
         myfile.close();
         //double a;
@@ -1384,7 +1381,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     // ------------- 
     gsl_matrix* pot_V_mtx = Pot.get_matrix_no_onshell(chn, true);
     ph::eigen_t diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
-    if (!TEST) {
+    if (TEST) {
         std::cout << "The eigenvalues in 3S1-3D1 LO MWPC" << quantum_channel_to_string(chn) << " is: "
             << std::endl;
         ph::print_v_complex(diag_res.eigenvalues);    
@@ -1405,7 +1402,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     pot_V_mtx = nijmegen.get_matrix(10.0,chn);
     pot_V_mtx = nijmegen.get_matrix_no_onshell(chn);
     diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
-    if (!TEST) {
+    if (TEST) {
         std::cout << "The eigenvalues in 3S1-3D1 LO nijmegen1" << quantum_channel_to_string(chn) << " is: "
             << std::endl;
         ph::print_v_complex(diag_res.eigenvalues);    
