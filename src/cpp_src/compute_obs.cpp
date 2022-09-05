@@ -4,6 +4,7 @@
 
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cstdio>
 #include <ctime>
@@ -1127,13 +1128,11 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         std::string heading;
         std::getline(infile, heading);
         //std::cout << heading << std::endl;
-        double D_t_cm[180];
         double D_PB[180];
         int k=0;
         double t_cm, t_lab,PB, th;
         while(infile >> t_cm >> t_lab >> th >> PB >> th >> th >> th >> th) 
         {
-            D_t_cm[k] = t_cm;
             D_PB[k]   = PB;
             std::cout << t_cm << "   " << PB << std::endl;
             k++;
@@ -1268,7 +1267,7 @@ bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of
     int ncol  = 10;
     
     double* all_data[ncol]; 
-    for(int i=0; i<chn_strings.size();i++)
+    for(int i=0; i<(int)chn_strings.size();i++)
     {
         std::string chn_string = chn_strings[i];
         bool suc = check_chn(chns, number_of_p_points, scale, ang_int_points, 
@@ -1292,7 +1291,7 @@ bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of
     {
         std::cout << "Tests FAILED in chns: ";
     }
-    for(int j=0; j<chn_strings.size(); j++)
+    for(int j=0; j<(int)chn_strings.size(); j++)
     {
         std::cout << chn_strings[j] << " ";
     }
