@@ -1,0 +1,6 @@
+name: env_test
+channels:
+- conda-forge
+dependencies:
+- python=3.8
+- numpy
