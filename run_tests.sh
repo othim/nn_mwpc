@@ -45,7 +45,7 @@
 # Nijmegen potential and define change Mn <-> Mp in the rel.kinematics.
 (cd src/cpp_src; make obs FLAGS=-DNIJM_CONST)
 
-(cd src/cpp_src; ./obs phase test)
+(cd src/cpp_src; ./obs phase nijm)
 (cd src/cpp_src; ./obs DIAG test)
 
 (cd src/cpp_src; ./obs SGT  no_test)

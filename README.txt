@@ -90,8 +90,8 @@ files are in that directory.
 in the make file in src/cpp_src depending on what target you want to have. 
 e.g. 'make obs'.
 
-If you use link to MKL instead of GSL you need some additional tricks. This is 
-worth is because you can expect a speedup in the solution of LS-equation by a
+If you link to MKL instead of GSL you need some additional tricks. This is 
+worth it because you can expect a speedup in the solution of LS-equation by a
 factor 2-3 depending on the system. If you compile with the MKL flag in the 
 makefile you will likely get errors that there are some missing shared library
 files. Sometimes even worse, you will just get segfaults... The solution is a 

@@ -164,7 +164,7 @@ int main(int argc, char** argv)
     } else if (std::string(argv[1]) == "WPC_p_all") {
         check_chn_all(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, false);
     } else if (std::string(argv[1]) == "WPC_PB") {
-        check_observable_LO_WPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, true);
+        check_observable_LO_WPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, false);
     } else if (std::string(argv[1]) == "DIAG") {
         check_binding_energies(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "MWPC") {
