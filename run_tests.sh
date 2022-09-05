@@ -70,6 +70,9 @@
 
 (cd src/cpp_src; ./obs PT no_test)
 (cd src/python_src; python3 plot_obs.py PT)
+
+(cd src/cpp_src; ./obs AZZ no_test)
+(cd src/python_src; python3 plot_obs.py AZZ)
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 

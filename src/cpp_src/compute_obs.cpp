@@ -146,6 +146,8 @@ int main(int argc, char** argv)
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"K 0nn0", OPE_inclue);
     } else if (std::string(argv[1]) == "PT") {
         check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"P 0n00", OPE_inclue);
+    } else if (std::string(argv[1]) == "AZZ") {
+        check_observable(chns, number_of_p_points, scale, ang_int_points, J_max_in_pot,"A 00kk", OPE_inclue);
     } else if (std::string(argv[1]) == "SPEED") {
         check_speed(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot);
     } else if (std::string(argv[1]) == "INT") {
@@ -435,6 +437,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = "CKK";
     } else if (obs_string == "C nn00") {
         obs_string2 = "AYY";
+    } else if (obs_string == "A 00kk") {
+        obs_string2 = "AZZ";
     } else if (obs_string == "SGT") {
         obs_string2 = "SGT"; // Special
     } else {
@@ -582,9 +586,15 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
                 saclay_amplitudes = sc::compute_Saclay_amplitudes(chns, phases_vec, angle*M_PI/180.0, q_on_shell, rho_T, l_max);
 
                 // Compute the observable from the amplitudes
+                double obs = 0;
+                if (obs_string2 == "AZZ")
+                {
+                    obs = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, obs_string, angle*M_PI/180.0);
+                } else
+                {
+                    obs = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_string);
+                }
 
-                double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_string);
-            
                 //std::cout << D_obs[ang-1] << " " << obs << std::endl; 
                 if (D_obs[ang-1] != 0) {
                     errors[ang-1] = std::abs((D_obs[ang-1] - obs)/D_obs[ang-1]);
