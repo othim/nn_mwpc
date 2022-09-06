@@ -11,8 +11,8 @@ BLAS_LIB = MKL
 #BLAS_LIB = GSL
 
 # Compiler
-CC = g++
-#CC = icpc
+#CC = g++
+CC = icpc
 
 # Optimization
 OPT = -O3
@@ -49,6 +49,7 @@ ifeq ($(BLAS_LIB), MKL)
 
 LDFLAGS  += -L/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64 \
 			-Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+#LDFLAGS += -mkl
 endif
 ifeq ($(BLAS_LIB), GSL)
 LDFLAGS += -lgslcblas
