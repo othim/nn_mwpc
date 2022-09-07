@@ -33,11 +33,11 @@ def observables(obs):
     obj.print_LECs_in_use()
 
     # Just some test values
-    C1S0 = -0.112927/100.0
-    C3S1 = -0.076340/100.0
-    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
-    C3P0 = 1.3e-8;
-    C3P2 = 0.1e-8;
+    C1S0 = -0.09/100.0
+    C3S1 = -0.055/100.0
+    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    C3P0 = -1e-8;
+    C3P2 = -0.2e-8;
         
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     # Test to compute many observables at once
@@ -63,7 +63,7 @@ def observables(obs):
     # ------------------------------------------
     print("One observable at the time \n")
     ang = 10.0 # deg
-    E   = 30 # MeV
+    E   = 7.43 # MeV
 
     # Time the funtion call
     start = time.time()
@@ -74,7 +74,7 @@ def observables(obs):
     print("Solved LS")    
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
-    obs = obj.compute_observable("A 00kk",ang)
+    obs = obj.compute_observable("SGTL",ang)
 
     end = time.time()
 
@@ -97,7 +97,8 @@ def phase_shifts(obj):
 
     # Just some test values
     C1S0 = -0.112927/100.0
-    C3S1 = -0.087340/100.0
+    #C3S1 = -0.087340/100.0
+    C3S1 = -0.13/100.0
     gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 1.3e-8;
     C3P2 = 0.1e-8;
@@ -112,7 +113,8 @@ def phase_shifts(obj):
         start = time.time()
         phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
         end = time.time()
-        print(f'Phase shifts in Stapp convention in radians: {phases}')
+        phases = np.array(phases)
+        print(f'Phase shifts in Stapp convention in deg: {phases*180.0/np.pi}')
         print(f'Total time: {1e3*(end-start):0.3f} ms')
 
 def diagonalization(obj):
@@ -120,8 +122,9 @@ def diagonalization(obj):
 
 
     C1S0 = -0.117/100.0
-    C3S1 = -0.108/100.0
-    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    #C3S1 = -0.108/100.0
+    C3S1 = -0.055/100.0
+    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 1.3e-8;
     C3P2 = 0.1e-8;
 
@@ -139,7 +142,7 @@ def diagonalization(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,450.0,6,True,True,True,60,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,700.0,4,True,True,True,60,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)
