@@ -84,9 +84,9 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     // This is the counterterm that comes fromt that the integral is not computed
     // to infinity for a finite grid. This part compenstates for this by
     // adding the last part of the integral analytically.
-    double counterterm = std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
     if (finite_grid_)
     {
+        double counterterm = std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
         sum += counterterm;
     }
 
@@ -615,9 +615,9 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
     // This is the counterterm that comes fromt that the integral is not computed
     // to infinity for a finite grid. This part compenstates for this by
     // adding the last part of the integral analytically.
-    double counterterm = std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
     if (finite_grid_)
     {
+        double counterterm = std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
         sum += counterterm;
     }
 

@@ -79,7 +79,7 @@ def load_phase_shifts():
     return Data, loc_phase_shifts
 
 
-def run_tests_phase(obj):
+def run_tests_phase(obj,tol):
     
     # Load phase shifts
     data, loc_phase_shifts = load_phase_shifts()
@@ -116,7 +116,7 @@ def run_tests_phase(obj):
                     #print(f'{Tl}: {k}  {err}')
                     max_err[k] = np.maximum(max_err[k],err)
         suc = "FAILED"
-        if (np.all(max_err)<1e-5):
+        if (np.all(max_err<tol)):
             suc = "SUCCESS"
         print(f'Channel: {LS_term:<5} | max rel. error (dp, dm,e,d_uncoup): {max_err} | {suc}')
 
@@ -127,7 +127,7 @@ def load_PB():
     Data = np.loadtxt(data_file,skiprows=1)
     return Data[:,0], Data[:,3]
 
-def run_tests_PB(obj):
+def run_tests_PB(obj,tol):
     D_ang, D_PB = load_PB()
     T_lab = 30.0 # MeV
     # Solve LS equation
@@ -147,7 +147,7 @@ def run_tests_PB(obj):
         err = np.abs(obs-D_PB[i])/np.abs(obs)
         max_err = np.maximum(max_err,err)
     suc = "FAILED"
-    if (max_err<1e-5):
+    if (max_err<tol):
         suc = "SUCCESS"
     
     print(f'PB max.rel error: {max_err} | {suc}')
@@ -168,7 +168,8 @@ obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,12
 
 # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
 # number_of_p_points, finite_grid
-obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,10,True)
+obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True)
+obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True)
 
 print(f'******************************************************')
 print(f'******************************************************')
@@ -176,9 +177,9 @@ print(f'********* RUNNING TEST WITH TEST SETTINGS ************')
 print(f'******************************************************')
 print(f'******************************************************')
 print(f'**************** Phase shift test ********************')
-run_tests_phase(obj1)
+run_tests_phase(obj1,1e-5)
 print(f'********************* PB test ************************')
-run_tests_PB(obj_LO_WPC)
+run_tests_PB(obj_LO_WPC,1e-5)
 print(f'******************************************************')
 print(f'******************************************************')
 print(f'******************************************************')
@@ -187,10 +188,20 @@ print(f'****************************************************** \n \n')
 
 print(f'******************************************************')
 print(f'******************************************************')
-print(f'********* RUNNING TEST WITH RUN SETTINGS *************')
+print(f'********** RUNNING TEST WITH FINITE GRID *************')
 print(f'******************************************************')
 print(f'******************************************************')
-run_tests_phase(obj2)
+run_tests_phase(obj2,1e-4)
+print(f'******************************************************')
+print(f'******************************************************')
+print(f'******************************************************')
+print(f'****************************************************** \n \n')
+print(f'******************************************************')
+print(f'******************************************************')
+print(f'********** RUNNING TEST WITH RUN SETTINGS ************')
+print(f'******************************************************')
+print(f'******************************************************')
+run_tests_phase(obj_run,1e-3)
 print(f'******************************************************')
 print(f'******************************************************')
 print(f'******************************************************')
