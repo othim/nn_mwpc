@@ -378,15 +378,22 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
 {
     std::cout << "Testing observables with the nijmegen1 potential" << std::endl;
     std::cout << "-------------------------------------------------" << std::endl << std::endl;
-    std::cout << "This test is now with an ifinite mesh" << std::endl;
+    std::cout << "This test is now with an inf mesh" << std::endl;
     //std::clock_t start, end;   
     double Lambda = 5000.0;
     // Make grid
     double* p_grid;
     double* w_grid;
     bool FINITE_GRID = false;
-    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-    //ph::gauss_legendre_finite_mesh(number_of_p_points,0,8000,&p_grid,&w_grid);
+    
+    if (FINITE_GRID)
+    {
+        ph::gauss_legendre_finite_mesh(number_of_p_points,0,8000,&p_grid,&w_grid);
+    } else
+    {
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    }
+    
 
     double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
