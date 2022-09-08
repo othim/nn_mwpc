@@ -74,7 +74,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
-    bool print = true;
+    bool print = false;
     // ---------------------------------
     // ---------------------------------
 
