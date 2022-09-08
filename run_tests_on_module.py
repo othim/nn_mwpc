@@ -102,7 +102,7 @@ def run_tests_phase(obj):
             # If it is an uncoupled channel
             if (len(LS_term)==3):
                 err = np.abs(phases[3]-data[j,loc_phase_shifts[LS_term]])/np.abs(phases[3])
-                #print(err)
+                #print(f' {Tl}: {err} {err*np.abs(phases[3])}')
                 max_err[3] = np.maximum(max_err[3],err)
             else:
                 chns_string = ""
@@ -113,8 +113,7 @@ def run_tests_phase(obj):
 
                 for k,s in enumerate(chns_string):
                     err = np.abs(phases[k]-data[j,loc_phase_shifts[s]])/np.abs(phases[k])
-                    #print(f'{k}  {err}')
-                    #print(f'{phases[k]}  {data[j,loc_phase_shifts[s]]}')
+                    #print(f'{Tl}: {k}  {err}')
                     max_err[k] = np.maximum(max_err[k],err)
         suc = "FAILED"
         if (np.all(max_err)<1e-5):
@@ -169,7 +168,7 @@ obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,12
 
 # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
 # number_of_p_points, finite_grid
-obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True)
+obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,10,True)
 
 print(f'******************************************************')
 print(f'******************************************************')

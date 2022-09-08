@@ -3,22 +3,27 @@
 //#define ENABLE_DEBUG
 
 // Constructor
-LS_Solver::LS_Solver(std::vector<qs::quantum_channel> channels, unsigned int mom_grid_size,
-    double* p_grid, double* w_grid)
+LS_Solver::LS_Solver(unsigned int mom_grid_size,
+    double* p_grid, double* w_grid, bool finite_grid)
 {
     #ifdef ENABLE_DEBUG
         std::cout << "LS_Solver()" << std::endl;
     #endif
     // Init variables
     mom_grid_size_ = mom_grid_size;
-    p_grid_ = p_grid;
-    w_grid_ = w_grid;
-    //cutoff_enabled_ = cutoff_enabled;
-    //cutoff_Lambda_ = cutoff_Lambda; // TODO: remove
-    //relcorr_enabled_ = relcorr_enabled; // TODO: remove
+    p_grid_        = p_grid;
+    w_grid_        = w_grid;
     
-    // Make GL-grid
-    //ph::gauss_legendre_inf_mesh(mom_grid_size_,mom_grid_scale,&p_grid_,&w_grid_);
+    // These are important, since if the grid is finite the counterterm for the
+    // integral needs to be added. It is important that the potential is
+    // set to zero when the momenta are larger than finite_grid_max
+    finite_grid_     = finite_grid;
+    finite_grid_max_ = 0.0; // Default value
+    if (finite_grid)
+    {
+        // The max-value of the grid is the last element
+        finite_grid_max_ = p_grid[mom_grid_size_-1];
+    }
 }
 
 // Destructor
@@ -55,7 +60,6 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     }
    
     
-    
     for (int i = 0; i < (int)mom_grid_size_; i++)
     {
         double p2 = p_grid_[i]*p_grid_[i];
@@ -76,6 +80,14 @@ gsl_vector* LS_Solver::setup_D_vector(double q_on_shell, bool coupled, double mu
     for (int i=0; i < (int)mom_grid_size_; i++)
     {
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
+    }
+    // This is the counterterm that comes fromt that the integral is not computed
+    // to infinity for a finite grid. This part compenstates for this by
+    // adding the last part of the integral analytically.
+    double counterterm = std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
+    if (finite_grid_)
+    {
+        sum += counterterm;
     }
 
     double el = -(fac)*2.0*mu*q2_on_shell*sum; // NO CUTOFF
@@ -600,9 +612,18 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
     {
         sum += w_grid_[i]/(p_grid_[i]*p_grid_[i]-q2_on_shell);
     }
-    double re_el = -(fac)*2.0*mu*q2_on_shell*sum; // NO CUTOFF
-    //double im_el = -2*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
-    double im_el = M_PI*mu*q_on_shell; // PROBALY A FACTOR pi/2 missing
+    // This is the counterterm that comes fromt that the integral is not computed
+    // to infinity for a finite grid. This part compenstates for this by
+    // adding the last part of the integral analytically.
+    double counterterm = std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
+    if (finite_grid_)
+    {
+        sum += counterterm;
+    }
+
+    double re_el = -(fac)*2.0*mu*q2_on_shell*sum;
+
+    double im_el = M_PI*mu*q_on_shell;
 
     gsl_complex comp_el = gsl_complex_rect(re_el,im_el);
 

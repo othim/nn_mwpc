@@ -39,29 +39,24 @@
 class LS_Solver
 {
 private:
-   Potential_mwpc* pot_V_;
+    Potential_mwpc* pot_V_;
 
-   // TODO REMOVE NOT USED
-   std::vector<qs::quantum_channel> channels_;
+    double* p_grid_;
+    double* w_grid_;
+    std::size_t mom_grid_size_;
 
-   double* p_grid_;
-   double* w_grid_;
-   std::size_t mom_grid_size_;
+    bool finite_grid_;
+    double finite_grid_max_;
 
-   double cutoff_Lambda_;
-   bool cutoff_enabled_;
+    gsl_vector*  setup_D_vector(double q_on_shell, bool coupled, double mu);
+    gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, 
+        gsl_matrix* V_mtx);
 
-   bool relcorr_enabled_;
-
-   gsl_vector*  setup_D_vector(double q_on_shell, bool coupled, double mu);
-   gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, 
-           gsl_matrix* V_mtx);
-  
 
 public:
 
-    LS_Solver(std::vector<qs::quantum_channel> channels, 
-            unsigned int mom_grid_size, double* p_grid, double* w_grid);
+    LS_Solver(unsigned int mom_grid_size, double* p_grid, double* w_grid, 
+            bool finite_grid);
 
     ~LS_Solver();
     void gauss_legendre_inf_mesh(unsigned int Numper_of_points, 

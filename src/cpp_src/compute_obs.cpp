@@ -189,9 +189,16 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     double* p_grid;
     double* w_grid;
     double Lambda = 5000.0;
-    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-    //ph::gauss_legendre_finite_mesh(number_of_p_points,0,10000,&p_grid,&w_grid);
-
+    bool FINITE_GRID = false;
+    double finite_grid_max = 10000.0;
+    if (FINITE_GRID)
+    {
+        ph::gauss_legendre_finite_mesh(number_of_p_points,0,
+                finite_grid_max,&p_grid,&w_grid);
+    } else
+    {
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    }
 
     std::vector<std::string> terms;
     terms.push_back("OPEP"); // To just test elements use just OPEP
@@ -213,7 +220,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
 
     Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid, FINITE_GRID);
 
     double mu;
     double q_on_shell;
@@ -377,6 +384,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     // Make grid
     double* p_grid;
     double* w_grid;
+    bool FINITE_GRID = false;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
     //ph::gauss_legendre_finite_mesh(number_of_p_points,0,8000,&p_grid,&w_grid);
 
@@ -445,8 +453,9 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = obs_string;
     }
 
-    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, 
+            &nijm_correct_arg);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
     double q_on_shell;
     double mu;
@@ -667,6 +676,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     // Make grid
     double* p_grid;
     double* w_grid;
+    bool FINITE_GRID = false;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
     double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
@@ -696,7 +706,7 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
 
     int l_max = 50;
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
     double q_on_shell;
     double mu;
@@ -928,6 +938,7 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         // Make grid
         double* p_grid;
         double* w_grid;
+        bool FINITE_GRID = false;
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
         // Choose terms in LO WPC potential
@@ -954,7 +965,7 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         Pot.LECs_["C3P0"] = C3P0;
         Pot.LECs_["C3P2"] = C3P2;
 
-        LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+        LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid, FINITE_GRID);
        
         double q_on_shell;
         double mu;
@@ -1151,6 +1162,7 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         // Make grid
         double* p_grid;
         double* w_grid;
+        bool FINITE_GRID = false;
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
         // Choose terms in LO WPC potential
@@ -1177,7 +1189,8 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         Pot.LECs_["C3P0"] = C3P0;
         Pot.LECs_["C3P2"] = C3P2;
 
-        LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+        LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,
+                FINITE_GRID);
        
         
         
@@ -1352,6 +1365,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     double* p_grid;
     double* w_grid;
     double Lambda = 450.0;
+    bool FINITE_GRID = false;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
 
     double C1S0	= -0.1/100.0; 
@@ -1383,7 +1397,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     Pot.LECs_["C3P0"] = C3P0;
     Pot.LECs_["C3P2"] = C3P2;
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
     
     qs::quantum_channel chn = chns[3]; // 3S1-3D1
     // WPC potential
@@ -1448,6 +1462,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     double* p_grid;
     double* w_grid;
     double Lambda = 500.0;
+    bool FINITE_GRID = false;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
     
     int cut_pow = 6;
@@ -1481,7 +1496,7 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     Pot.LECs_["C3P2"] = C3P2;
 
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
     double q_on_shell;
     double mu;
@@ -1531,6 +1546,7 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     double* p_grid;
     double* w_grid;
     double Lambda = 500.0;
+    bool FINITE_GRID = false;
     ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
     
     int cut_pow = 6;
@@ -1564,7 +1580,7 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     Pot.LECs_["C3P2"] = C3P2;
 
 
-    LS_Solver solver = LS_Solver(chns,number_of_p_points,p_grid,w_grid);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
     double q_on_shell;
     double mu;

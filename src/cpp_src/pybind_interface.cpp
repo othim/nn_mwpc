@@ -57,7 +57,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
     // ------ CONSTANTS TO CHANGE ------
     // ---------------------------------
-    scale_ = 100.0; // Scale of momenutm grid MeV (100)
+    scale_ = 4.0; // Scale of momenutm grid MeV (100)
     number_of_p_points_ = number_of_p_points; // Number of momentum-grid points (60)
     ang_int_points_ = 76; // Number of points in angular integration
     J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
@@ -66,7 +66,9 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     sharp_cutoff_ = sharp_cutoff;
     pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
     rel_corr_ = rel_corr;
-
+    finite_grid_ = finite_grid;
+    finite_grid_max_ = 0.0;
+    
     // For the quantum states
     int J_max = J_max_chn;
     int J_min = 0;
@@ -86,8 +88,9 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     } else 
     {
         // Make GL-grid that is finite. Since we use a sharp cutoff this grid is fine
-        double sharp_cut = cutoff_+300.0;
-        ph::gauss_legendre_finite_mesh(number_of_p_points_,0,sharp_cut,&p_grid_,&w_grid_);
+        double sharp_cut_add = 300.0;
+        finite_grid_max_ = cutoff_+sharp_cut_add;
+        ph::gauss_legendre_finite_mesh(number_of_p_points_,0,finite_grid_max_,&p_grid_,&w_grid_);
     }
 
     // These are the pre-determined models
@@ -121,7 +124,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_,p_grid_,w_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
 
     } else if("MWPC_LO_1"==model_name)
     { 
@@ -155,7 +158,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, p_grid_,w_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
 
     } else if("MWPC_LO_J"==model_name)
     { 
@@ -209,7 +212,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_,p_grid_,w_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
 
     } else if("nijmegen1"==model_name)
     {
@@ -223,7 +226,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, &nijm_correct_arg);
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_, p_grid_,w_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
 
     } else if ("cdbonn"==model_name)
     {
@@ -238,8 +241,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         
         // Can't precompute this potential (which is kind of stupid...)
         // Construct the LS_Solver
-        LS_Solver_ = new LS_Solver(chns_,number_of_p_points_,p_grid_,w_grid_);
-    }else
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+    } else
     {
         std::cout << "Error, not a valid potential model name" << std::endl;
     }

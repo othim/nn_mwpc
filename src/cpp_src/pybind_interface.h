@@ -63,6 +63,9 @@ private:
     bool pre_comp_pot_;
     double* p_grid_;
     double* w_grid_;
+
+    bool finite_grid_;
+    double finite_grid_max_;
     // Objects 
     Potential_mwpc* Pot_;
     Potential_ext* Pot_ext_;
