@@ -89,6 +89,7 @@ def run_tests_phase(obj,tol):
     num_channels = obj.get_chn_len()
     
     phase_shifts_list = []
+    max_err_all = 0
     for chn_i in range(num_channels):
         phase_shifts_chn = []
         LS_term = obj.get_chn_LS_term(chn_i)
@@ -102,6 +103,7 @@ def run_tests_phase(obj,tol):
             # If it is an uncoupled channel
             if (len(LS_term)==3):
                 err = np.abs(phases[3]-data[j,loc_phase_shifts[LS_term]])/np.abs(phases[3])
+                #err = np.abs(phases[3]-data[j,loc_phase_shifts[LS_term]])
                 #print(f' {Tl}: {err} {err*np.abs(phases[3])}')
                 max_err[3] = np.maximum(max_err[3],err)
             else:
@@ -113,13 +115,15 @@ def run_tests_phase(obj,tol):
 
                 for k,s in enumerate(chns_string):
                     err = np.abs(phases[k]-data[j,loc_phase_shifts[s]])/np.abs(phases[k])
+                    #err = np.abs(phases[k]-data[j,loc_phase_shifts[s]])
                     #print(f'{Tl}: {k}  {err}')
                     max_err[k] = np.maximum(max_err[k],err)
+        max_err_all = np.maximum(np.max(max_err),max_err_all)
         suc = "FAILED"
         if (np.all(max_err<tol)):
             suc = "SUCCESS"
         print(f'Channel: {LS_term:<5} | max rel. error (dp, dm,e,d_uncoup): {max_err} | {suc}')
-
+    return max_err_all
 
 def load_PB():
     data_file = 'data/PB_30_MeV_Andreas_corr.txt'
@@ -154,55 +158,56 @@ def run_tests_PB(obj,tol):
 
 # ------------------------------
 # --------- MAIN CODE ----------
-print("Constructing object and saving potential")
+if (__name__ == '__main__'):
+    print("Constructing object and saving potential")
 
-# Same settings as in the test
+    # Same settings as in the test
 
-# Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
-# number_of_p_points, finite_grid
-obj1 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,False,True,True,120,False)
-obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,120,False)
-
-
-# Same settings as I use in the computations
-
-# Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
-# number_of_p_points, finite_grid
-obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True)
-obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True)
-
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'********* RUNNING TEST WITH TEST SETTINGS ************')
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'**************** Phase shift test ********************')
-run_tests_phase(obj1,1e-5)
-print(f'********************* PB test ************************')
-run_tests_PB(obj_LO_WPC,1e-5)
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'****************************************************** \n \n')
+    # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
+    # number_of_p_points, finite_grid
+    obj1 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,False,True,True,120,False)
+    obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,120,False)
 
 
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'********** RUNNING TEST WITH FINITE GRID *************')
-print(f'******************************************************')
-print(f'******************************************************')
-run_tests_phase(obj2,1e-4)
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'****************************************************** \n \n')
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'********** RUNNING TEST WITH RUN SETTINGS ************')
-print(f'******************************************************')
-print(f'******************************************************')
-run_tests_phase(obj_run,1e-3)
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'******************************************************')
-print(f'******************************************************')
+    # Same settings as I use in the computations
+
+    # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
+    # number_of_p_points, finite_grid
+    obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True)
+    obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True)
+
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'********* RUNNING TEST WITH TEST SETTINGS ************')
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'**************** Phase shift test ********************')
+    run_tests_phase(obj1,1e-5)
+    print(f'********************* PB test ************************')
+    run_tests_PB(obj_LO_WPC,1e-5)
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'****************************************************** \n \n')
+
+
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'********** RUNNING TEST WITH FINITE GRID *************')
+    print(f'******************************************************')
+    print(f'******************************************************')
+    run_tests_phase(obj2,1e-4)
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'****************************************************** \n \n')
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'********** RUNNING TEST WITH RUN SETTINGS ************')
+    print(f'******************************************************')
+    print(f'******************************************************')
+    run_tests_phase(obj_run,1e-3)
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'******************************************************')
+    print(f'******************************************************')
