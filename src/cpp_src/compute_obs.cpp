@@ -1553,9 +1553,15 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     double* p_grid;
     double* w_grid;
     double Lambda = 500.0;
-    bool FINITE_GRID = false;
-    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-    
+    bool FINITE_GRID = true;
+    if (FINITE_GRID)
+    {
+        ph::gauss_legendre_finite_mesh(number_of_p_points,0,
+                Lambda + 300.0,&p_grid,&w_grid);
+    } else 
+    {
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    }
     int cut_pow = 6;
     double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
