@@ -174,6 +174,8 @@ if (__name__ == '__main__'):
     # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
     # number_of_p_points, finite_grid
     obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True)
+    obj2_finite = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,True,True,True,120,True)
+    
     obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True)
 
     print(f'******************************************************')
@@ -197,10 +199,13 @@ if (__name__ == '__main__'):
     print(f'******************************************************')
     print(f'******************************************************')
     run_tests_phase(obj2,1e-4)
+    print(f'********************* PB test ************************')
+    run_tests_PB(obj2_finite,1e-4)
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'****************************************************** \n \n')
+
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'********** RUNNING TEST WITH RUN SETTINGS ************')

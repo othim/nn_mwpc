@@ -85,7 +85,7 @@ public:
      */
     nn_mwpc_interface(const std::string& model_name, int J_max_chn, 
             double cutoff, int cut_pow, bool sharp_cutoff, bool pre_comp_pot, 
-            bool rel_corr, double number_of_p_points, bool finite_grid);
+            bool rel_corr, int number_of_p_points, bool finite_grid);
     ~nn_mwpc_interface();
     
     /*
