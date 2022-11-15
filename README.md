@@ -90,6 +90,8 @@ files are in that directory.
 in the make file in src/cpp_src depending on what target you want to have. 
 e.g. 'make obs'.
 
+
+!! UPDATE THIS !!
 If you link to MKL instead of GSL you need some additional tricks. This is 
 worth it because you can expect a speedup in the solution of LS-equation by a
 factor 2-3 depending on the system. If you compile with the MKL flag in the 
@@ -128,6 +130,7 @@ combination of what follows depending on the system you use.
     variables and run:
     'export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib'
 
+!!
 Note that the linking arguments might need a change since they are specific to
 where your libraris are installed on your system. There is also different arguments
 if you compile on Mac or Linux (check the makefile). If you compile the code on
