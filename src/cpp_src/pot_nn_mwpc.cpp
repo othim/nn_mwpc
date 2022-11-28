@@ -7,8 +7,7 @@ struct my_f_params { double qi; double qo; int J; int l; Term* term; Potential_m
 // Constructor
 Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot = false, 
-   bool cut_on_shell = false);
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell)
 {
    // Init constants
    N_GLI_PWA_ = N_GLI_PWA;
@@ -461,7 +460,7 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
 
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
-         double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i);
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i,mu,rel_correction);
 
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
@@ -695,7 +694,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
 
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
-         double tot_fac = get_total_rel_cut_weight_factor(p_in,i,p_out,mom_grid_size_);
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,i,p_out,mom_grid_size_,mu,rel_correction);
          
          if (J == 0 && S == 1) // 3P_0 case
          {
@@ -762,7 +761,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
 
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
-         double tot_fac = get_total_rel_cut_weight_factor(p_in,i,p_out,mom_grid_size_);
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,i,p_out,mom_grid_size_,mu,rel_correction);
          
          
          // In this part of the code the symmetry of the potential in momentum is taken
@@ -854,7 +853,7 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
          
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
-         double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i);
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i,mu,rel_correction);
          
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
      
@@ -895,7 +894,8 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
 }
 
 
-double pot_nn_mwpc::get_total_rel_cut_weight_factor(double p_in, int j, double p_out, int i)
+double Potential_mwpc::get_total_rel_cut_weight_factor(double p_in, int j, 
+        double p_out, int i, double mu, bool rel_correction)
 {
      // Compute relativistic factors
      double rel_fac = 1.0;
@@ -917,13 +917,13 @@ double pot_nn_mwpc::get_total_rel_cut_weight_factor(double p_in, int j, double p
      } else 
      {
          // If ingoing momenta is of shell
-         if (j<mom_gird_size_)
+         if (j<mom_grid_size_)
          {
             cutoff_regulator *= exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_));
          }
         
          // If outgoing momenta is of shell
-         if (i<mom_gird_size_)
+         if (i<mom_grid_size_)
          {
             cutoff_regulator *= exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
          }
@@ -938,21 +938,21 @@ double pot_nn_mwpc::get_total_rel_cut_weight_factor(double p_in, int j, double p
      // Compute the fectors that come from including the weights and momenta
      double weights_momenta = 1.0;
      // Include only in the off shell and half of shell part
-     if (inc_gird_weights_in_pot_ && j < mom_grid_size_ && i < mom_grid_size)
+     if (inc_grid_weights_in_pot_)
      {
          // If ingoing momenta is of shell
-         if (j<mom_gird_size_)
+         if (j<mom_grid_size_)
          {
             weights_momenta *= std::sqrt(w_grid_[j])*p_grid_[j];
          }
         
          // If outgoing momenta is of shell
-         if (i<mom_gird_size_)
+         if (i<mom_grid_size_)
          {
             weights_momenta *= std::sqrt(w_grid_[i])*p_grid_[i];
          }
      }
 
      // Multiply everything together
-     return  tot_fac = rel_fac * cutoff_regulator * weights_momenta;
+     return rel_fac*cutoff_regulator*weights_momenta;
 }

@@ -109,8 +109,8 @@ private:
    
    double pot_OPEP_mom(double qo,double qi, double z);
     
-   double pot_nn_mwpc::get_total_rel_cut_weight_factor(double p_in, int j, 
-           double p_out, int i);
+   double get_total_rel_cut_weight_factor(double p_in, int j, 
+           double p_out, int i, double mu, bool rel_correction);
 public:
    
    /*
