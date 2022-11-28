@@ -119,6 +119,7 @@ void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* 
     }
 }
 
+
 void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
         gsl_matrix_complex* M,gsl_matrix_complex* res)
 {

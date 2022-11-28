@@ -896,7 +896,6 @@ std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab, qs::quantum_
     gsl_matrix_complex_free(inverse);
     gsl_permutation_free(perm);
     
-
     return T;
 }
 

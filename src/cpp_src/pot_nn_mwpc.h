@@ -59,7 +59,12 @@ private:
    // calculate matrix elements in, since Lagandre polynomials are just
    // precomputed and stored to this order.
    unsigned int J_max_;
+    
+   // If the weights and momentum vectors should be included in the potential
+   bool inc_grid_weights_in_pot_;
 
+   // If the cutoff also should affect the on-shell part.
+   bool cut_on_shell_;
    // Pointer to the array of the stored polynomials
    double** stored_Legendre_polynomials_;
 
@@ -69,6 +74,7 @@ private:
    double* z_mesh; // GL integration points
    double* w_z_mesh; // GL integration weights
    unsigned int len_z_mesh; // GL integration number of points
+
 private:
    /*
       ---------------------------
@@ -102,6 +108,9 @@ private:
    
    
    double pot_OPEP_mom(double qo,double qi, double z);
+    
+   double pot_nn_mwpc::get_total_rel_cut_weight_factor(double p_in, int j, 
+           double p_out, int i);
 public:
    
    /*
@@ -120,7 +129,8 @@ public:
    Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
-           double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false);
+           double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
+           bool inc_grid_weights_in_pot = false, bool cut_on_shell = false);
 
    /* 
       Destructor

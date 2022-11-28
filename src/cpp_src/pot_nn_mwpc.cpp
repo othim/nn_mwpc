@@ -7,7 +7,8 @@ struct my_f_params { double qi; double qo; int J; int l; Term* term; Potential_m
 // Constructor
 Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff)
+   bool sharp_cutoff, bool inc_grid_weights_in_pot = false, 
+   bool cut_on_shell = false);
 {
    // Init constants
    N_GLI_PWA_ = N_GLI_PWA;
@@ -18,6 +19,10 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    cutoff_Lambda_ = cutoff_Lambda;
    cut_pow_ = cut_pow;   
    sharp_cutoff_ = sharp_cutoff;
+   
+   inc_grid_weights_in_pot_ = inc_grid_weights_in_pot;
+   cut_on_shell_ = cut_on_shell;
+
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
    {
@@ -454,23 +459,10 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
             p_out = q_on_shell;
          }
 
-         // Compute relativistic factors
-         double rel_fac = 1.0;
-         if (rel_correction)
-         {
-            double E_rel_in = sqrt(4*mu*mu+p_in*p_in);
-            double E_rel_out = sqrt(4*mu*mu+p_out*p_out);
-            double rel_factor_in = sqrt(2*mu/E_rel_in);
-            double rel_factor_out = sqrt(2*mu/E_rel_out);
-            rel_fac = rel_factor_in*rel_factor_out;
-         }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
-         rel_fac *= cutoff_regulator;
-         if (sharp_cutoff_) {
-            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
-               rel_fac = 0.0;
-            }
-         }
+         // Get the factor from the relativistic corrections
+         // the cutoff and the grid
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i);
+
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
          /*std::cout << "Rel fac: " << rel_fac << std::endl;
@@ -483,32 +475,32 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-               gsl_matrix_set(matrix_data,j,i,V_arr[0]*rel_fac);
+               gsl_matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
                //std::cout << "Pot el S0: " << V_arr[0]*rel_fac << std::endl;
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
+                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
                } else // For J=0,S=1,L=1 case
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*rel_fac); // Take pp element to get L=1
+                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
                }
                
             }
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            gsl_matrix_set(matrix_data,j,i,V_arr[3]*rel_fac); //mm
+            gsl_matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*rel_fac); //mp
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*rel_fac); //pm
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*rel_fac); //pp
+            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*tot_fac); //mp
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*tot_fac); //pm
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*tot_fac); //pp
          }
       }
    }
@@ -700,38 +692,26 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          double p_out = q_on_shell; // row is fixed
          calc_element_V_arr(p_in,p_out, coupled, J,&tmp_arr[0]);
 
-         // Compute relativistic factors
-         double rel_fac = 1.0;
-         if (rel_correction)
-         {
-            double E_rel_in = sqrt(4*mu*mu+p_in*p_in);
-            double E_rel_out = sqrt(4*mu*mu+p_out*p_out);
-            double rel_factor_in = sqrt(2*mu/E_rel_in);
-            double rel_factor_out = sqrt(2*mu/E_rel_out);
-            rel_fac = rel_factor_in*rel_factor_out;
-         }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
-         rel_fac *= cutoff_regulator;
-         if (sharp_cutoff_) {
-            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
-               rel_fac = 0.0;
-            }
-         }
+
+         // Get the factor from the relativistic corrections
+         // the cutoff and the grid
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,i,p_out,mom_grid_size_);
+         
          if (J == 0 && S == 1) // 3P_0 case
          {
-            gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[2]*rel_fac);
-            gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[2]*rel_fac);
+            gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[2]*tot_fac);
+            gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[2]*tot_fac);
          }
          else if (S==0)
          {
             // Take element zero and insert it into the matrix
-            gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[0]*rel_fac);
-            gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[0]*rel_fac);
+            gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[0]*tot_fac);
+            gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[0]*tot_fac);
             
          } else 
          {
-            gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[1]*rel_fac);
-            gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[1]*rel_fac);
+            gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[1]*tot_fac);
+            gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[1]*tot_fac);
          }
       }
 
@@ -780,46 +760,34 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          double p_out = q_on_shell; // row is fixed
          calc_element_V_arr(p_in,p_out, coupled, J,&tmp_arr[0]);
 
-         // Compute relativistic factors
-         double rel_fac = 1.0;
-         if (rel_correction)
-         {
-            double E_rel_in = sqrt(4*mu*mu+p_in*p_in);
-            double E_rel_out = sqrt(4*mu*mu+p_out*p_out);
-            double rel_factor_in = sqrt(2*mu/E_rel_in);
-            double rel_factor_out = sqrt(2*mu/E_rel_out);
-            rel_fac = rel_factor_in*rel_factor_out;
-         }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
-         rel_fac *= cutoff_regulator;
-         if (sharp_cutoff_) {
-            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
-               rel_fac = 0.0;
-            }
-         }
+         // Get the factor from the relativistic corrections
+         // the cutoff and the grid
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,i,p_out,mom_grid_size_);
+         
+         
          // In this part of the code the symmetry of the potential in momentum is taken
          // advantage of. Note that this does NOT mean that every block is symmetric,
          // but rather the WHOLE matrix.
 
          // Take mm element and insert it into the matrix
          // mm
-         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]*rel_fac); // Column
-         gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]*rel_fac); // Row
+         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]*tot_fac); // Column
+         gsl_matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]*tot_fac); // Row
 
          // Take mp element one and insert it into the matrix
          // mp 
-         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[4]*rel_fac); // Column
-         gsl_matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[5]*rel_fac); // Row 
+         gsl_matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[4]*tot_fac); // Column
+         gsl_matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[5]*tot_fac); // Row 
 
          // Take pm element one and insert it into the matrix
          // pm
-         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[5]*rel_fac); // Column
-         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[4]*rel_fac); // Row 
+         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[5]*tot_fac); // Column
+         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[4]*tot_fac); // Row 
 
          // Take pp element one and insert it into the matrix
          // pp
-         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i+mom_grid_size_+1,tmp_arr[2]*rel_fac); // Column
-         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,2*mom_grid_size_+1,tmp_arr[2]*rel_fac); // Row 
+         gsl_matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i+mom_grid_size_+1,tmp_arr[2]*tot_fac); // Column
+         gsl_matrix_set(matrix_saved_sum,i+mom_grid_size_+1,2*mom_grid_size_+1,tmp_arr[2]*tot_fac); // Row 
       }
    }
 
@@ -883,25 +851,11 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
          // Outgoing momentum is row index
          double p_in  = p_grid_[j];
          double p_out = p_grid_[i];
-
-         // Compute relativistic factors
-         double rel_fac = 1.0;
-         if (rel_correction)
-         {
-            double E_rel_in = sqrt(4*mu*mu+p_in*p_in);
-            double E_rel_out = sqrt(4*mu*mu+p_out*p_out);
-            double rel_factor_in = sqrt(2*mu/E_rel_in);
-            double rel_factor_out = sqrt(2*mu/E_rel_out);
-            rel_fac = rel_factor_in*rel_factor_out;
-         }
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))
-             *exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
-         rel_fac *= cutoff_regulator;
-         if (sharp_cutoff_) {
-            if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
-               rel_fac = 0.0;
-            }
-         }
+         
+         // Get the factor from the relativistic corrections
+         // the cutoff and the grid
+         double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i);
+         
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
      
          if (!chn.coupled)
@@ -909,33 +863,96 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-               gsl_matrix_set(matrix_data,j,i,V_arr[0]*rel_fac);
+               gsl_matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*rel_fac);
+                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
                } else // For J=0,S=1,L=1 case
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*rel_fac); // Take pp element to get L=1
+                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
                }
             }
 
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            gsl_matrix_set(matrix_data,j,i,V_arr[3]*rel_fac); //mm
+            gsl_matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*rel_fac); //mp
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*rel_fac); //pm
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*rel_fac); //pp
+            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*tot_fac); //mp
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*tot_fac); //pm
+            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*tot_fac); //pp
          }
       }
    }
    return matrix_data;
+}
+
+
+double pot_nn_mwpc::get_total_rel_cut_weight_factor(double p_in, int j, double p_out, int i)
+{
+     // Compute relativistic factors
+     double rel_fac = 1.0;
+     if (rel_correction)
+     {
+        double E_rel_in = sqrt(4*mu*mu+p_in*p_in);
+        double E_rel_out = sqrt(4*mu*mu+p_out*p_out);
+        double rel_factor_in = sqrt(2*mu/E_rel_in);
+        double rel_factor_out = sqrt(2*mu/E_rel_out);
+        rel_fac = rel_factor_in*rel_factor_out;
+     }
+
+     // Compute the cutoff factor
+     double cutoff_regulator = 1.0;
+     if (cut_on_shell_==true)
+     {
+        cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*
+            exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
+     } else 
+     {
+         // If ingoing momenta is of shell
+         if (j<mom_gird_size_)
+         {
+            cutoff_regulator *= exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_));
+         }
+        
+         // If outgoing momenta is of shell
+         if (i<mom_gird_size_)
+         {
+            cutoff_regulator *= exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
+         }
+     }
+     
+     if (sharp_cutoff_) {
+        if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
+           cutoff_regulator = 0.0;
+        }
+     }
+
+     // Compute the fectors that come from including the weights and momenta
+     double weights_momenta = 1.0;
+     // Include only in the off shell and half of shell part
+     if (inc_gird_weights_in_pot_ && j < mom_grid_size_ && i < mom_grid_size)
+     {
+         // If ingoing momenta is of shell
+         if (j<mom_gird_size_)
+         {
+            weights_momenta *= std::sqrt(w_grid_[j])*p_grid_[j];
+         }
+        
+         // If outgoing momenta is of shell
+         if (i<mom_gird_size_)
+         {
+            weights_momenta *= std::sqrt(w_grid_[i])*p_grid_[i];
+         }
+     }
+
+     // Multiply everything together
+     return  tot_fac = rel_fac * cutoff_regulator * weights_momenta;
 }
