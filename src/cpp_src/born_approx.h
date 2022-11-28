@@ -8,6 +8,9 @@
     Oliver Thim 2022-09 --
     Department of Physics, Chalmers
 */
+#ifndef BORN_APPROX
+#define BORN_APPROX
+
 #include "quantum_states.h"
 #include "physics_helpers.h"
 #include "gsl_blas.h"
@@ -17,6 +20,9 @@
 #include <complex>
 #include <iostream>
 #include "gsl_matrix.h"
+#include "gsl_blas.h"
+#include "gsl_linalg.h"
+#include "gsl_complex.h"
 
 namespace dwba 
 {
@@ -24,17 +30,25 @@ namespace dwba
 /*
  * This function compute the Born approximation to the scattering amplitude.
  * 
- * order: is the order of the approximation.
+ * start_order: is the start position in the series, this is inculded
+ * stop_order : is the highest order that is included, this is included
+ * e.g. start_order=1,stop_order=2 returns (V*G0*V + V*G0*V*G0*V)
  * V    : is the potential matrix
  * G0   : is the free greens function
  *
- * order=0: returns T = V
- * order=1: returns T = V + V*G0*V
- * order=2: returns T = V + V*G0*V + V*G0*V*G0*V
+ * V and G0 has to be in the form that the momentum gid weights and momenta
+ * are included in the definition of the potential and propagator to make 
+ * the resoultion of identity integrals to be just matrix multiplications
+ * with the <star> matrix operation that I have defined.
+ *
+ * order=0: T = V
+ * order=1: T = V + V*G0*V
+ * order=2: T = V + V*G0*V + V*G0*V*G0*V
  * ...
  */
 
-gsl_matrix* pw_compute_BA(int order, gsl_matrix* V, gsl_matrix* G0);
+gsl_matrix_complex* pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* V, 
+        gsl_matrix_complex* G0);
 
 
 
@@ -48,6 +62,9 @@ gsl_matrix* pw_compute_BA(int order, gsl_matrix* V, gsl_matrix* G0);
  * V_II : is the correction to the leading order potential
  * G0   : is the free Greens function
  *
+ * V_I, V_II and G0 has to be in the same form as accepted into 
+ * 'dwba::pw_compute_BA()'.
+ *
  * Define A = T_I*V^{-1}_I, B = V_II*V^{-1}_I*T_I.
  *
  * order=0: returns T_I
@@ -55,13 +72,28 @@ gsl_matrix* pw_compute_BA(int order, gsl_matrix* V, gsl_matrix* G0);
  * order=2: returns T_I + A*B + A*B*G0*B
  */
 
-gsl_matrix_complex* pw_compute_DWBA(int order, gsl_matrix_complex*
-        T_I, gsl_matrix_complex* V_I, gsl_matrix_complex* V_II, 
+gsl_matrix_complex* pw_T_DWBA(int order, gsl_matrix_complex* T_I, 
+        gsl_matrix_complex* V_I, gsl_matrix_complex* V_II, 
         gsl_matrix_complex* G0);
 
 
+/*
+ * Helperfunctions to compute the Möller wave operators
+ */
+gsl_matrix_complex* pw_moller_plus(gsl_matrix_complex* T_I, 
+        gsl_matrix_complex* V_I);
+gsl_matrix_complex* pw_moller_minus_dagger(gsl_matrix_complex* T_I, 
+        gsl_matrix_complex* V_I);
+
+
+gsl_matrix_complex* pw_T_mwpc_DWBA();
 
 gsl_matrix_complex* full_BA_T_matrix();
 gsl_matrix_complex* full_DWBA_T_matrix();
 
 }
+
+void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* res);
+
+
+#endif

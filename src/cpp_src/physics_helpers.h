@@ -13,6 +13,7 @@
 #include "quantum_states.h"
 #include "Constants.h"
 #include "gsl_eigen.h"
+#include "gsl_blas.h"
 
 namespace ph {
 /*
@@ -98,6 +99,38 @@ void print_v(gsl_vector* vec);
 
 void print_m_complex(gsl_matrix_complex* matrix);
 void print_v_complex(gsl_vector_complex* vec);
+
+/* 
+ *
+ * Matrix operations
+ *
+ *
+ */
+
+/*
+ * This function implements the onshell multiplication, meaning 
+ * that the matrix multiplixation does not include the last 
+ * column/row of the matrix. This is achieved by first multiplying
+ * the matrices as usual and then subtracting the error that is 
+ * induced. The time lost is negligable compared to just doing
+ * an ordinary multiplication.
+ *
+ * res = m1*m2
+ * !!NOTE!!
+ * m1, m2, res needs to be distinct matrices. You cannot have eg.
+ * m1 <- m1*m2
+ *
+ * This function is tested againts on_shell_mult_bf() which is a loop
+ * brute force verion of the original sum that we want to compute.
+ */
+void on_shell_mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* res);
+
+/*
+ * This is the brute force version of the 'ph::on_shell_mult()' function
+ */
+void on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* res);
 }
 #endif
 

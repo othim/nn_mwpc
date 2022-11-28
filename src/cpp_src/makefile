@@ -107,7 +107,8 @@ endif
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 CDBONN_FILES = cdbonn_interface.o cdbonn.o # Compiled separately from Fortran code
 NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
-				quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
+				quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
+				born_approx.o
 
 obs: $(NN_MWPC_FILES)
 	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
@@ -145,7 +146,10 @@ physics_helpers.o: physics_helpers.h
 pot_ext.o: pot_ext.h
 	$(CC) $(CFLAGS) $(FLAGS) -c pot_ext.cpp
 
+born_approx.o: born_approx.h
+	$(CC) $(CFLAGS) $(FLAGS) -c born_approx.cpp
+
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
-	   	pot_ext.o
+	   	pot_ext.o born_approx.o

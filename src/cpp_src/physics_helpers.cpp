@@ -317,3 +317,48 @@ void ph::print_v_complex(gsl_vector_complex* vec)
    }
    std::cout << "---------" << std::endl;
 }
+
+
+void ph::on_shell_mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* res)
+{
+    // Multiply as usual
+    gsl_complex alpha = gsl_complex_rect(1,0);
+    gsl_complex beta = gsl_complex_rect(0,0);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, m1,m2,beta,res);
+
+    // Correct for the inclusion of the on-shell elements in the 
+    // matrix-matrix product
+    
+    // Take the last column of m1
+    gsl_vector_complex_view m1_vv = gsl_matrix_complex_column(m1,m1->size2-1);
+    gsl_vector_complex* v1 = &m1_vv.vector;
+    // Take the last row of m2
+    gsl_vector_complex_view m2_vv = gsl_matrix_complex_row(m2,m2->size1-1);
+    gsl_vector_complex* v2 = &m2_vv.vector;
+    
+    // Perform the outer product
+    gsl_complex minus_one = gsl_complex_rect(-1,0);
+    gsl_blas_zgeru(minus_one, v1,v2, res);
+}
+
+void ph::on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* res)
+{
+    for(int i=0; i<m1->size1; i++)
+    {
+        for(int j=0; j<m2->size2; j++)
+        {
+            gsl_complex el = gsl_complex_rect(0,0);
+            for(int k=0; k< m1->size1-1; k++)
+            {
+                el = gsl_complex_add(el, gsl_complex_mul(gsl_matrix_complex_get(m1,i,k),
+                            gsl_matrix_complex_get(m2,k,j)));
+            }
+            gsl_matrix_complex_set(res,i,j,el);
+        }
+    }
+}
+
+
+
