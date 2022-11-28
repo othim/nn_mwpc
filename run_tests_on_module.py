@@ -67,34 +67,44 @@ def phase_shifts(obj,T_lab,chn_number):
     phases = obj.compute_phase_shift(chn_number,T_lab,LECs)
     return phases
 
-def load_phase_shifts():
+def load_phase_shifts(loc_phase_shifts):
     # Read in the check channels
     data_file = 'data/data_gen_corr_Andreas.txt'
+    #data_file = 'data/test_save.txt'
     print(f'Reading data: {data_file}')
     Data = np.loadtxt(data_file,skiprows=1)
     
-    loc_phase_shifts = {"1S0": 1, "3S1": 2, "E1": 3, "1P1" : 4, "3P1" : 5, \
-            "3P0" : 6,"3P2": 7,"E2" : 8, "3D1" : 9, "3F2" : 10}
-
     return Data, loc_phase_shifts
+
+def save_phase_shifts(filename,data):
+    data_file= 'data/' + filename
+    print(f'Printing to dir {data_file}')
+    np.savetxt(filename, data)
+    
+
 
 
 def run_tests_phase(obj,tol):
     
+    loc_phase_shifts = {"1S0": 1, "3S1": 2, "E1": 3, "1P1" : 4, "3P1" : 5, \
+            "3P0" : 6,"3P2": 7,"E2" : 8, "3D1" : 9, "3F2" : 10}
     # Load phase shifts
-    data, loc_phase_shifts = load_phase_shifts()
-
+    data, loc_phase_shifts = load_phase_shifts(loc_phase_shifts)
+    save_data = np.zeros((350,11))
     # Phase shifts
     T_lab    = np.linspace(1,350,350)
+    save_data[:,0] = T_lab
     num_channels = obj.get_chn_len()
     
     phase_shifts_list = []
     max_err_all = 0
+    mean_err_all = 0
     for chn_i in range(num_channels):
         phase_shifts_chn = []
         LS_term = obj.get_chn_LS_term(chn_i)
         err = 0
         max_err = np.zeros(4)
+        mean_err = np.zeros(4)
         for j,Tl in enumerate(T_lab):
             phases = np.array(phase_shifts(obj,Tl,chn_i))*180/np.pi
             #print(f'{Tl:4.4f}  {phases}') 
@@ -106,6 +116,8 @@ def run_tests_phase(obj,tol):
                 #err = np.abs(phases[3]-data[j,loc_phase_shifts[LS_term]])
                 #print(f' {Tl}: {err} {err*np.abs(phases[3])}')
                 max_err[3] = np.maximum(max_err[3],err)
+                mean_err[3] += err
+                save_data[j,loc_phase_shifts[LS_term]] = phases[3]
             else:
                 chns_string = ""
                 if (LS_term=="3S-D1"):
@@ -114,16 +126,23 @@ def run_tests_phase(obj,tol):
                     chns_string = ["3F2","3P2","E2"]
 
                 for k,s in enumerate(chns_string):
+                    save_data[j,loc_phase_shifts[chns_string[k]]] = phases[k]
                     err = np.abs(phases[k]-data[j,loc_phase_shifts[s]])/np.abs(phases[k])
                     #err = np.abs(phases[k]-data[j,loc_phase_shifts[s]])
                     #print(f'{Tl}: {k}  {err}')
+                    mean_err[k] += err
                     max_err[k] = np.maximum(max_err[k],err)
+        mean_err = mean_err/len(T_lab)
         max_err_all = np.maximum(np.max(max_err),max_err_all)
+        mean_err_all += mean_err/num_channels
         suc = "FAILED"
         if (np.all(max_err<tol)):
             suc = "SUCCESS"
         print(f'Channel: {LS_term:<5} | max rel. error (dp, dm,e,d_uncoup): {max_err} | {suc}')
-    return max_err_all
+        print(f'Channel: {LS_term:<5} |mean rel. error (dp, dm,e,d_uncoup): {mean_err} | {suc} \n')
+    print(f'mean err. all. {np.mean(mean_err_all)}')
+    save_phase_shifts('test_save.txt',save_data)
+    return max_err_all, np.mean(mean_err_all)
 
 def load_PB():
     data_file = 'data/PB_30_MeV_Andreas_corr.txt'
@@ -177,6 +196,7 @@ if (__name__ == '__main__'):
     obj2_finite = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,True,True,True,120,True)
     
     obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True)
+    #obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,False,True,True,120,True)
 
     print(f'******************************************************')
     print(f'******************************************************')

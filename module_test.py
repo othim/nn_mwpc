@@ -33,11 +33,11 @@ def observables(obs):
     obj.print_LECs_in_use()
 
     # Just some test values
-    C1S0 = -0.09/100.0
-    C3S1 = -0.055/100.0
+    C1S0 = -0.11/100.0
+    C3S1 = -0.017/100.0
     gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
-    C3P0 = -1e-8;
-    C3P2 = -0.2e-8;
+    C3P0 = 5.29e-8;
+    C3P2 = -0.122e-8;
         
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     # Test to compute many observables at once
@@ -96,10 +96,10 @@ def phase_shifts(obj):
     obj.print_LECs_in_use()
 
     # Just some test values
-    C1S0 = -0.112927/100.0
+    C1S0 = -0.1186/100.0
     #C3S1 = -0.087340/100.0
     C3S1 = -0.13/100.0
-    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 1.3e-8;
     C3P2 = 0.1e-8;
     
@@ -121,15 +121,15 @@ def diagonalization(obj):
     print('\n \nTesting diagonalization \n')
 
 
-    C1S0 = -0.117/100.0
+    C1S0 = -0.145/100.0
     #C3S1 = -0.108/100.0
-    C3S1 = -0.055/100.0
+    C3S1 = -0.04353/100.0
     gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
-    C3P0 = 1.3e-8;
+    C3P0 = 0.1e-8;
     C3P2 = 0.1e-8;
 
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
-    chn_number = 3
+    chn_number = 0
     start = time.time()
     eigs = obj.compute_binding_energy(chn_number,LECs)
     end = time.time()
@@ -142,7 +142,7 @@ def diagonalization(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,700.0,4,True,True,True,60,True)
+obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,450.0,4,True,True,True,60,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)
