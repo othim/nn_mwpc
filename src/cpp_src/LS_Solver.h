@@ -76,7 +76,10 @@ public:
     Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, 
             gsl_matrix* pot_V_mtx);
    
-    std::complex<double>* solve_in_chn_T_Telem(double T_lab, 
+    gsl_matrix_complex* solve_in_chn_T_fullT(double T_lab, 
+            qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
+    
+        std::complex<double>* solve_in_chn_T_Telem(double T_lab, 
             qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
     std::complex<double>* T_matrix_from_R_matrix(double Rmm, 

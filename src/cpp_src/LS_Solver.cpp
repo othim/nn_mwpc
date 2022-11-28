@@ -805,7 +805,9 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
     return phase_shifts;
 }
 
-std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
+
+gsl_matrix_complex* LS_Solver::solve_in_chn_T_fullT(double T_lab, 
+        qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
 {
     // Compute reduced mass mu, which depends on the isospin-prijection.
     double mu;
@@ -857,6 +859,20 @@ std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab, qs::quantum_
  
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, inverse, pot_complex, beta, T_result); 
 
+    gsl_vector_complex_free(D_vector);
+    gsl_matrix_complex_free(pot_complex);
+    gsl_matrix_complex_free(F_matrix);
+    gsl_matrix_complex_free(inverse);
+    gsl_permutation_free(perm);
+    return T_result;
+}
+
+std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab, 
+        qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
+{
+
+    gsl_matrix_complex* T_result = LS_Solver::solve_in_chn_T_fullT(T_lab, 
+            chn, pot_V_mtx);
 
     std::complex<double>* T = new std::complex<double>[4];
     for (int  i=0; i < 4; i++)
@@ -889,12 +905,7 @@ std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab, qs::quantum_
 
     }
 
-    gsl_vector_complex_free(D_vector);
     gsl_matrix_complex_free(T_result);
-    gsl_matrix_complex_free(pot_complex);
-    gsl_matrix_complex_free(F_matrix);
-    gsl_matrix_complex_free(inverse);
-    gsl_permutation_free(perm);
     
     return T;
 }

@@ -132,3 +132,58 @@ void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
 
     gsl_matrix_complex_free(tmp);   
 }
+
+
+void make_tests()
+{
+    /*
+    int cut_pow = 6;
+    double Lambda = 450;
+    double scale = 100.0;
+
+    double* p_grid;
+    double* w_grid;
+    bool FINITE_GRID = true;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    
+    double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    
+    // Choose terms in LO WPC potential
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
+
+    Potential_mwpc pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,450.0,cut_pow,false);
+    
+    Potential_mwpc pot_weights = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,450.0,cut_pow,false,true,false);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    start = std::clock();   
+    for (auto chn : chns)
+    {
+        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+    end = std::clock();
+    std::cout << "Time to save matrices: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
+
+    // Set correct LECs
+    Pot.LECs_["gA2"]  = constants::gA*constants::gA;
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+
+    int l_max = 50;
+
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+   
+    double q_on_shell;
+    double mu;
+    double rho_T;
+    
+    double Tl = 50.0; // MeV
+*/  int a = 0;
+
+}
