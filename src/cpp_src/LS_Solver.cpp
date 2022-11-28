@@ -680,64 +680,29 @@ gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_c
 */
 Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
 {
+    gsl_matrix_complex* T_result = LS_Solver::solve_in_chn_T_fullT(T_lab, 
+            chn, pot_V_mtx);
     // Compute reduced mass mu, which depends on the isospin-prijection.
     double mu;
     double q_on_shell;
     get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
 
-    double rho = (2.0/M_PI)*M_PI*q_on_shell*mu; 
+    double rho = M_PI*q_on_shell*mu; 
     // Depends on convention conncted to the factor 'fac' in D.
     // The transformation of T-matrix elements becomes correct when
     // a factor of 2.0/M_PI is added...
-
-    gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
-
-    gsl_matrix_complex* F_matrix = setup_F_matrix_complex(chn.coupled,D_vector,pot_V_mtx);
-    
-    /*
-    print_matrix(pot_V_mtx);
-    std::cout << "D-vector" << std::endl;
-    print_vector_complex(D_vector);
-    std::cout << std::endl << "F-matrix" << std::endl;
-    print_matrix_complex(F_matrix);
-    */
-
-    // Solve matrix equation F*R = V
-
-    // LU decompose
-    gsl_permutation* perm = gsl_permutation_alloc(F_matrix->size1);
-    int signum;
-    gsl_linalg_complex_LU_decomp(F_matrix,perm,&signum);
-
-    // Invert from LU decompusition
- 
-    gsl_matrix_complex* inverse = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
-    gsl_linalg_complex_LU_invert(F_matrix,perm,inverse); // Some error here
-
-    gsl_matrix_complex* T_result = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
-
-    gsl_complex alpha = gsl_complex_rect(1.0,0.0);
-    gsl_complex beta  = gsl_complex_rect(0.0,0.0);
-
-    gsl_matrix_complex* pot_complex = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
-    for (int i=0; i < (int)F_matrix->size1; i++)
-    {
-        for (int j=0; j < (int)F_matrix->size2; j++)
-        {
-            gsl_matrix_complex_set(pot_complex,i,j,gsl_complex_rect(gsl_matrix_get(pot_V_mtx,i,j),0.0));
-        }
-    }
- 
-    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, inverse, pot_complex, beta, T_result); 
-
 
     Phase_shifts_chn phase_shifts;
     if (chn.coupled) 
     {
         gsl_complex T_pp,T_mm,T_mp;
-        T_mm = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
-        T_mp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
-        T_pp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
+        //T_mm = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
+        //T_mp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
+        //T_pp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
+        
+        T_mm = gsl_complex_mul(gsl_complex_rect(1.0,0),gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
+        T_mp = gsl_complex_mul(gsl_complex_rect(1.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
+        T_pp = gsl_complex_mul(gsl_complex_rect(1.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
         
         // Correct values, just to test the calculation of phase shifts from T-elements
         /*
@@ -795,12 +760,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_uncoupled = GSL_REAL(gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(tmp_c)));
     }
 
-    gsl_vector_complex_free(D_vector);
     gsl_matrix_complex_free(T_result);
-    gsl_matrix_complex_free(pot_complex);
-    gsl_matrix_complex_free(F_matrix);
-    gsl_matrix_complex_free(inverse);
-    gsl_permutation_free(perm);
 
     return phase_shifts;
 }

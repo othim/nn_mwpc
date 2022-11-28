@@ -185,5 +185,11 @@ void make_tests()
     
     double Tl = 50.0; // MeV
 */  int a = 0;
+    
+    // Construct potentials
+    
+    // Solve for the T-matrix
+
+    // Solve the distorted wave problem
 
 }
