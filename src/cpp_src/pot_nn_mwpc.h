@@ -130,7 +130,7 @@ public:
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
-           bool inc_grid_weights_in_pot = false, bool cut_on_shell = false);
+           bool inc_grid_weights_in_pot = false, bool cut_on_shell = true);
 
    /* 
       Destructor
