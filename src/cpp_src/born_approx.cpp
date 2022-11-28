@@ -70,35 +70,32 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
     pw_T_BA(start,order,V_II,omega_p_G0);
     
     // Multiply the VGVGV...V sum with the Möller operators from left and right
+    // This is what I call F(...) in the notes
     
-    // left
     gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
-    gsl_matrix_complex* tmp2 = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
-
-    // right
-    ph::on_shell_mult(omega_m_dagger,VGV,tmp);
-    ph::on_shell_mult(tmp,omega_p,tmp2);
+    F(omega_p,omega_m_dagger,VGV,tmp);
 
     // Add the result to the leading order T_I matrix
-    // T = T_I + tmp2
-
-    gsl_matrix_complex_add(tmp2,T_I); // tmp2 <- tmp2 + T_I
+    // T = T_I + tmp
+    gsl_matrix_complex_add(tmp,T_I); // tmp <- tmp + T_I
 
     // Remove all temporary matrices
     gsl_matrix_complex_free(omega_p_G0);
     gsl_matrix_complex_free(omega_p);
     gsl_matrix_complex_free(omega_m_dagger);
     gsl_matrix_complex_free(VGV);
-    gsl_matrix_complex_free(tmp);
-    gsl_matrix_complex_free(tmp2);
 
-    return tmp2;
+    return tmp;
 }
 
 
 /*
- * Method to compute sum_{i=0}^pow M^i with the on_shell multiplication
+ *
+ * Methods outside the namespace that is conisidered helper methods
+ * that should not generally be acessed from outside of this file.
+ *
  */
+
 void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* res)
 {
     if (pow==0)
@@ -120,4 +117,17 @@ void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* 
         gsl_matrix_complex_free(tmp);
         return;
     }
+}
+
+void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
+        gsl_matrix_complex* M,gsl_matrix_complex* res)
+{
+    gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(M->size1,M->size2);
+
+    // left
+    ph::on_shell_mult(omega_m_dagger,M,tmp);
+    // right
+    ph::on_shell_mult(tmp,omega_p,res);
+
+    gsl_matrix_complex_free(tmp);   
 }

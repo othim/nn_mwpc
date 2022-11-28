@@ -13,7 +13,6 @@
 
 #include "quantum_states.h"
 #include "physics_helpers.h"
-#include "gsl_blas.h"
 #include "Constants.h"
 #include "wigxjpf.h"
 #include <vector>
@@ -93,7 +92,16 @@ gsl_matrix_complex* full_DWBA_T_matrix();
 
 }
 
+/*
+ * Method to compute sum_{i=0}^pow M^i with the on_shell multiplication
+ */
 void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* res);
 
+/*
+ * This function performs returns \Omega^\dagger_- * M * \Omega^\dagger_+
+ * using the on-shell multiplication
+ */
+void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
+        gsl_matrix_complex* M,gsl_matrix_complex* res);
 
 #endif
