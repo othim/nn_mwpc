@@ -147,7 +147,15 @@ public:
      */
     std::vector<double> compute_binding_energy( 
             int chn_number, std::vector<double> LECs);
-    
+
+    /*
+     * This function returns the wave function of the ground state. In case of
+     * a coupled channel the wave funciton for the lowest l is the first
+     * block.
+     */
+    std::vector<double> compute_wave_function(int chn_number, 
+            std::vector<double> LECs);
+
     void print_LEC_values();
     void print_LECs_in_use();
 
