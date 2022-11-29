@@ -56,8 +56,8 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
         return T_I;
     }
     // Get the Möller wave operators
-    gsl_matrix_complex* omega_p = dwba::pw_moller_plus(T_I, V_I);
-    gsl_matrix_complex* omega_m_dagger = dwba::pw_moller_minus_dagger(T_I, V_I);
+    gsl_matrix_complex* omega_p = dwba::pw_moller_plus(T_I, G0);
+    gsl_matrix_complex* omega_m_dagger = dwba::pw_moller_minus_dagger(T_I, G0);
     
     
     // Allocate the modified matrix
@@ -91,6 +91,46 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
     return tmp;
 }
 
+gsl_matrix_complex* pw_moller_plus(gsl_matrix_complex* T_I, 
+        gsl_matrix_complex* G0)
+{
+    // Omega_p = 1 + G0*T
+    //
+    // Create an identity matrix
+    gsl_matrix_complex* id = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
+    gsl_matrix_complex_set_identity(id);
+    
+    // Multiply G0*T
+    gsl_matrix_complex* omega_p = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
+    ph::on_shell_mult(G0,T_I,omega_p);
+    
+    // Add them
+    gsl_matrix_complex_add(omega_p,id);
+    
+    gsl_matrix_complex_free(id);
+    return omega_p;
+}
+
+
+gsl_matrix_complex* pw_moller_minus_dagger(gsl_matrix_complex* T_I, 
+        gsl_matrix_complex* G0)
+{
+    // Omega^dagger_m = 1 + T*G0
+    //
+    // Create an identity matrix
+    gsl_matrix_complex* id = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
+    gsl_matrix_complex_set_identity(id);
+    
+    // Multiply G0*T
+    gsl_matrix_complex* omega_p = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
+    ph::on_shell_mult(T_I,G0,omega_p);
+    
+    // Add them
+    gsl_matrix_complex_add(omega_p,id);
+    
+    gsl_matrix_complex_free(id);
+    return omega_p;
+}
 
 /*
  *

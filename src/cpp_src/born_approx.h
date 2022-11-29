@@ -83,9 +83,9 @@ gsl_matrix_complex* pw_T_DWBA(int order, gsl_matrix_complex* T_I,
  * Helperfunctions to compute the Möller wave operators
  */
 gsl_matrix_complex* pw_moller_plus(gsl_matrix_complex* T_I, 
-        gsl_matrix_complex* V_I);
+        gsl_matrix_complex* G0);
 gsl_matrix_complex* pw_moller_minus_dagger(gsl_matrix_complex* T_I, 
-        gsl_matrix_complex* V_I);
+        gsl_matrix_complex* G0);
 
 
 gsl_matrix_complex* pw_T_mwpc_DWBA();
