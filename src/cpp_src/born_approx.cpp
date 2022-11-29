@@ -56,8 +56,8 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
         return T_I;
     }
     // Get the Möller wave operators
-    gsl_matrix_complex* omega_p = pw_moller_plus(T_I, V_I);
-    gsl_matrix_complex* omega_m_dagger = pw_moller_minus_dagger(T_I, V_I);
+    gsl_matrix_complex* omega_p = dwba::pw_moller_plus(T_I, V_I);
+    gsl_matrix_complex* omega_m_dagger = dwba::pw_moller_minus_dagger(T_I, V_I);
     
     
     // Allocate the modified matrix
