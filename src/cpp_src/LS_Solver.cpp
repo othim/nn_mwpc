@@ -756,7 +756,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_p = 0;
         phase_shifts.delta_m = 0;
 
-        gsl_complex tmp_c = gsl_complex_sub(gsl_complex_rect(1.0,0.0),gsl_complex_mul(gsl_complex_rect(0.0,M_PI*rho),T));
+        gsl_complex tmp_c = gsl_complex_sub(gsl_complex_rect(1.0,0.0),gsl_complex_mul(gsl_complex_rect(0.0,2.0*rho),T));
         phase_shifts.delta_uncoupled = GSL_REAL(gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(tmp_c)));
     }
 

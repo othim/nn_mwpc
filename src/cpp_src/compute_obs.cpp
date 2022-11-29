@@ -1622,7 +1622,7 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         double Tl = (double)(i+1);
         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
-        ph::print_m(pot_V_mtx);
+        
         // Solve for the T-matrix
         Phase_shifts_chn phases_T = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
 
