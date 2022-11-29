@@ -13,6 +13,7 @@
 void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
         int mom_grid_size);
 
+void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec);
 
 gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* V, 
         gsl_matrix_complex* G0)
@@ -292,15 +293,36 @@ void dwba::make_tests(std::string chn_string)
     
     std::cout << "Dressing T in the weights and momenta" << std::endl;
     
-    
     dress_in_weights(T_full,p_grid,w_grid,(int)number_of_p_points);
     
     // Make potential complex (this is already dresses in the weights)
-
+    std::cout << "Making potential complex" << std::endl;
+    gsl_matrix_complex* V_pot_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
+    gsl_matrix_complex* V_grid_z = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
+    gsl_matrix_complex* V_3P0_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
 
     // Get the propagator matrix
+    std::cout << "Computing the propagator" << std::endl;
+    gsl_vector_complex* prop_vec = solver.setup_D_vector_complex(q_on_shell,
+            chn.coupled,mu);
+    
+    gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    matrix_from_vector(G0,prop_vec);
 
+    int order = 1;
+    gsl_matrix_complex* T_dwba = pw_T_DWBA(order,T_full,V_grid_z,V_3P0_z,G0);
 
+    gsl_complex onT = gsl_matrix_complex_get(T_dwba,number_of_p_points,number_of_p_points);
+
+    std::cout << "order=" << order << ", in DWBA" << std::endl; 
+    std::cout << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
+
+    gsl_matrix_complex_free(T_dwba);
+    gsl_matrix_complex_free(V_pot_z);
+    gsl_matrix_complex_free(V_grid_z);
+    gsl_matrix_complex_free(V_3P0_z);
+    gsl_matrix_complex_free(G0);
+    gsl_vector_complex_free(prop_vec);
     gsl_matrix_complex_free(T_full);
     gsl_matrix_free(V_Pot);
     gsl_matrix_free(V_grid);
@@ -355,5 +377,16 @@ void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
             }
         }
     }
+}
+
+
+void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
+{
+    // Set the diagonal values to the vecotr values
+    for (int i = 0; i < M->size1; i++)
+    {
+        gsl_matrix_complex_set(M,i,i,gsl_vector_complex_get(vec,i));
+    }
+
 }
 
