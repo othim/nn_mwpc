@@ -190,7 +190,7 @@ void dwba::make_tests(std::string chn_string)
     int cut_pow = 6;
     double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
-    double C3P0 = 0.001;
+    double C3P0 = 5e-8;
     double C3P2 = 0.0;    
     // Choose terms in LO MWPC potential
     std::vector<std::string> terms;
@@ -266,24 +266,36 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix* V_grid = Pot_grid.get_saved_matrix(q_on_shell, chn, true);
     gsl_matrix* V_3P0  = Pot_3P0.get_saved_matrix(q_on_shell, chn, true);
     
-    
     std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
-    
     double fac = 1.0;
     std::cout << "Full potential" << std::endl;
     std::cout << "T: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
-            "   " << fac*T_elem[2] << std::endl;
+            "   " << fac*T_elem[2] << "   " << fac*T_elem[3] << std::endl;
+    
+    
+    // Do it in distorted wave parturbation theory
+    // -------------------------------------------
 
-    // Solve for phase shifts just to check
-    Phase_shifts_chn phases_T = solver.solve_in_chn_T(Tl,chn,V_Pot);
-    double x = 180.0/M_PI;        
-    if (chn.coupled) {
-        std::cout << "T: " << Tl << "   " <<  phases_T.delta_m*x << "   "
-            << phases_T.delta_p*x << "   " << phases_T.epsilon*x << std::endl;
-    } else {
-        std::cout  << "T: " << Tl << "   " << phases_T.delta_uncoupled*x << std::endl;
+    // First solve the problem where C3P0 is zero
+    Pot.LECs_["C3P0"] = 0;
+    gsl_matrix_free(V_Pot);
+    V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, true);
+    std::complex<double>* T_elem_0 = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
+    gsl_matrix_complex* T_full     = solver.solve_in_chn_Tfull(Tl,chn,V_Pot);
+
+    std::cout << "C3P0=0" << std::endl;
+    std::cout << "T: " <<  fac*T_elem_0[0] << "   " << fac*T_elem_0[1] << 
+            "   " << fac*T_elem_0[2] << "   " << fac*T_elem_0[3] << std::endl;
+    /*
+    std::vector<std::string> lecs = Pot_3P0.LECs_in_use_;
+    for (auto s : lecs)
+    {
+        std::cout << s << std::endl;
     }
+    */
 
+
+    gsl_matrix_complex_free(T_full);
     gsl_matrix_free(V_Pot);
     gsl_matrix_free(V_grid);
     gsl_matrix_free(V_3P0);
