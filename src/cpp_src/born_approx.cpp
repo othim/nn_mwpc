@@ -10,6 +10,8 @@
  */
 #include "born_approx.h"
 
+void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
+        int mom_grid_size);
 
 
 gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* V, 
@@ -281,18 +283,22 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_free(V_Pot);
     V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, true);
     std::complex<double>* T_elem_0 = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
-    gsl_matrix_complex* T_full     = solver.solve_in_chn_Tfull(Tl,chn,V_Pot);
+    gsl_matrix_complex* T_full     = solver.solve_in_chn_T_fullT(Tl,chn,V_Pot);
 
     std::cout << "C3P0=0" << std::endl;
     std::cout << "T: " <<  fac*T_elem_0[0] << "   " << fac*T_elem_0[1] << 
             "   " << fac*T_elem_0[2] << "   " << fac*T_elem_0[3] << std::endl;
-    /*
-    std::vector<std::string> lecs = Pot_3P0.LECs_in_use_;
-    for (auto s : lecs)
-    {
-        std::cout << s << std::endl;
-    }
-    */
+    
+    
+    std::cout << "Dressing T in the weights and momenta" << std::endl;
+    
+    
+    dress_in_weights(T_full,p_grid,w_grid,(int)number_of_p_points);
+    
+    // Make potential complex (this is already dresses in the weights)
+
+
+    // Get the propagator matrix
 
 
     gsl_matrix_complex_free(T_full);
@@ -300,3 +306,54 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_free(V_grid);
     gsl_matrix_free(V_3P0);
 }
+
+
+/*
+ * This function adds the weights and momenta to the matrix M
+ */
+void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
+        int mom_grid_size)
+{
+    for (int i = 0; i<mom_grid_size + 1; i++) 
+    {
+        for (int j = 0; j<mom_grid_size + 1; j++) 
+        {
+            double weights_momenta = 1.0;
+            // If ingoing momenta is of shell
+            if (j<mom_grid_size)
+            {
+            weights_momenta *= std::sqrt(w[j])*p[j];
+            }
+
+            // If outgoing momenta is of shell
+            if (i<mom_grid_size)
+            {
+            weights_momenta *= std::sqrt(w[i])*p[i];
+            }
+            
+            if (M->size1 == mom_grid_size+1)
+            {   
+                gsl_complex fac = gsl_complex_rect(weights_momenta,0.0);
+                
+                gsl_complex el  = gsl_matrix_complex_get(M,i,j);
+                gsl_matrix_complex_set(M,i,j,gsl_complex_mul(el,fac));
+            } else 
+            {
+                gsl_complex fac = gsl_complex_rect(weights_momenta,0.0);
+                // Do all four elemets
+                gsl_complex el_00  = gsl_matrix_complex_get(M,i,j);
+                gsl_matrix_complex_set(M,i,j,gsl_complex_mul(el_00,fac));
+                
+                gsl_complex el_01  = gsl_matrix_complex_get(M,i,j+mom_grid_size+1);
+                gsl_matrix_complex_set(M,i,j+mom_grid_size+1,gsl_complex_mul(el_01,fac));
+                
+                gsl_complex el_10  = gsl_matrix_complex_get(M,i+mom_grid_size+1,j);
+                gsl_matrix_complex_set(M,i+mom_grid_size+1,j,gsl_complex_mul(el_10,fac));
+                
+                gsl_complex el_11  = gsl_matrix_complex_get(M,i+mom_grid_size+1,j+mom_grid_size+1);
+                gsl_matrix_complex_set(M,i+mom_grid_size+1,j+mom_grid_size+1,gsl_complex_mul(el_11,fac));
+            }
+        }
+    }
+}
+

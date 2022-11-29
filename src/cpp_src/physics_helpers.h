@@ -131,6 +131,13 @@ void on_shell_mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2,
  */
 void on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res);
+
+/*
+ * Function that copies the content on the real matrix into the 
+ * complex matrix.
+ */
+void make_matrix_complex(gsl_matrix_complex* Mz,gsl_matrix* M);
+
 }
 #endif
 

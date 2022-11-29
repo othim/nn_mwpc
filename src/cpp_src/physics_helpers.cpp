@@ -362,3 +362,15 @@ void ph::on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2,
 
 
 
+void ph::make_matrix_complex(gsl_matrix_complex* Mz,gsl_matrix* M)
+{
+    for (int i = 0; i < M->size1; i++)
+    {
+        for (int j = 0; j < M->size2; j++)
+        {
+            double el = gsl_matrix_get(M,i,j);
+            gsl_complex elz = gsl_complex_rect(el,0.0);
+            gsl_matrix_complex_set(Mz,i,j,elz);
+        }
+    }
+}
