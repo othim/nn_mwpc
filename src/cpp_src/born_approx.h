@@ -23,6 +23,8 @@
 #include "gsl_linalg.h"
 #include "gsl_complex.h"
 #include "pot_nn_mwpc.h"
+#include "LS_Solver.h"
+#include <string>
 
 namespace dwba 
 {
@@ -91,6 +93,7 @@ gsl_matrix_complex* pw_T_mwpc_DWBA();
 gsl_matrix_complex* full_BA_T_matrix();
 gsl_matrix_complex* full_DWBA_T_matrix();
 
+void make_tests(std::string chn_string);
 }
 
 /*
@@ -109,7 +112,6 @@ void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
  * Function to make some tests
  *
  */
-void make_tests();
 
 
 #endif

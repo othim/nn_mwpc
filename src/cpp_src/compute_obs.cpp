@@ -11,6 +11,7 @@
 #include <algorithm>
 #include "pybind_interface.h"
 #include "pot_ext.h"
+#include "born_approx.h"
 /*
  * This function can be called if this file is linked with 
  * the .o files from the fortran libray compiled.
@@ -57,6 +58,8 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
 bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
         double scale,unsigned int ang_int_points, 
         unsigned int J_max_in_pot, bool print_all);
+void check_born();
+
 void test_f()
 {
 
@@ -174,6 +177,8 @@ int main(int argc, char** argv)
         check_MWPC(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
     } else if (std::string(argv[1]) == "T") {
         check_T_matrix(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
+    } else if (std::string(argv[1]) == "BA") {
+        check_born();
     }
     
     ph::physics_helpers_free();
@@ -1617,7 +1622,7 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         double Tl = (double)(i+1);
         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
         gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
-        
+        ph::print_m(pot_V_mtx);
         // Solve for the T-matrix
         Phase_shifts_chn phases_T = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
 
@@ -1679,4 +1684,10 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         delete[] T_elem;
         gsl_matrix_free(pot_V_mtx);
     } 
+}
+
+
+void check_born()
+{
+    dwba::make_tests("3P0");
 }

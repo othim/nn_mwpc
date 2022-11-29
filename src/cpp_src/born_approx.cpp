@@ -134,62 +134,157 @@ void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
 }
 
 
-void make_tests()
+void dwba::make_tests(std::string chn_string)
 {
-    /*
-    int cut_pow = 6;
-    double Lambda = 450;
-    double scale = 100.0;
 
+    std::cout << "Testing the Born and DW Born approximation" << std::endl;
+    
+    
+
+    // ------ CONSTANTS TO CHANGE ------
+    // ---------------------------------
+    double scale = 100.0; // Scale of momenutm grid MeV
+    unsigned int ang_int_points = 76; // Number of points in angular integration
+    unsigned int number_of_p_points = 120; // Number of momentum-grid points
+    unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
+    
+    // Do precomputations
+    ph::physics_helpers_init();
+    // ---------------   
+    
+    // Construct the quantum states
+    std::cout << "Constructing quantum states..." << std::endl;
+    int J_max = 8;
+    int J_min = 0;
+    int Tz_min = 0;
+    int Tz_max = 0;
+    bool print = false;
+    std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
+     
+    // Construct the quantum scattering channels from the states
+    std::cout << "Contruction scattering channels..." << std::endl;
+    std::vector<qs::quantum_channel> chns = get_channels(states, print);   
+    
+    // ---------------------------------
+    // ---------------------------------
+    
+    /*
+     * Construct the momentum grid
+     */
     double* p_grid;
     double* w_grid;
+    double Lambda = 450.0;
     bool FINITE_GRID = true;
-    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
-    
-    double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
-    double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
-    
-    // Choose terms in LO WPC potential
+    if (FINITE_GRID)
+    {
+        ph::gauss_legendre_finite_mesh(number_of_p_points,0,
+                Lambda + 300.0,&p_grid,&w_grid);
+    } else 
+    {
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    }
+
+    /*
+     * Construct the potential
+     */
+    int cut_pow = 6;
+    double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    double C3P0 = 0.001;
+    double C3P2 = 0.0;    
+    // Choose terms in LO MWPC potential
     std::vector<std::string> terms;
     terms.push_back("OPEP"); // To just test elements use just OPEP
     terms.push_back("C1S0");
     terms.push_back("C3S1");
+    terms.push_back("C3P0");
+    terms.push_back("C3P2");
 
-    Potential_mwpc pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
-            number_of_p_points,J_max_in_pot,450.0,cut_pow,false);
+    // Without the grid included
+    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,true);
+    // With grid included
+    Potential_mwpc Pot_grid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,true);
+
+    // Potential with only the 3P0 LEC
+    std::vector<std::string> terms_3P0;
+    terms_3P0.push_back("C3P0");
     
-    Potential_mwpc pot_weights = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
-            number_of_p_points,J_max_in_pot,450.0,cut_pow,false,true,false);
-    
+    Potential_mwpc Pot_3P0 = Potential_mwpc(terms_3P0,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,true);
     std::cout << "Saving potential matrices" << std::endl;
-    start = std::clock();   
     for (auto chn : chns)
     {
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+        Pot_grid.populate_saved_mtx(chn,true); // Realtivistic factor on
+        Pot_3P0.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
-    end = std::clock();
-    std::cout << "Time to save matrices: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
 
     // Set correct LECs
-    Pot.LECs_["gA2"]  = constants::gA*constants::gA;
+    Pot.LECs_["gA2"]  = 1.29*1.29;
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
+    Pot.LECs_["C3P0"] = C3P0;
+    Pot.LECs_["C3P2"] = C3P2;
 
-    int l_max = 50;
+    Pot_grid.LECs_["gA2"]  = 1.29*1.29;
+    Pot_grid.LECs_["C1S0"] = C1S0;
+    Pot_grid.LECs_["C3S1"] = C3S1;
+    Pot_grid.LECs_["C3P0"] = 0;
+    Pot_grid.LECs_["C3P2"] = C3P2;
 
+    Pot_3P0.LECs_["C3P0"] = C3P0;
+    
+    // Solve for the T-matrix
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
     double q_on_shell;
     double mu;
-    double rho_T;
-    
-    double Tl = 50.0; // MeV
-*/  int a = 0;
-    
-    // Construct potentials
-    
-    // Solve for the T-matrix
+    //double rho_T
+    qs::quantum_channel chn = chns[0];
 
+    // Get the channel
+    for (int i = 0; i < (int)chns.size(); i++)
+    {
+        chn = chns[i];
+        if (quantum_channel_to_string(chn) == chn_string) {
+            break;
+        }
+    }
+
+    // Print 
+    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
     // Solve the distorted wave problem
+    
+    double Tl = 30.0; // MeV
+        
+    // Get the on-shell momenta and reduced mass
+    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
 
+    gsl_matrix* V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, true);
+    gsl_matrix* V_grid = Pot_grid.get_saved_matrix(q_on_shell, chn, true);
+    gsl_matrix* V_3P0  = Pot_3P0.get_saved_matrix(q_on_shell, chn, true);
+    
+    
+    std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
+    
+    double fac = 1.0;
+    std::cout << "Full potential" << std::endl;
+    std::cout << "T: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
+            "   " << fac*T_elem[2] << std::endl;
+
+    // Solve for phase shifts just to check
+    Phase_shifts_chn phases_T = solver.solve_in_chn_T(Tl,chn,V_Pot);
+    double x = 180.0/M_PI;        
+    if (chn.coupled) {
+        std::cout << "T: " << Tl << "   " <<  phases_T.delta_m*x << "   "
+            << phases_T.delta_p*x << "   " << phases_T.epsilon*x << std::endl;
+    } else {
+        std::cout  << "T: " << Tl << "   " << phases_T.delta_uncoupled*x << std::endl;
+    }
+
+    gsl_matrix_free(V_Pot);
+    gsl_matrix_free(V_grid);
+    gsl_matrix_free(V_3P0);
 }
