@@ -70,7 +70,7 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
     int start = 1;
     
     gsl_matrix_complex* VGV = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
-    pw_T_BA(start,order,V_II,omega_p_G0);
+    VGV = pw_T_BA(start,order,V_II,omega_p_G0);
     
     // Multiply the VGVGV...V sum with the Möller operators from left and right
     // This is what I call F(...) in the notes
@@ -91,7 +91,7 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
     return tmp;
 }
 
-gsl_matrix_complex* pw_moller_plus(gsl_matrix_complex* T_I, 
+gsl_matrix_complex* dwba::pw_moller_plus(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0)
 {
     // Omega_p = 1 + G0*T
@@ -112,7 +112,7 @@ gsl_matrix_complex* pw_moller_plus(gsl_matrix_complex* T_I,
 }
 
 
-gsl_matrix_complex* pw_moller_minus_dagger(gsl_matrix_complex* T_I, 
+gsl_matrix_complex* dwba::pw_moller_minus_dagger(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0)
 {
     // Omega^dagger_m = 1 + T*G0
@@ -233,7 +233,7 @@ void dwba::make_tests(std::string chn_string)
     int cut_pow = 6;
     double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
-    double C3P0 = 5e-8;
+    double C3P0 = 0.5e-8;
     double C3P2 = 0.0;    
     // Choose terms in LO MWPC potential
     std::vector<std::string> terms;
