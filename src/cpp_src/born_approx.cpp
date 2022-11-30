@@ -18,6 +18,8 @@ void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec);
 gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* V, 
         gsl_matrix_complex* G0)
 {
+    //std::cout << "V:" << std::endl;
+    //ph::print_m_complex(V);
     gsl_matrix_complex* G0V = gsl_matrix_complex_alloc(V->size1,V->size2);
 
     ph::on_shell_mult(G0,V,G0V);
@@ -31,12 +33,27 @@ gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_com
     for (int i=start_order; i<stop_order+1;i++)
     {
         // Compute (G0*V)^i
-        pow_matrix_on_shell_mult(G0V,i,tmp1);
-        ph::on_shell_mult(V,tmp1,tmp2);
-
-        // Add to the result
-        gsl_matrix_complex_add(res,tmp2);
+        if (i==0)
+        {
+            gsl_matrix_complex_add(res,V);
+        } else
+        {
+            pow_matrix_on_shell_mult(G0V,i,tmp1);
             
+            //std::cout << "tmp1:" << std::endl;
+            //ph::print_m_complex(tmp1);
+            
+            ph::on_shell_mult(V,tmp1,tmp2);
+            
+            //std::cout << "tmp2:" << std::endl;
+            //ph::print_m_complex(tmp2);
+            // Add to the result
+            gsl_matrix_complex_add(res,tmp2);
+            
+        }
+            
+        //std::cout << "res:" << std::endl;
+        //ph::print_m_complex(res);
     }
     // Deallocate 
     gsl_matrix_complex_free(G0V);
@@ -188,16 +205,17 @@ void dwba::make_tests(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 120; // Number of momentum-grid points
+    unsigned int number_of_p_points = 80; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
-    
+    bool REL_CORR = false;
+    bool CUT_ON_SHELL = false;
     // Do precomputations
     ph::physics_helpers_init();
     // ---------------   
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 8;
+    int J_max = 2;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -230,7 +248,7 @@ void dwba::make_tests(std::string chn_string)
     /*
      * Construct the potential
      */
-    int cut_pow = 6;
+    int cut_pow = 10;
     double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
     double C3P0 = 0.5e-8;
@@ -245,23 +263,30 @@ void dwba::make_tests(std::string chn_string)
 
     // Without the grid included
     Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
-            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,true);
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     // With grid included
     Potential_mwpc Pot_grid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
-            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,true);
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
 
     // Potential with only the 3P0 LEC
     std::vector<std::string> terms_3P0;
     terms_3P0.push_back("C3P0");
     
     Potential_mwpc Pot_3P0 = Potential_mwpc(terms_3P0,ang_int_points,p_grid,w_grid,
-            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,true);
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
+    
+    std::vector<std::string> terms_1S0;
+    terms_1S0.push_back("C1S0");
+    
+    Potential_mwpc Pot_1S0 = Potential_mwpc(terms_1S0,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
     {
-        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
-        Pot_grid.populate_saved_mtx(chn,true); // Realtivistic factor on
-        Pot_3P0.populate_saved_mtx(chn,true); // Realtivistic factor on
+        //Pot.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+        //Pot_grid.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+        //Pot_3P0.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+        Pot_1S0.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
     }
 
     // Set correct LECs
@@ -278,6 +303,8 @@ void dwba::make_tests(std::string chn_string)
     Pot_grid.LECs_["C3P2"] = C3P2;
 
     Pot_3P0.LECs_["C3P0"] = C3P0;
+    
+    Pot_1S0.LECs_["C1S0"] = C1S0;
     
     // Solve for the T-matrix
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
@@ -305,42 +332,12 @@ void dwba::make_tests(std::string chn_string)
     // Get the on-shell momenta and reduced mass
     LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
 
-    gsl_matrix* V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, true);
-    gsl_matrix* V_grid = Pot_grid.get_saved_matrix(q_on_shell, chn, true);
-    gsl_matrix* V_3P0  = Pot_3P0.get_saved_matrix(q_on_shell, chn, true);
+    gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
     
-    std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
-    double fac = 1.0;
-    std::cout << "Full potential" << std::endl;
-    std::cout << "T: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
-            "   " << fac*T_elem[2] << "   " << fac*T_elem[3] << std::endl;
-    
-    
-    // Do it in distorted wave parturbation theory
-    // -------------------------------------------
-
-    // First solve the problem where C3P0 is zero
-    Pot.LECs_["C3P0"] = 0;
-    gsl_matrix_free(V_Pot);
-    V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, true);
-    std::complex<double>* T_elem_0 = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
-    gsl_matrix_complex* T_full     = solver.solve_in_chn_T_fullT(Tl,chn,V_Pot);
-
-    std::cout << "C3P0=0" << std::endl;
-    std::cout << "T: " <<  fac*T_elem_0[0] << "   " << fac*T_elem_0[1] << 
-            "   " << fac*T_elem_0[2] << "   " << fac*T_elem_0[3] << std::endl;
-    
-    
-    std::cout << "Dressing T in the weights and momenta" << std::endl;
-    
-    dress_in_weights(T_full,p_grid,w_grid,(int)number_of_p_points);
-    
-    // Make potential complex (this is already dresses in the weights)
     std::cout << "Making potential complex" << std::endl;
-    gsl_matrix_complex* V_pot_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
-    gsl_matrix_complex* V_grid_z = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
-    gsl_matrix_complex* V_3P0_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
-
+    gsl_matrix_complex* V_1S0_z  = gsl_matrix_complex_alloc(V_1S0->size1,V_1S0->size2);
+    ph::make_matrix_complex(V_1S0_z,V_1S0);
+    
     // Get the propagator matrix
     std::cout << "Computing the propagator" << std::endl;
     gsl_vector_complex* prop_vec = solver.setup_D_vector_complex(q_on_shell,
@@ -349,24 +346,24 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
     matrix_from_vector(G0,prop_vec);
 
-    int order = 1;
-    gsl_matrix_complex* T_dwba = pw_T_DWBA(order,T_full,V_grid_z,V_3P0_z,G0);
+    for (int ord = 0; ord < 1; ord++)
+    {
+        gsl_matrix_complex* T_ba = dwba::pw_T_BA((int)0,ord,V_1S0_z,G0);
+        gsl_complex onT = gsl_matrix_complex_get(T_ba,number_of_p_points,number_of_p_points);
+        std::cout << "order=" << ord << ", in BA" << std::endl; 
+        std::cout << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
+        std::cout <<"|T|^2 = " <<  std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2) << std::endl << std::endl;
+    }
+    std::cout << "C1S0 = " << C1S0 << std::endl;
+    std::cout << "(2*pi)^-3*C1S0 = " << C1S0/std::pow((2*M_PI),3) << std::endl;
 
-    gsl_complex onT = gsl_matrix_complex_get(T_dwba,number_of_p_points,number_of_p_points);
+    std::cout << "|C1S0|^2 = " << std::pow(C1S0,2) << std::endl;
+    std::cout << "(2*pi)^-6*|C1S0|^2 = " << std::pow(C1S0,2)/std::pow((2*M_PI),6) << std::endl;
 
-    std::cout << "order=" << order << ", in DWBA" << std::endl; 
-    std::cout << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
-
-    gsl_matrix_complex_free(T_dwba);
-    gsl_matrix_complex_free(V_pot_z);
-    gsl_matrix_complex_free(V_grid_z);
-    gsl_matrix_complex_free(V_3P0_z);
+    gsl_matrix_complex_free(V_1S0_z);
     gsl_matrix_complex_free(G0);
     gsl_vector_complex_free(prop_vec);
-    gsl_matrix_complex_free(T_full);
-    gsl_matrix_free(V_Pot);
-    gsl_matrix_free(V_grid);
-    gsl_matrix_free(V_3P0);
+    gsl_matrix_free(V_1S0);
 }
 
 
@@ -427,6 +424,93 @@ void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
     {
         gsl_matrix_complex_set(M,i,i,gsl_vector_complex_get(vec,i));
     }
-
 }
 
+
+/*
+ *
+    // Get the on-shell momenta and reduced mass
+    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+
+    gsl_matrix* V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_grid = Pot_grid.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_3P0  = Pot_3P0.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    
+    std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
+    double fac = 1.0;
+    std::cout << "Full potential" << std::endl;
+    std::cout << "T: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
+            "   " << fac*T_elem[2] << "   " << fac*T_elem[3] << std::endl;
+    
+    
+    // Do it in distorted wave parturbation theory
+    // -------------------------------------------
+
+    // First solve the problem where C3P0 is zero
+    Pot.LECs_["C3P0"] = 0;
+    gsl_matrix_free(V_Pot);
+    V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    std::complex<double>* T_elem_0 = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
+    gsl_matrix_complex* T_full     = solver.solve_in_chn_T_fullT(Tl,chn,V_Pot);
+
+    std::cout << "C3P0=0" << std::endl;
+    std::cout << "T: " <<  fac*T_elem_0[0] << "   " << fac*T_elem_0[1] << 
+            "   " << fac*T_elem_0[2] << "   " << fac*T_elem_0[3] << std::endl;
+    
+    
+    std::cout << "Dressing T in the weights and momenta" << std::endl;
+    
+    dress_in_weights(T_full,p_grid,w_grid,(int)number_of_p_points);
+    
+    // Make potential complex (this is already dresses in the weights)
+    std::cout << "Making potential complex" << std::endl;
+    gsl_matrix_complex* V_pot_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
+    gsl_matrix_complex* V_grid_z = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
+    gsl_matrix_complex* V_3P0_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
+    gsl_matrix_complex* V_1S0_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
+
+    // Get the propagator matrix
+    std::cout << "Computing the propagator" << std::endl;
+    gsl_vector_complex* prop_vec = solver.setup_D_vector_complex(q_on_shell,
+            chn.coupled,mu);
+    
+    gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    matrix_from_vector(G0,prop_vec);
+
+    int order = 1;
+    gsl_matrix_complex* T_dwba = pw_T_DWBA(order,T_full,V_grid_z,V_3P0_z,G0);
+
+    gsl_complex onT = gsl_matrix_complex_get(T_dwba,number_of_p_points,number_of_p_points);
+
+    std::cout << "order=" << order << ", in DWBA" << std::endl; 
+    std::cout << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
+    std::cout << "\n\n\n";
+    
+    for (int ord = 0; ord < 1; ord++)
+    {
+        gsl_matrix_complex* T_ba = dwba::pw_T_BA((int)0,ord,V_3P0_z,G0);
+        onT = gsl_matrix_complex_get(T_ba,number_of_p_points,number_of_p_points);
+        std::cout << "order=" << ord << ", in BA" << std::endl; 
+        std::cout << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
+        std::cout <<"|T|^2 = " <<  std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2) << std::endl << std::endl;
+    }
+    std::cout << "C3P0 = " << C3P0 << std::endl;
+    std::cout << "(2*pi)^3*C3P0 = " << std::pow((2*M_PI),3)*C3P0 << std::endl;
+
+    std::cout << "|C3P0|^2 = " << std::pow(C3P0,2) << std::endl;
+    std::cout << "(2*pi)^6*|C3P0|^2 = " << std::pow((2*M_PI),6)*std::pow(C3P0,2) << std::endl;
+
+
+    gsl_matrix_complex_free(T_dwba);
+    gsl_matrix_complex_free(V_pot_z);
+    gsl_matrix_complex_free(V_grid_z);
+    gsl_matrix_complex_free(V_3P0_z);
+    gsl_matrix_complex_free(V_1S0_z);
+    gsl_matrix_complex_free(G0);
+    gsl_vector_complex_free(prop_vec);
+    gsl_matrix_complex_free(T_full);
+    gsl_matrix_free(V_Pot);
+    gsl_matrix_free(V_grid);
+    gsl_matrix_free(V_3P0);
+}*/
