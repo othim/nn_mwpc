@@ -17,6 +17,7 @@
 #include "wigxjpf.h"
 #include <vector>
 #include <complex>
+#include <iomanip>
 #include <iostream>
 #include "gsl_matrix.h"
 #include "gsl_blas.h"

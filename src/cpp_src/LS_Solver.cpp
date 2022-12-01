@@ -620,7 +620,8 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
         double counterterm = std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
         sum += counterterm;
     }
-
+    
+    
     double re_el = -(fac)*2.0*mu*q2_on_shell*sum;
 
     double im_el = M_PI*mu*q_on_shell;

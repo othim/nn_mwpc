@@ -920,12 +920,26 @@ double Potential_mwpc::get_total_rel_cut_weight_factor(double p_in, int j,
          if (j<mom_grid_size_)
          {
             cutoff_regulator *= exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_));
+            /*if (p_in > cutoff_Lambda_)
+            {
+                cutoff_regulator = 0;
+            } else 
+            {
+                cutoff_regulator = 1;
+            }*/
          }
         
          // If outgoing momenta is of shell
          if (i<mom_grid_size_)
          {
             cutoff_regulator *= exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
+            /*if (p_in > cutoff_Lambda_)
+            {
+                cutoff_regulator = 0;
+            } else 
+            {
+                cutoff_regulator = 1;
+            }*/
          }
      }
      

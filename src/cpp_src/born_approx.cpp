@@ -205,10 +205,10 @@ void dwba::make_tests(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 80; // Number of momentum-grid points
+    unsigned int number_of_p_points = 10000; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     bool REL_CORR = false;
-    bool CUT_ON_SHELL = false;
+    bool CUT_ON_SHELL = true;
     // Do precomputations
     ph::physics_helpers_init();
     // ---------------   
@@ -248,8 +248,8 @@ void dwba::make_tests(std::string chn_string)
     /*
      * Construct the potential
      */
-    int cut_pow = 10;
-    double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    int cut_pow = 10000000;
+    double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
     double C3P0 = 0.5e-8;
     double C3P2 = 0.0;    
@@ -280,6 +280,8 @@ void dwba::make_tests(std::string chn_string)
     
     Potential_mwpc Pot_1S0 = Potential_mwpc(terms_1S0,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
+    Potential_mwpc Pot_1S0_nogrid = Potential_mwpc(terms_1S0,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
     {
@@ -287,6 +289,7 @@ void dwba::make_tests(std::string chn_string)
         //Pot_grid.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
         //Pot_3P0.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
         Pot_1S0.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+        Pot_1S0_nogrid.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
     }
 
     // Set correct LECs
@@ -305,6 +308,7 @@ void dwba::make_tests(std::string chn_string)
     Pot_3P0.LECs_["C3P0"] = C3P0;
     
     Pot_1S0.LECs_["C1S0"] = C1S0;
+    Pot_1S0_nogrid.LECs_["C1S0"] = C1S0;
     
     // Solve for the T-matrix
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
@@ -327,13 +331,21 @@ void dwba::make_tests(std::string chn_string)
     std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
     // Solve the distorted wave problem
     
-    double Tl = 30.0; // MeV
+    double Tl = 10.0; // MeV
         
     // Get the on-shell momenta and reduced mass
     LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-
+    std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_1S0_nogrid  = Pot_1S0_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
     
+
+    std::cout << "Solving exact" << std::endl;
+    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_1S0_nogrid);
+
+    std::cout << "T (exact) = " << tt[3] << std::endl;
+    std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt[3]),2) << std::endl;
+
     std::cout << "Making potential complex" << std::endl;
     gsl_matrix_complex* V_1S0_z  = gsl_matrix_complex_alloc(V_1S0->size1,V_1S0->size2);
     ph::make_matrix_complex(V_1S0_z,V_1S0);
@@ -345,8 +357,9 @@ void dwba::make_tests(std::string chn_string)
     
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
     matrix_from_vector(G0,prop_vec);
-
-    for (int ord = 0; ord < 1; ord++)
+ 
+    //dress_in_weights(G0,p_grid,w_grid,number_of_p_points);
+    for (int ord = 0; ord < 3; ord++)
     {
         gsl_matrix_complex* T_ba = dwba::pw_T_BA((int)0,ord,V_1S0_z,G0);
         gsl_complex onT = gsl_matrix_complex_get(T_ba,number_of_p_points,number_of_p_points);
@@ -364,7 +377,10 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_complex_free(G0);
     gsl_vector_complex_free(prop_vec);
     gsl_matrix_free(V_1S0);
+
+    std::cout << M_PI << std::endl;
 }
+
 
 
 /*
