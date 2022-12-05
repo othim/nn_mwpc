@@ -95,6 +95,7 @@ gsl_matrix_complex* full_BA_T_matrix();
 gsl_matrix_complex* full_DWBA_T_matrix();
 
 void make_tests(std::string chn_string);
+
 }
 
 /*

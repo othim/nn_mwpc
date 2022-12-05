@@ -4,13 +4,14 @@
 
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
-
+#include "pybind11/complex.h"
+    
 namespace py = pybind11;
 
 PYBIND11_MODULE(nn_mwpc, m) 
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,bool>())
+        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,bool,bool,bool>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
         .def("solve_LS_ext_pot", &nn_mwpc_interface::solve_LS_ext_pot,
@@ -22,6 +23,8 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("compute_observable_l", &nn_mwpc_interface::compute_observable_l,
                 py::return_value_policy::copy)
         .def("compute_phase_shift",&nn_mwpc_interface::compute_phase_shift,
+                py::return_value_policy::copy)
+        .def("compute_T_on_shell",&nn_mwpc_interface::compute_T_on_shell,
                 py::return_value_policy::copy)
         .def("compute_binding_energy",&nn_mwpc_interface::compute_binding_energy,
                 py::return_value_policy::copy)
@@ -52,7 +55,8 @@ PYBIND11_MODULE(nn_mwpc, m)
 nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name, 
         int J_max_chn, double cutoff, int cut_pow, 
         bool sharp_cutoff, bool pre_comp_pot, bool rel_corr,
-        int number_of_p_points,bool finite_grid)
+        int number_of_p_points,bool finite_grid,bool inc_weights_in_pot,
+        bool cut_on_shell)
 {
 
     // ------ CONSTANTS TO CHANGE ------
@@ -68,6 +72,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     rel_corr_ = rel_corr;
     finite_grid_ = finite_grid;
     finite_grid_max_ = 0.0;
+    inc_weights_in_pot_ = inc_weights_in_pot;
+    cut_on_shell_ = cut_on_shell;
     
     // For the quantum states
     int J_max = J_max_chn;
@@ -241,6 +247,43 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         
         // Can't precompute this potential (which is kind of stupid...)
         // Construct the LS_Solver
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+    } else if ("Yamaguchi_1S0" == model_name)
+    {
+
+        // Construct the quantum states and quantum channels
+        std::vector<qs::quantum_NN_state> states = get_states_NN(0, 0, 
+                0, 0, print);
+         
+        // Construct the quantum scattering channels from the states
+        chns_ = get_channels(states, print);   
+        
+        chns_.erase(chns_.begin() + 1);
+        std::cout << "Channels in this (Yamaguchi_1S0) potential: " << std::endl;
+        for (auto& chn : chns_) 
+        {
+            std::cout << quantum_channel_to_string(chn) << std::endl;
+        }
+        // Choose terms in potential
+        std::vector<std::string> terms;
+        terms.push_back("Yamaguchi_1S0");
+
+        // Construct potential
+        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_,
+                inc_weights_in_pot_,cut_on_shell_);
+        Pot_ext_ = nullptr;
+
+        if (pre_comp_pot_)
+        {
+            // Save potential in 1S0
+            for (auto chn : chns_)
+            {
+                Pot_->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
+            }
+        }
+
+        // Construct LS Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
     } else
     {
@@ -608,6 +651,44 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
         }
     }
     return phases_vec;
+}
+
+std::vector<std::complex<double>> nn_mwpc_interface::compute_T_on_shell(
+            int chn_number, double T_lab, std::vector<double> LECs)
+{
+    int i = 0;
+    for (auto& it: Pot_->LECs_in_use_)
+    {
+         Pot_->LECs_[it] = LECs[i++];
+    }
+
+    qs::quantum_channel chn = chns_[0]; // Just to have it initialized
+    
+    if (chn_number < (int)chns_.size())
+    {
+        chn = chns_[chn_number];
+    } else 
+    {
+        std::cout << "Error: chn_number out of range" << std::endl;
+    }
+
+    double mu, q_on_shell;
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+        
+    gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+
+    std::complex<double>* telem = LS_Solver_->solve_in_chn_T_Telem(T_lab,chn,pot_V_mtx);
+        
+    gsl_matrix_free(pot_V_mtx);
+    std::vector<std::complex<double>> T_elem_vec;
+    for (int i=0; i < 4;i++)
+    {
+        T_elem_vec.push_back(telem[i]);
+    }
+    delete[] telem;
+
+    return T_elem_vec;
+
 }
 
 double nn_mwpc_interface::get_on_shell_momentum(double T_lab)

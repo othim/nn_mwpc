@@ -114,7 +114,8 @@ obs: $(NN_MWPC_FILES)
 	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
 FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
-		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o
+		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
+		   born_approx.o
 
 so: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 

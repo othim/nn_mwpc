@@ -61,6 +61,8 @@ private:
     int cut_pow_;
     bool sharp_cutoff_;
     bool pre_comp_pot_;
+    bool inc_weights_in_pot_;
+    bool cut_on_shell_;
     double* p_grid_;
     double* w_grid_;
 
@@ -85,7 +87,8 @@ public:
      */
     nn_mwpc_interface(const std::string& model_name, int J_max_chn, 
             double cutoff, int cut_pow, bool sharp_cutoff, bool pre_comp_pot, 
-            bool rel_corr, int number_of_p_points, bool finite_grid);
+            bool rel_corr, int number_of_p_points, bool finite_grid,
+            bool inc_weights_in_pot_ = false, bool cut_on_shell = true);
     ~nn_mwpc_interface();
     
     /*
@@ -147,6 +150,12 @@ public:
      */
     std::vector<double> compute_binding_energy( 
             int chn_number, std::vector<double> LECs);
+
+    /*
+     * This function computes the T-matrix elements.
+     */
+    std::vector<std::complex<double>> compute_T_on_shell(
+            int chn_number, double T_lab, std::vector<double> LECs);
 
     /*
      * This function returns the wave function of the ground state. In case of
