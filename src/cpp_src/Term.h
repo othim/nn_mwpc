@@ -58,6 +58,7 @@ public:
     static double mom_C3P0(double qi, double qo, std::unordered_map<std::string,double>& LECs);
     static double mom_C3P2(double qi, double qo, std::unordered_map<std::string,double>& LECs);
     static double mom_C3D2(double qi, double qo, std::unordered_map<std::string,double>& LECs);
+    static double mom_Yamaguchi_1S0(double qi, double qo, std::unordered_map<std::string,double>& LECs);
 
 };
 

@@ -73,6 +73,18 @@ Term::Term(std::string name)
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_C3D2;
         lecs_in_term_.push_back("C3D2");
+    } else if (name == "Yamaguchi_1S0")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 0;
+        LS_well_def_pw_.S = 0;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_Yamaguchi_1S0;
+        lecs_in_term_.push_back("Yamaguchi_1S0");
     } else 
     {
         std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;
@@ -174,4 +186,12 @@ double Term::mom_C3P2(double qi, double qo, std::unordered_map<std::string,doubl
 double Term::mom_C3D2(double qi, double qo, std::unordered_map<std::string,double>& LECs)
 {
     return LECs["C3D2"]*qi*qi*qo*qo; // If momentum dependent, multiply here
+}
+double Term::mom_Yamaguchi_1S0(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+{
+    double beta   = 20.0; // MeV
+    double lambda = LECs["Yamaguchi_1S0"];
+
+    return -lambda*(1.0/(qi*qi + beta*beta))*(1.0/(qo*qo + beta*beta));
+
 }

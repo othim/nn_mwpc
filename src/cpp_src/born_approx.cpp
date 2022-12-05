@@ -205,7 +205,7 @@ void dwba::make_tests(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 10000; // Number of momentum-grid points
+    unsigned int number_of_p_points = 100; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     bool REL_CORR = false;
     bool CUT_ON_SHELL = true;
@@ -282,6 +282,13 @@ void dwba::make_tests(std::string chn_string)
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
     Potential_mwpc Pot_1S0_nogrid = Potential_mwpc(terms_1S0,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
+    
+    std::vector<std::string> terms_Yam;
+    terms_Yam.push_back("Yamaguchi_1S0");
+    
+    Potential_mwpc Pot_Yam_nogrid = Potential_mwpc(terms_Yam,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
+    
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
     {
@@ -310,6 +317,8 @@ void dwba::make_tests(std::string chn_string)
     Pot_1S0.LECs_["C1S0"] = C1S0;
     Pot_1S0_nogrid.LECs_["C1S0"] = C1S0;
     
+    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = 100.0;
+
     // Solve for the T-matrix
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
@@ -331,21 +340,34 @@ void dwba::make_tests(std::string chn_string)
     std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
     // Solve the distorted wave problem
     
-    double Tl = 10.0; // MeV
+    double Tl = 1.0; // MeV
         
     // Get the on-shell momenta and reduced mass
     LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
     gsl_matrix* V_1S0_nogrid  = Pot_1S0_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_matrix(q_on_shell, chn, REL_CORR);
     
+    
+    std::vector<std::string> LECs = Pot_Yam_nogrid.LECs_in_use_;
+    for (auto s : LECs){
+        std::cout << s << std::endl;
+    }
 
-    std::cout << "Solving exact" << std::endl;
+
+    std::cout << "Solving exact Yamaguchi" << std::endl;
+    std::complex<double>* ttt = solver.solve_in_chn_T_Telem(Tl,chn,V_Yam_nogrid);
+    std::cout << "T (exact) = " << ttt[3] << std::endl;
+    std::cout << "|T|^2 (exact) = " << std::pow(std::abs(ttt[3]),2) << std::endl << std::endl;
+
+
+    std::cout << "Solving exact 1S0" << std::endl;
     std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_1S0_nogrid);
-
     std::cout << "T (exact) = " << tt[3] << std::endl;
     std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt[3]),2) << std::endl;
 
+    
     std::cout << "Making potential complex" << std::endl;
     gsl_matrix_complex* V_1S0_z  = gsl_matrix_complex_alloc(V_1S0->size1,V_1S0->size2);
     ph::make_matrix_complex(V_1S0_z,V_1S0);
