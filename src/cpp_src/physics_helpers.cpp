@@ -342,6 +342,15 @@ void ph::on_shell_mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2,
     gsl_blas_zgeru(minus_one, v1,v2, res);
 }
 
+void ph::mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* res)
+{
+    // Multiply as usual
+    gsl_complex alpha = gsl_complex_rect(1,0);
+    gsl_complex beta = gsl_complex_rect(0,0);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, m1,m2,beta,res);
+}
+
 void ph::on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res)
 {

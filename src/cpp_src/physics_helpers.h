@@ -125,7 +125,11 @@ void print_v_complex(gsl_vector_complex* vec);
  */
 void on_shell_mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res);
-
+/*
+ * Ordinary matrix multiplization
+ */
+void mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* res);
 /*
  * This is the brute force version of the 'ph::on_shell_mult()' function
  */
