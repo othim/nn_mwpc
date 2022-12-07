@@ -251,7 +251,7 @@ void dwba::make_tests(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 100; // Number of momentum-grid points
+    unsigned int number_of_p_points = 1000; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     bool REL_CORR = false;
     bool CUT_ON_SHELL = true;
@@ -265,8 +265,8 @@ void dwba::make_tests(std::string chn_string)
     int cut_pow = 10000000;
     double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
     
-    double Lambda = 100000.0;
-    bool FINITE_GRID = false;
+    double Lambda = 450.0;
+    bool FINITE_GRID = true;
     
     double Tl = 1.0; // MeV
     // ---------------------------------
@@ -371,7 +371,7 @@ void dwba::make_tests(std::string chn_string)
     
     std::cout << "Solving exact 1S0" << std::endl;
     std::cout << "-----------------" << std::endl;
-    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_Yam_nogrid);
+    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_1S0_nogrid);
     std::cout << "T (exact) = " << tt[3] << std::endl;
     std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt[3]),2) << std::endl;
     std::cout << "-----------------" << std::endl;
@@ -381,8 +381,8 @@ void dwba::make_tests(std::string chn_string)
     ph::make_matrix_complex(V_1S0_z,V_1S0);
     
     
-    V_1S0  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    ph::make_matrix_complex(V_1S0_z,V_1S0);
+    //V_1S0  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    //ph::make_matrix_complex(V_1S0_z,V_1S0);
     
     // Get the propagator matrix
     std::cout << "Computing the propagator" << std::endl;
@@ -395,14 +395,26 @@ void dwba::make_tests(std::string chn_string)
     matrix_from_vector(G0,prop_vec);
  
     
-    for (int ord = 0; ord < 10; ord++)
+    std::ofstream myfile;
+    //std::string DATA_DIR = "~/Documents/phd/projects/dwb/data/";
+    std::string DATA_DIR = "../../../projects/dwb/data/";
+    std::string filename = DATA_DIR +"born_approx.txt"; 
+    myfile.open(filename);
+    myfile << "Np =" << number_of_p_points << std::endl;
+    myfile << "Order, |T|^2" << std::endl;
+    for (int ord = 0; ord < 11; ord++)
     {
         gsl_matrix_complex* T_ba = dwba::pw_T_BA((int)0,ord,V_1S0_z,G0);
         gsl_complex onT = gsl_matrix_complex_get(T_ba,number_of_p_points,number_of_p_points);
         std::cout << "order=" << ord << ", in BA" << std::endl; 
         std::cout << "T= " << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
-        std::cout <<"|T|^2 = " <<  std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2) << std::endl << std::endl;
+        double T2 = std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2);
+        std::cout <<"|T|^2 = " <<  T2 << std::endl << std::endl;
+        
+        // Write to file in format order, |T|^2
+        myfile << ord << "   " << T2 << std::endl;
     }
+    myfile.close();
 
     gsl_matrix_complex_free(V_1S0_z);
     gsl_matrix_complex_free(G0);

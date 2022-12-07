@@ -18,6 +18,7 @@
 #include <vector>
 #include <complex>
 #include <iomanip>
+#include <fstream>
 #include <iostream>
 #include "gsl_matrix.h"
 #include "gsl_blas.h"
