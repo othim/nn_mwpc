@@ -15,22 +15,29 @@ void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
 
 void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec);
 
+void pow_matrix_mult(gsl_matrix_complex* m,int pow,gsl_matrix_complex* res);
+
 gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* V, 
         gsl_matrix_complex* G0)
 {
-    std::cout << "V:" << std::endl;
-    ph::print_m_complex(V);
+    bool print = false;
+    if (print)
+    {
+        std::cout << "V:" << std::endl;
+        ph::print_m_complex(V);
     
-    std::cout << "G0:" << std::endl;
-    ph::print_m_complex(G0);
-    
+        std::cout << "G0:" << std::endl;
+        ph::print_m_complex(G0);
+    }
     gsl_matrix_complex* G0V = gsl_matrix_complex_alloc(V->size1,V->size2);
+    ph::mult(G0,V,G0V);
+    
+    if (print)
+    {
+        std::cout << "G0V:" << std::endl;
+        ph::print_m_complex(G0V);
+    }
 
-    ph::on_shell_mult(G0,V,G0V);
-    
-    std::cout << "G0V:" << std::endl;
-    ph::print_m_complex(G0V);
-    
     gsl_matrix_complex* tmp1 = gsl_matrix_complex_alloc(V->size1,V->size2);
     gsl_matrix_complex* tmp2 = gsl_matrix_complex_alloc(V->size1,V->size2);
     gsl_matrix_complex* res = gsl_matrix_complex_alloc(V->size1,V->size2);
@@ -45,15 +52,15 @@ gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_com
             gsl_matrix_complex_add(res,V);
         } else
         {
-            pow_matrix_on_shell_mult(G0V,i,tmp1);
+            pow_matrix_mult(G0V,i,tmp1);
             
-            std::cout << "(G0V)^i:" << std::endl;
-            ph::print_m_complex(tmp1);
+            //std::cout << "(G0V)^i:" << std::endl;
+            //ph::print_m_complex(tmp1);
             
-            ph::on_shell_mult(V,tmp1,tmp2);
+            ph::mult(V,tmp1,tmp2);
             
-            std::cout << "CGV:" << std::endl;
-            ph::print_m_complex(tmp2);
+            //std::cout << "CGV:" << std::endl;
+            //ph::print_m_complex(tmp2);
             // Add to the result
             gsl_matrix_complex_add(res,tmp2);
             
@@ -180,7 +187,7 @@ void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* 
         gsl_matrix_complex_set_identity(tmp);
         
         gsl_matrix_complex_memcpy(res,M);
-        for (int i = 0; i < pow; i++)
+        for (int i = 0; i < pow-1; i++)
         {
             ph::on_shell_mult(res,M,tmp);
             gsl_matrix_complex_memcpy(res,tmp);
@@ -191,6 +198,33 @@ void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* 
     }
 }
 
+void pow_matrix_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* res)
+{
+    if (pow==0)
+    {
+        gsl_matrix_complex_set_identity(res);
+        return;
+    } else if (pow==1)
+    {
+        gsl_matrix_complex_memcpy(res,M);
+        return;
+    } 
+    else 
+    {
+        gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(M->size1,M->size2);
+        gsl_matrix_complex_set_identity(tmp);
+        
+        gsl_matrix_complex_memcpy(res,M);
+        for (int i = 0; i < pow-1; i++)
+        {
+            ph::mult(res,M,tmp);
+            gsl_matrix_complex_memcpy(res,tmp);
+
+        }
+        gsl_matrix_complex_free(tmp);
+        return;
+    }
+}
 
 void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
         gsl_matrix_complex* M,gsl_matrix_complex* res)
@@ -217,7 +251,7 @@ void dwba::make_tests(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 4; // Number of momentum-grid points
+    unsigned int number_of_p_points = 100; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     bool REL_CORR = false;
     bool CUT_ON_SHELL = true;
@@ -231,8 +265,8 @@ void dwba::make_tests(std::string chn_string)
     int cut_pow = 10000000;
     double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
     
-    double Lambda = 450.0;
-    bool FINITE_GRID = true;
+    double Lambda = 100000.0;
+    bool FINITE_GRID = false;
     
     double Tl = 1.0; // MeV
     // ---------------------------------
@@ -281,16 +315,29 @@ void dwba::make_tests(std::string chn_string)
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     
     
+    std::vector<std::string> terms;
+    terms.push_back("Yamaguchi_1S0");
+    Potential_mwpc Pot_Yam = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
+    
+    Potential_mwpc Pot_Yam_nogrid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
+    
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
     {
         Pot_1S0.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
         Pot_1S0_nogrid.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+        Pot_Yam.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+        Pot_Yam_nogrid.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
     }
 
     
     Pot_1S0.LECs_["C1S0"] = C1S0;
     Pot_1S0_nogrid.LECs_["C1S0"] = C1S0;
+
+    Pot_Yam.LECs_["Yamaguchi_1S0"] = 100.0;
+    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = 100.0;
     
     // Solve for the T-matrix
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
@@ -319,11 +366,12 @@ void dwba::make_tests(std::string chn_string)
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
     gsl_matrix* V_1S0_nogrid  = Pot_1S0_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
     
     
     std::cout << "Solving exact 1S0" << std::endl;
     std::cout << "-----------------" << std::endl;
-    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_1S0_nogrid);
+    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_Yam_nogrid);
     std::cout << "T (exact) = " << tt[3] << std::endl;
     std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt[3]),2) << std::endl;
     std::cout << "-----------------" << std::endl;
@@ -332,9 +380,13 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_complex* V_1S0_z  = gsl_matrix_complex_alloc(V_1S0->size1,V_1S0->size2);
     ph::make_matrix_complex(V_1S0_z,V_1S0);
     
+    
+    V_1S0  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    ph::make_matrix_complex(V_1S0_z,V_1S0);
+    
     // Get the propagator matrix
     std::cout << "Computing the propagator" << std::endl;
-    gsl_vector_complex* prop_vec = solver.setup_D_vector_complex(q_on_shell,
+    gsl_vector_complex* prop_vec = solver.setup_G0_vector_complex(q_on_shell,
             chn.coupled,mu);
     
     std::cout << "-----------------" << std::endl;
@@ -342,10 +394,8 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
     matrix_from_vector(G0,prop_vec);
  
-    std::cout << "G0:" << std::endl;
-    ph::print_m_complex(G0);
-    //dress_in_weights(G0,p_grid,w_grid,number_of_p_points);
-    for (int ord = 0; ord < 2; ord++)
+    
+    for (int ord = 0; ord < 10; ord++)
     {
         gsl_matrix_complex* T_ba = dwba::pw_T_BA((int)0,ord,V_1S0_z,G0);
         gsl_complex onT = gsl_matrix_complex_get(T_ba,number_of_p_points,number_of_p_points);
