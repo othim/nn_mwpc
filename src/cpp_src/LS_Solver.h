@@ -71,6 +71,13 @@ public:
 
     gsl_vector_complex* setup_D_vector_complex(double q_on_shell, bool coupled, 
             double mu);
+    /*
+     * This function is the same as the above with the difference that the weight
+     * and momentum is not included.
+     */
+    gsl_vector_complex* setup_G0_vector_complex(double q_on_shell, bool coupled, 
+            double mu);
+
     gsl_matrix_complex* setup_F_matrix_complex(bool coupled, 
             gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
     Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, 

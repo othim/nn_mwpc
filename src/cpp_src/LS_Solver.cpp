@@ -639,6 +639,81 @@ gsl_vector_complex* LS_Solver::setup_D_vector_complex(double q_on_shell, bool co
     return D_vector;
 }
 
+gsl_vector_complex* LS_Solver::setup_G0_vector_complex(double q_on_shell, bool coupled, double mu)
+{
+    // See eq (18.19) in Landau
+    #ifdef ENABLE_DEBUG
+        std::cerr << "setup_D_vector_complex()" << std::endl;
+    #endif
+
+    // This is the factor in front of the LS equation.
+    // In some cases it is 2/pi when that is a factor in
+    // the partial wave momentum base normalization.
+    // For now, the code is written without this factor, it will affect the 
+    // rho value when raltiong the T/R matrix to the S-matrix/phase-shifts.
+    gsl_vector_complex* D_vector;
+    double q2_on_shell = q_on_shell*q_on_shell;
+
+    if (coupled)
+    {
+        // If the channel is coupled D is of length 
+        // 2*mom_grid_size_ + 2
+        D_vector = gsl_vector_complex_alloc(2*mom_grid_size_ + 2);
+    } else 
+    {
+        D_vector = gsl_vector_complex_alloc(mom_grid_size_ + 1);
+    }
+
+    for (int i = 0; i < (int)mom_grid_size_; i++)
+    {
+        double p2 = p_grid_[i]*p_grid_[i];
+        double el = (2.0*mu)/(q2_on_shell-p2); // NO CUTOFF
+        
+        gsl_complex comp_el = gsl_complex_rect(el,0.0);
+        if (coupled)
+        {
+            gsl_vector_complex_set(D_vector,i,comp_el);
+            gsl_vector_complex_set(D_vector,i+ mom_grid_size_+1,comp_el);       
+        } else
+        {
+            gsl_vector_complex_set(D_vector,i,comp_el);
+        }
+    }
+
+    // Add the last element. The first part is the same as in the non-complex case.
+    double sum = 0;
+    for (int i=0; i < (int)mom_grid_size_; i++)
+    {
+        double p2 = p_grid_[i]*p_grid_[i];
+        sum += w_grid_[i]/(q2_on_shell-p2);
+    }
+    // This is the counterterm that comes fromt that the integral is not computed
+    // to infinity for a finite grid. This part compenstates for this by
+    // adding the last part of the integral analytically.
+    if (finite_grid_)
+    {
+        double counterterm = -std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
+        sum += counterterm;
+    }
+    
+    
+    double re_el = -2.0*mu*q2_on_shell*sum;
+
+    double im_el = -M_PI*mu*q_on_shell;
+
+    gsl_complex comp_el = gsl_complex_rect(re_el,im_el);
+
+    if (coupled)
+    {
+        gsl_vector_complex_set(D_vector,mom_grid_size_,comp_el);
+        gsl_vector_complex_set(D_vector,2*mom_grid_size_+1,comp_el);
+    } else
+    {
+        gsl_vector_complex_set(D_vector,mom_grid_size_,comp_el);
+    }
+    return D_vector;
+}
+
 gsl_matrix_complex* LS_Solver::setup_F_matrix_complex(bool coupled, gsl_vector_complex* D_vector, gsl_matrix* V_mtx)
 {
     #ifdef ENABLE_DEBUG
