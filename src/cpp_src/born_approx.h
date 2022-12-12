@@ -38,16 +38,18 @@ namespace dwba
  * stop_order : is the highest order that is included, this is included
  * e.g. start_order=1,stop_order=2 returns (V*G0*V + V*G0*V*G0*V)
  * V    : is the potential matrix
- * G0   : is the free greens function
+ * G0   : is the free Greens function
  *
  * V and G0 has to be in the form that the momentum gid weights and momenta
  * are included in the definition of the potential and propagator to make 
- * the resoultion of identity integrals to be just matrix multiplications
- * with the <star> matrix operation that I have defined.
+ * the resoultion of identity integrals to be just ordinary matrix 
+ * multiplications.
  *
- * order=0: T = V
- * order=1: T = V + V*G0*V
- * order=2: T = V + V*G0*V + V*G0*V*G0*V
+ * start_order = 0,
+ *
+ * stop_order=0: T = V
+ * stop_order=1: T = V + V*G0*V
+ * stop_order=2: T = V + V*G0*V + V*G0*V*G0*V
  * ...
  */
 
@@ -67,13 +69,17 @@ gsl_matrix_complex* pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* 
  * G0   : is the free Greens function
  *
  * V_I, V_II and G0 has to be in the same form as accepted into 
- * 'dwba::pw_compute_BA()'.
+ * 'dwba::pw_compute_BA()' i.e. including the momentum space factors and 
+ * weights.
  *
- * Define A = T_I*V^{-1}_I, B = V_II*V^{-1}_I*T_I.
  *
  * order=0: returns T_I
- * order=1: returns T_I + A*B
- * order=2: returns T_I + A*B + A*B*G0*B
+ * order=1: returns T_I + Omega^dagger_- V_II Omega_+
+ * order=2: returns T_I + Omega^dagger_- (V_II + V_II*G1*V_II) Omega_+ 
+ * ...
+ *
+ * where G1 is the full greens function, related to the free Greens function as
+ * G1 = G0 + G0*T_I*G0
  */
 
 gsl_matrix_complex* pw_T_DWBA(int order, gsl_matrix_complex* T_I, 
@@ -96,6 +102,7 @@ gsl_matrix_complex* full_BA_T_matrix();
 gsl_matrix_complex* full_DWBA_T_matrix();
 
 void make_tests(std::string chn_string);
+void make_tests_DWBA(std::string chn_string);
 
 }
 

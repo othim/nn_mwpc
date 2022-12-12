@@ -59,6 +59,7 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         double scale,unsigned int ang_int_points, 
         unsigned int J_max_in_pot, bool print_all);
 void check_born(std::string chn_string);
+void check_DWBA(std::string chn_string);
 
 void test_f()
 {
@@ -179,8 +180,9 @@ int main(int argc, char** argv)
         check_T_matrix(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
     } else if (std::string(argv[1]) == "BA") {
         check_born(std::string(argv[2]));
+    } else if (std::string(argv[1]) == "DWBA") {
+        check_DWBA(std::string(argv[2]));
     }
-    
     ph::physics_helpers_free();
     return 0;
 }
@@ -1690,4 +1692,8 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
 void check_born(std::string chn_string)
 {
     dwba::make_tests(chn_string);
+}
+void check_DWBA(std::string chn_string)
+{
+    dwba::make_tests_DWBA(chn_string);
 }

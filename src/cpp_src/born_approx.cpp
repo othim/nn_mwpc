@@ -84,40 +84,47 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
     // If the order is trivial
     if (order==0) 
     {
-        return T_I;
+        gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
+        gsl_matrix_complex_memcpy(tmp,T_I);
+        return tmp;
     }
     // Get the Möller wave operators
     gsl_matrix_complex* omega_p = dwba::pw_moller_plus(T_I, G0);
     gsl_matrix_complex* omega_m_dagger = dwba::pw_moller_minus_dagger(T_I, G0);
     
     
-    // Allocate the modified matrix
-    gsl_matrix_complex* omega_p_G0 = gsl_matrix_complex_alloc(T_I->size1,
+    // Allocate the G1 matrix
+    gsl_matrix_complex* G1 = gsl_matrix_complex_alloc(T_I->size1,
             T_I->size2);
         
-    ph::on_shell_mult(omega_p,G0,omega_p_G0);
+    ph::mult(omega_p,G0,G1);
 
-    // Perform the sum with the help of the Born approx code
-    int start = 1;
+    // Perform the sum with the help of the Born approx code. start = 1
+    // is used to not get the V -- term.
     
-    gsl_matrix_complex* VGV = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
-    VGV = pw_T_BA(start,order,V_II,omega_p_G0);
+    gsl_matrix_complex* VGV_sum = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
+
+    // Call the BA code with the V_II potential ans the full propagator
+    // to compute V_II + V_II*G1*V_II + ...
+    int start = 0;
+    int stop = order-1;
+    VGV_sum = pw_T_BA(start,stop,V_II,G1);
     
     // Multiply the VGVGV...V sum with the Möller operators from left and right
     // This is what I call F(...) in the notes
     
     gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
-    F(omega_p,omega_m_dagger,VGV,tmp);
+    F(omega_p,omega_m_dagger,VGV_sum,tmp);
 
     // Add the result to the leading order T_I matrix
     // T = T_I + tmp
     gsl_matrix_complex_add(tmp,T_I); // tmp <- tmp + T_I
 
     // Remove all temporary matrices
-    gsl_matrix_complex_free(omega_p_G0);
+    gsl_matrix_complex_free(G1);
     gsl_matrix_complex_free(omega_p);
     gsl_matrix_complex_free(omega_m_dagger);
-    gsl_matrix_complex_free(VGV);
+    gsl_matrix_complex_free(VGV_sum);
 
     return tmp;
 }
@@ -133,7 +140,7 @@ gsl_matrix_complex* dwba::pw_moller_plus(gsl_matrix_complex* T_I,
     
     // Multiply G0*T
     gsl_matrix_complex* omega_p = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
-    ph::on_shell_mult(G0,T_I,omega_p);
+    ph::mult(G0,T_I,omega_p);
     
     // Add them
     gsl_matrix_complex_add(omega_p,id);
@@ -154,7 +161,7 @@ gsl_matrix_complex* dwba::pw_moller_minus_dagger(gsl_matrix_complex* T_I,
     
     // Multiply G0*T
     gsl_matrix_complex* omega_p = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
-    ph::on_shell_mult(T_I,G0,omega_p);
+    ph::mult(T_I,G0,omega_p);
     
     // Add them
     gsl_matrix_complex_add(omega_p,id);
@@ -232,9 +239,9 @@ void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
     gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(M->size1,M->size2);
 
     // left
-    ph::on_shell_mult(omega_m_dagger,M,tmp);
+    ph::mult(omega_m_dagger,M,tmp);
     // right
-    ph::on_shell_mult(tmp,omega_p,res);
+    ph::mult(tmp,omega_p,res);
 
     gsl_matrix_complex_free(tmp);   
 }
@@ -423,6 +430,190 @@ void dwba::make_tests(std::string chn_string)
 }
 
 
+void dwba::make_tests_DWBA(std::string chn_string)
+{
+
+    std::cout << "Testing the Born and DW Born approximation" << std::endl;
+    
+
+    // ------ CONSTANTS TO CHANGE ------
+    // ---------------------------------
+    double scale = 100.0; // Scale of momenutm grid MeV
+    unsigned int ang_int_points = 76; // Number of points in angular integration
+    unsigned int number_of_p_points = 100; // Number of momentum-grid points
+    unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
+    bool REL_CORR = false;
+    bool CUT_ON_SHELL = true;
+    
+    int J_max = 2;
+    int J_min = 0;
+    int Tz_min = 0;
+    int Tz_max = 0;
+    bool print = false;
+    
+    int cut_pow = 10000000;
+    double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    
+    double Lambda = 1000000.0;
+    bool FINITE_GRID = false;
+    
+    double Tl = 1.0; // MeV
+    
+    double lam   = 3000.0;
+    double lam_t = -10000.0;
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Do precomputations
+    ph::physics_helpers_init();
+    // ---------------   
+    
+    // Construct the quantum states
+    std::cout << "Constructing quantum states..." << std::endl;
+    std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
+     
+    // Construct the quantum scattering channels from the states
+    std::cout << "Contruction scattering channels..." << std::endl;
+    std::vector<qs::quantum_channel> chns = get_channels(states, print);   
+    
+    // ---------------------------------
+    // ---------------------------------
+    
+    /*
+     * Construct the momentum grid
+     */
+    double* p_grid;
+    double* w_grid;
+    if (FINITE_GRID)
+    {
+        ph::gauss_legendre_finite_mesh(number_of_p_points,0,
+                Lambda + 300.0,&p_grid,&w_grid);
+    } else 
+    {
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    }
+
+    /*
+     * Construct the potential
+     */
+    
+    
+    std::vector<std::string> terms;
+    terms.push_back("Yamaguchi_1S0");
+    Potential_mwpc Pot_Yam = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
+    
+    Potential_mwpc Pot_Yam_nogrid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    for (auto chn : chns)
+    {
+        Pot_Yam.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+        Pot_Yam_nogrid.populate_saved_mtx(chn,REL_CORR); // Realtivistic factor on
+    }
+    
+    // Solve for the T-matrix
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+   
+    double q_on_shell;
+    double mu;
+    //double rho_T
+    qs::quantum_channel chn = chns[0];
+
+    // Get the channel
+    for (int i = 0; i < (int)chns.size(); i++)
+    {
+        chn = chns[i];
+        if (quantum_channel_to_string(chn) == chn_string) {
+            break;
+        }
+    }
+
+    // Print 
+    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
+    // Solve the distorted wave problem
+    
+        
+    // Get the on-shell momenta and reduced mass
+    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
+    
+    
+    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam + lam_t;
+    gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    //ph::print_m(V_Yam_nogrid);
+    
+    std::cout << "Solving exact 1S0" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_Yam_nogrid);
+    //gsl_matrix_free(V_Yam_nogrid);
+    std::cout << "T (exact) = " << tt[3] << std::endl;
+    std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt[3]),2) << std::endl;
+    std::cout << "-----------------" << std::endl;
+    
+    std::cout << "Making potential complex" << std::endl;
+    gsl_matrix_complex* V_1S0_I  = gsl_matrix_complex_alloc(V_Yam_nogrid->size1,V_Yam_nogrid->size2);
+    gsl_matrix_complex* V_1S0_II  = gsl_matrix_complex_alloc(V_Yam_nogrid->size1,V_Yam_nogrid->size2);
+    
+    Pot_Yam.LECs_["Yamaguchi_1S0"] = lam_t;
+    gsl_matrix* V_Yam_I  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    //ph::print_m(V_Yam_I);
+    ph::make_matrix_complex(V_1S0_I,V_Yam_I);
+    
+    Pot_Yam.LECs_["Yamaguchi_1S0"] = lam;
+    gsl_matrix* V_Yam_II  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    ph::make_matrix_complex(V_1S0_II,V_Yam_II);
+    
+    // Get the propagator matrix
+    std::cout << "Computing the propagator" << std::endl;
+    gsl_vector_complex* prop_vec = solver.setup_G0_vector_complex(q_on_shell,
+            chn.coupled,mu);
+    
+    std::cout << "-----------------" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    matrix_from_vector(G0,prop_vec);
+ 
+    
+    std::ofstream myfile;
+    //std::string DATA_DIR = "~/Documents/phd/projects/dwb/data/";
+    std::string DATA_DIR = "../../../projects/dwb/data/";
+    std::string filename = DATA_DIR +"DWBA"+std::to_string((int)number_of_p_points)+ ".txt"; 
+    myfile.open(filename);
+    myfile << "Np =" << number_of_p_points << std::endl;
+    myfile << "Order, |T|^2" << std::endl;
+    for (int ord = 0; ord < 11; ord++)
+    {
+        Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam_t;
+        gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
+        gsl_matrix_complex* T_I = solver.solve_in_chn_T_fullT(Tl,chn,V_Yam_nogrid);
+
+        gsl_matrix_complex* T_DWBA = dwba::pw_T_DWBA(ord,T_I,V_1S0_I,V_1S0_II,G0);
+        gsl_complex onT = gsl_matrix_complex_get(T_DWBA,number_of_p_points,number_of_p_points);
+        
+        gsl_matrix_complex_free(T_I);
+        // Something is wrong with this memory...
+        gsl_matrix_complex_free(T_DWBA); 
+        gsl_matrix_free(V_Yam_nogrid);
+
+        std::cout << "order=" << ord << ", in DWBA" << std::endl; 
+        std::cout << "T= " << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
+        double T2 = std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2);
+        std::cout <<"|T|^2 = " <<  T2 << std::endl << std::endl;
+        
+        // Write to file in format order, |T|^2
+        myfile << ord << "   " << T2 << std::endl;
+    }
+    myfile.close();
+
+    gsl_matrix_complex_free(V_1S0_I);
+    gsl_matrix_complex_free(V_1S0_II);
+    gsl_matrix_complex_free(G0);
+    gsl_vector_complex_free(prop_vec);
+    gsl_matrix_free(V_Yam_I);
+    gsl_matrix_free(V_Yam_II);
+}
 
 /*
  * This function adds the weights and momenta to the matrix M
