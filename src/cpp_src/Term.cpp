@@ -192,6 +192,6 @@ double Term::mom_Yamaguchi_1S0(double qi, double qo, std::unordered_map<std::str
     double beta   = 20.0; // MeV
     double lambda = LECs["Yamaguchi_1S0"];
 
-    return -lambda*(1.0/(qi*qi + beta*beta))*(1.0/(qo*qo + beta*beta));
+    return lambda*(1.0/(qi*qi + beta*beta))*(1.0/(qo*qo + beta*beta));
 
 }
