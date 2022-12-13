@@ -2,7 +2,7 @@
     born_approx.h
     This file is part of the nn_mwpc project.
     
-    This header contains functions to compute amplitude od scattering 
+    This header contains functions to compute amplitude of scattering 
     processes in Born- and distorted-wave Born approximation.
 
     Oliver Thim 2022-09 --
@@ -27,7 +27,6 @@
 #include "pot_nn_mwpc.h"
 #include "LS_Solver.h"
 #include <string>
-
 namespace dwba 
 {
  

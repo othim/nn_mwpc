@@ -96,20 +96,22 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
     // Allocate the G1 matrix
     gsl_matrix_complex* G1 = gsl_matrix_complex_alloc(T_I->size1,
             T_I->size2);
-        
-    ph::mult(omega_p,G0,G1);
-
-    // Perform the sum with the help of the Born approx code. start = 1
-    // is used to not get the V -- term.
     
+    // G1 = G0 + G0*T_I*G0 = (1 + G0*T_I)*G0
+    ph::mult(omega_p,G0,G1);
+    //ph::mult(G0,omega_m_dagger,G1);
+
+    // Perform the sum with the help of the Born approx code
+    // VGV_sum = V_II + V_II*G1*V_II + ...
     gsl_matrix_complex* VGV_sum = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
+
 
     // Call the BA code with the V_II potential ans the full propagator
     // to compute V_II + V_II*G1*V_II + ...
     int start = 0;
     int stop = order-1;
     VGV_sum = pw_T_BA(start,stop,V_II,G1);
-    
+
     // Multiply the VGVGV...V sum with the Möller operators from left and right
     // This is what I call F(...) in the notes
     
@@ -132,11 +134,13 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
 gsl_matrix_complex* dwba::pw_moller_plus(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0)
 {
-    // Omega_p = 1 + G0*T
-    //
+    // Omega_p = 1 + G0*T_I
+    
     // Create an identity matrix
     gsl_matrix_complex* id = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
     gsl_matrix_complex_set_identity(id);
+    
+    //gsl_matrix_complex_set(id,id->size1-1,id->size2-1,gsl_complex_rect(0.0,0.0));
     
     // Multiply G0*T
     gsl_matrix_complex* omega_p = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
@@ -153,12 +157,14 @@ gsl_matrix_complex* dwba::pw_moller_plus(gsl_matrix_complex* T_I,
 gsl_matrix_complex* dwba::pw_moller_minus_dagger(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0)
 {
-    // Omega^dagger_m = 1 + T*G0
-    //
+    // Omega^dagger_m = 1 + T_I*G0
+    
     // Create an identity matrix
     gsl_matrix_complex* id = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
     gsl_matrix_complex_set_identity(id);
     
+    //gsl_matrix_complex_set(id,id->size1-1,id->size2-1,gsl_complex_rect(0.0,0.0));
+
     // Multiply G0*T
     gsl_matrix_complex* omega_p = gsl_matrix_complex_alloc(T_I->size1,T_I->size2);
     ph::mult(T_I,G0,omega_p);
@@ -167,6 +173,7 @@ gsl_matrix_complex* dwba::pw_moller_minus_dagger(gsl_matrix_complex* T_I,
     gsl_matrix_complex_add(omega_p,id);
     
     gsl_matrix_complex_free(id);
+
     return omega_p;
 }
 
@@ -451,7 +458,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     int Tz_max = 0;
     bool print = false;
     
-    int cut_pow = 10000000;
+    int cut_pow = 100000000;
     double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
     
     double Lambda = 1000000.0;
@@ -461,6 +468,8 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
     double lam   = 3000.0;
     double lam_t = -10000.0;
+    //double lam_t = 0.0;
+    std::string DATA_DIR = "../../../projects/dwb/data/";
     // ---------------------------------
     // ---------------------------------
     
@@ -558,12 +567,13 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
     Pot_Yam.LECs_["Yamaguchi_1S0"] = lam_t;
     gsl_matrix* V_Yam_I  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    //ph::print_m(V_Yam_I);
     ph::make_matrix_complex(V_1S0_I,V_Yam_I);
+    ph::print_m_complex_to_file(DATA_DIR+"VI.txt",V_1S0_I);
     
     Pot_Yam.LECs_["Yamaguchi_1S0"] = lam;
     gsl_matrix* V_Yam_II  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
     ph::make_matrix_complex(V_1S0_II,V_Yam_II);
+    ph::print_m_complex_to_file(DATA_DIR+"VII.txt",V_1S0_II);
     
     // Get the propagator matrix
     std::cout << "Computing the propagator" << std::endl;
@@ -575,10 +585,11 @@ void dwba::make_tests_DWBA(std::string chn_string)
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
     matrix_from_vector(G0,prop_vec);
  
+    // Store some matrices to file
+    ph::print_m_complex_to_file(DATA_DIR+"G0.txt",G0);
     
     std::ofstream myfile;
     //std::string DATA_DIR = "~/Documents/phd/projects/dwb/data/";
-    std::string DATA_DIR = "../../../projects/dwb/data/";
     std::string filename = DATA_DIR +"DWBA"+std::to_string((int)number_of_p_points)+ ".txt"; 
     myfile.open(filename);
     myfile << "Np =" << number_of_p_points << std::endl;
@@ -588,6 +599,10 @@ void dwba::make_tests_DWBA(std::string chn_string)
         Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam_t;
         gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
         gsl_matrix_complex* T_I = solver.solve_in_chn_T_fullT(Tl,chn,V_Yam_nogrid);
+        dress_in_weights(T_I,p_grid,w_grid,(int)number_of_p_points);
+        ph::print_m_complex_to_file(DATA_DIR+"TI.txt",T_I);
+        gsl_complex onT_I = gsl_matrix_complex_get(T_I,number_of_p_points,number_of_p_points);
+        std::cout << "T_I= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
 
         gsl_matrix_complex* T_DWBA = dwba::pw_T_DWBA(ord,T_I,V_1S0_I,V_1S0_II,G0);
         gsl_complex onT = gsl_matrix_complex_get(T_DWBA,number_of_p_points,number_of_p_points);
