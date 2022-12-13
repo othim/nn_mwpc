@@ -14,6 +14,7 @@
 #include "Constants.h"
 #include "gsl_eigen.h"
 #include "gsl_blas.h"
+#include <stdio.h>
 
 namespace ph {
 /*
@@ -99,6 +100,8 @@ void print_v(gsl_vector* vec);
 
 void print_m_complex(gsl_matrix_complex* matrix);
 void print_v_complex(gsl_vector_complex* vec);
+
+void print_m_complex_to_file(std::string path,gsl_matrix_complex* matrix);
 
 /* 
  *

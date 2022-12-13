@@ -319,6 +319,14 @@ void ph::print_v_complex(gsl_vector_complex* vec)
 }
 
 
+void ph::print_m_complex_to_file(std::string path,gsl_matrix_complex* matrix)
+{
+    FILE* f = std::fopen(path.c_str(), "wb");
+    gsl_matrix_complex_fprintf(f, matrix,"%e");
+    std::fclose (f);
+}
+
+
 void ph::on_shell_mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res)
 {
