@@ -85,6 +85,7 @@ Term::Term(std::string name)
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_Yamaguchi_1S0;
         lecs_in_term_.push_back("Yamaguchi_1S0");
+        params_in_term_.push_back("Yamaguchi_beta");
     } else 
     {
         std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;
@@ -128,6 +129,10 @@ std::vector<std::string> Term::get_lecs_in_term()
     return lecs_in_term_;
 }
 
+std::vector<std::string> Term::get_params_in_term()
+{
+    return params_in_term_;
+}
 
 std::vector<double> Term::get_v_alpha(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs)
 {

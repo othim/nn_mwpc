@@ -23,6 +23,9 @@ private:
     
     // Which LECs are associated to the terms (independent of channel)
     std::vector<std::string> lecs_in_term_; // Will be filled in by the constructor
+    
+    // Which params are associated to the terms (independent of channel)
+    std::vector<std::string> params_in_term_; // Will be filled in by the constructor
 
     // Boolean for knowing if the term is isovector or isoscalar
     bool isovector_; // \tau_1 \cdot \tau_2 factor if isovector
@@ -49,6 +52,7 @@ public:
     bool get_isovector();
     LS_term get_LS_term();
     std::vector<std::string> get_lecs_in_term();
+    std::vector<std::string> get_params_in_term();
     std::vector<double> get_v_alpha(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs);
     double get_v_alpha_well_def_pw(double qi, double qo,std::unordered_map<std::string,double> LECs);
 

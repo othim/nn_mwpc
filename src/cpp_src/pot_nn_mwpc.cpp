@@ -31,7 +31,8 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
       #endif
    }
    
-   // Make list of all LECs.
+   // Make list of all LECs and params and then fetch the ones in use
+   // -------------------------------------------------------------------------
    LEC_names_.push_back("gA2");
    LEC_names_.push_back("C1S0");
    LEC_names_.push_back("C3S1");
@@ -40,25 +41,41 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    LEC_names_.push_back("C3D2");
    LEC_names_.push_back("Yamaguchi_1S0");
    
+   param_names_.push_back("Yamaguchi_beta");
+
    // Initialize all LECs to zero
    for (std::size_t i = 0; i < LEC_names_.size(); i++)
    {
       LECs_.insert( std::make_pair (LEC_names_[i],0.0) );
    }
+   
+   // Initialize all params to zero
+   for (std::size_t i = 0; i < param_names_.size(); i++)
+   {
+      LECs_.insert( std::make_pair (param_names_[i],0.0) );
+   }
 
-   // Update list of LECs that are in this instancs of the potential 
+   // Update list of LECs and params that are in this instancs of the potential 
    // Use a set to not have duplicates
-   std::set<std::string> tmp_set;
+   std::set<std::string> tmp_set_LECs;
+   std::set<std::string> tmp_set_params;
    for (std::size_t i = 0; i < terms_in_pot_.size(); i++)
    {
-      std::vector<std::string> tmp_s = terms_in_pot_[i].get_lecs_in_term();
-      for (std::size_t i = 0; i < tmp_s.size(); i++)
+      std::vector<std::string> term_string_LECs = terms_in_pot_[i].get_lecs_in_term();
+      for (std::size_t i = 0; i < term_string_LECs.size(); i++)
       {
-         tmp_set.insert(tmp_s[i]);
+         tmp_set_LECs.insert(term_string_LECs[i]);
+      }
+
+      std::vector<std::string> term_string_params = terms_in_pot_[i].get_params_in_term();
+      for (std::size_t i = 0; i < term_string_params.size(); i++)
+      {
+         tmp_set_params.insert(term_string_params[i]);
       }
    }
    // Set the the vector equal to the set
-   LECs_in_use_.assign(tmp_set.begin(),tmp_set.end());
+   LECs_in_use_.assign(tmp_set_LECs.begin(),tmp_set_LECs.end());
+   params_in_use_.assign(tmp_set_params.begin(),tmp_set_params.end());
 
    #ifdef ENABLE_DEBUG
       std::cout << "LECs in potential: ";
@@ -69,6 +86,8 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
       std::cout << std::endl;
    #endif
 
+   // -------------------------------------------------------------------------
+   
    // Make grid for angular integration
    const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
    int_ang_ = gsl_integration_fixed_alloc(T, N_GLI_PWA_, -1.0, 1.0, 0, 0);

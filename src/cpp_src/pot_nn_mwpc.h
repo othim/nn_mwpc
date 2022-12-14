@@ -114,30 +114,46 @@ private:
            double p_out, int i, double mu, bool rel_correction);
 public:
    
-   /*
+    /*
       Some class variables that ideally should be private with getters and setters, but in the
       interest of computation time they are public for the time beeing. (The user of this 
       code is trusted!)
-   */
-   std::vector<std::string> LEC_names_; // List of ALL possible LEC names
-   std::unordered_map<std::string, double> LECs_; // List of lecs  and their values
-   std::vector<std::string> LECs_in_use_; // List of lec names of lecs in use in this potential
-   std::vector<Term> terms_in_pot_; // Terms in the potential
 
-   /* 
+      The difference between params_ and LECs_ is that the code is assuming that
+      all LEC dependence is linear in the potential, so it can be split.
+
+      The params_ are more static variables of a potentials that is not intended
+      to change after the potential is cunstructed. If some of these non-linear
+      paramters is changes the storage of the precomputed matrices need to be 
+      redone.
+    */
+    std::vector<std::string> LEC_names_; // List of ALL possible LEC names
+    std::unordered_map<std::string, double> LECs_; // List of lecs  and their values
+    std::vector<std::string> LECs_in_use_; // List of lec names of lecs in use in this potential
+    
+    std::vector<std::string> param_names_;
+    std::unordered_map<std::string, double> params_; // List of lecs  and their values
+    std::vector<std::string> params_in_use_; // List of lec names of lecs in use in this potential
+    
+    std::vector<Term> terms_in_pot_; // Terms in the potential
+
+    
+
+
+    /* 
       Constructor
-   */
-   Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
+    */
+    Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
            bool inc_grid_weights_in_pot = false, bool cut_on_shell = true);
 
-   /* 
+    /* 
       Destructor
-   */ 
-   ~Potential_mwpc();
-   /*
+    */ 
+    ~Potential_mwpc();
+    /*
       This function computes matrix elements of the potential. NOTE that this is done with the
       CURRENT values of LECs_, so be sure to set them to the correct values prior
       to computation. There is no guarantee that the LECs_ values are laft untouched by
@@ -146,44 +162,44 @@ public:
       The elements are on the form [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
       where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
       NOTE: There is no minus sign on the off-diagonal elements as in some conventions!
-   */
-   void calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr);
-   
-   // TODO: implement
-   double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
- 
-   /* 
+    */
+    void calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr);
+
+    // TODO: implement
+    double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
+
+    /* 
       This function returns a mom_grid_size_ + 1 x mom_grid_size_ + 1 matrix IF the channel is uncoupled
       and 2*mom_grid_size_ + 2 x 2*mom_grid_size_ +2 if the channel is coupled.
 
       The last momentum point (in the respective blocks in the coupled case) is the on-shell
       q_on_shell passed to the function.
-   */
-   gsl_matrix* get_matrix(double q_on_shell,qs::quantum_channel chn, bool rel_correction);
+    */
+    gsl_matrix* get_matrix(double q_on_shell,qs::quantum_channel chn, bool rel_correction);
 
-   /*
+    /*
       This function returns a mom_grid_size_ x mom_grid_size_  matrix IF the channel is uncoupled
       and 2*mom_grid_size_ x 2*mom_grid_size_  if the channel is coupled. You probaly dont want 
       relativistic factors here!!
 
       This function is contrary to get_matrix() useful when solving the Schrödinger equation
       for the given potential.
-   */
-   gsl_matrix* get_matrix_no_onshell(qs::quantum_channel chn, bool rel_correction);
+    */
+    gsl_matrix* get_matrix_no_onshell(qs::quantum_channel chn, bool rel_correction);
 
-   /*
+    /*
       This function populates the saved matrices (saved_matrices_) in the given channel.
       It is necessary to run this function BEFORE calling get_saved_matrix() in the given 
       channel. If it is not done, get_saved_matrix() will return an error and terminate.
-   */
-   void populate_saved_mtx(qs::quantum_channel chn, bool rel_correction);
+    */
+    void populate_saved_mtx(qs::quantum_channel chn, bool rel_correction);
 
-   /*
+    /*
       This functions output should be identical to get_matrix(), but should take less time
       since it computes the full matrix as a sum of the saved matrices with the 
       appropriate LECs.
-   */
-   gsl_matrix* get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction);
+    */
+    gsl_matrix* get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction);
  
  };
 
