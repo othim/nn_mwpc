@@ -134,14 +134,18 @@ std::vector<std::string> Term::get_params_in_term()
     return params_in_term_;
 }
 
-std::vector<double> Term::get_v_alpha(double qi, double qo, double* z,unsigned int z_len,std::unordered_map<std::string,double> LECs)
+std::vector<double> Term::get_v_alpha(double qi, double qo, double* z,unsigned int z_len,
+        std::unordered_map<std::string,double> LECs,
+        std::unordered_map<std::string,double>& params)
 {
-    return my_v_alpha(qi,qo,z,z_len,LECs);
+    return my_v_alpha(qi,qo,z,z_len,LECs,params);
 }
 
-double Term::get_v_alpha_well_def_pw(double qi, double qo,std::unordered_map<std::string,double> LECs)
+double Term::get_v_alpha_well_def_pw(double qi, double qo,
+        std::unordered_map<std::string,double> LECs,
+        std::unordered_map<std::string,double>& params)
 {
-    return my_v_alpha_well_def_pw(qi,qo,LECs);
+    return my_v_alpha_well_def_pw(qi,qo,LECs,params);
 }
 
 /*
@@ -156,7 +160,9 @@ double Term::get_v_alpha_well_def_pw(double qi, double qo,std::unordered_map<std
 */
 
 // OPEP
-std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned int z_len, std::unordered_map<std::string,double> LECs)
+std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned int z_len, 
+        std::unordered_map<std::string,double> LECs,
+        std::unordered_map<std::string,double>& params)
 {
     double lec = LECs["gA2"];
     std::vector<double> tmp(z_len);
@@ -171,28 +177,41 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z,unsigned 
 }
 
 // C1S0
-double Term::mom_C1S0(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+double Term::mom_C1S0(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
 {
     return LECs["C1S0"]; // If momentum dependent, multiply here
 }
 // C3S1
-double Term::mom_C3S1(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+double Term::mom_C3S1(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
 {
     return LECs["C3S1"]; // If momentum dependent, multiply here
 }
-double Term::mom_C3P0(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+double Term::mom_C3P0(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
 {
     return LECs["C3P0"]*qi*qo; 
 }
-double Term::mom_C3P2(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+double Term::mom_C3P2(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
 {
     return LECs["C3P2"]*qi*qo; 
 }
-double Term::mom_C3D2(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+double Term::mom_C3D2(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
 {
     return LECs["C3D2"]*qi*qi*qo*qo; // If momentum dependent, multiply here
 }
-double Term::mom_Yamaguchi_1S0(double qi, double qo, std::unordered_map<std::string,double>& LECs)
+double Term::mom_Yamaguchi_1S0(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
 {
     double beta   = 20.0; // MeV
     double lambda = LECs["Yamaguchi_1S0"];

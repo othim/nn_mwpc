@@ -212,7 +212,8 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
             start = std::clock();
          #endif
          // Compute v_alpha array. Just make this function call ONCE!
-         std::vector<double> v_alpha_arr = terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_);
+         std::vector<double> v_alpha_arr = 
+             terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_,params_);
 
          #ifdef ENABLE_DEBUG
             end = std::clock();
@@ -280,16 +281,20 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
             {
                if (LS_term.Li == J-1 && LS_term.Lo == J-1) // --
                {
-                  V_coupled_mm += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                  V_coupled_mm += 
+                      terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                } else if (LS_term.Li == J+1 && LS_term.Lo == J+1) // ++
                {
-                  V_coupled_pp += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                  V_coupled_pp += 
+                      terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                } else if (LS_term.Li == J-1 && LS_term.Lo == J+1) // -+
                {
-                  V_coupled_mp += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                  V_coupled_mp += 
+                      terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                } else if (LS_term.Li == J-1 && LS_term.Lo == J+1) // +-
                {
-                  V_coupled_pm += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                  V_coupled_pm += 
+                      terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                }
             } else
             {
@@ -297,17 +302,19 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
                {
                   if (LS_term.S == 0) // S0
                   {
-                     V_uncoupled_S0 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                     V_uncoupled_S0 += 
+                         terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                      
                   } else if (LS_term.S == 1) // S1
                   {
-                     V_uncoupled_S1 += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
+                     V_uncoupled_S1 += 
+                         terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                   }
                } else if (LS_term.Li == 1 && LS_term.Lo == 1 && LS_term.J == 0 
                        && LS_term.S == 1) // 3P0 exception
                {
-                   V_coupled_pp += terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_);
-                   //std::cout <<  terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_) << std::endl;
+                   V_coupled_pp += 
+                       terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                }
             }
 
