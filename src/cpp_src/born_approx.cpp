@@ -466,9 +466,10 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
     double Tl = 1.0; // MeV
     
-    double lam   = 3000.0;
+    double lam   = 100.0;
     double lam_t = -10000.0;
-    double beta = 40.0;
+    double beta  = 40.0;
+    double gamma = 10.0;
     //double lam_t = 0.0;
     std::string DATA_DIR = "../../../projects/dwb/data/";
     // ---------------------------------
@@ -517,7 +518,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     
     Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
-    Pot_Yam.params_["Yamaguchi_beta"] = beta;
+    Pot_Yam.params_["Yamaguchi_beta"] = gamma;
 
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
@@ -553,10 +554,16 @@ void dwba::make_tests_DWBA(std::string chn_string)
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     
     
-    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam + lam_t;
-    gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    //ph::print_m(V_Yam_nogrid);
+    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam_t;
+    Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
+    gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_matrix(q_on_shell, chn, REL_CORR);
     
+    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam;
+    Pot_Yam_nogrid.params_["Yamaguchi_beta"] = gamma;
+    gsl_matrix* tmp  = Pot_Yam_nogrid.get_matrix(q_on_shell, chn, REL_CORR);
+    
+    gsl_matrix_add(V_Yam_nogrid,tmp);
+
     std::cout << "Solving exact 1S0" << std::endl;
     std::cout << "-----------------" << std::endl;
     std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_Yam_nogrid);
@@ -569,13 +576,15 @@ void dwba::make_tests_DWBA(std::string chn_string)
     gsl_matrix_complex* V_1S0_I  = gsl_matrix_complex_alloc(V_Yam_nogrid->size1,V_Yam_nogrid->size2);
     gsl_matrix_complex* V_1S0_II  = gsl_matrix_complex_alloc(V_Yam_nogrid->size1,V_Yam_nogrid->size2);
     
+    Pot_Yam.params_["Yamaguchi_beta"] = beta;
     Pot_Yam.LECs_["Yamaguchi_1S0"] = lam_t;
-    gsl_matrix* V_Yam_I  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_Yam_I  = Pot_Yam.get_matrix(q_on_shell, chn, REL_CORR);
     ph::make_matrix_complex(V_1S0_I,V_Yam_I);
     ph::print_m_complex_to_file(DATA_DIR+"VI.txt",V_1S0_I);
     
+    Pot_Yam.params_["Yamaguchi_beta"] = gamma;
     Pot_Yam.LECs_["Yamaguchi_1S0"] = lam;
-    gsl_matrix* V_Yam_II  = Pot_Yam.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    gsl_matrix* V_Yam_II  = Pot_Yam.get_matrix(q_on_shell, chn, REL_CORR);
     ph::make_matrix_complex(V_1S0_II,V_Yam_II);
     ph::print_m_complex_to_file(DATA_DIR+"VII.txt",V_1S0_II);
     
@@ -600,8 +609,9 @@ void dwba::make_tests_DWBA(std::string chn_string)
     myfile << "Order, |T|^2" << std::endl;
     for (int ord = 0; ord < 11; ord++)
     {
+        Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
         Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam_t;
-        gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
+        gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_matrix(q_on_shell, chn, REL_CORR);
         gsl_matrix_complex* T_I = solver.solve_in_chn_T_fullT(Tl,chn,V_Yam_nogrid);
         dress_in_weights(T_I,p_grid,w_grid,(int)number_of_p_points);
         ph::print_m_complex_to_file(DATA_DIR+"TI.txt",T_I);
