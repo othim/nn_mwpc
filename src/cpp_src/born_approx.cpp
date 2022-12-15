@@ -468,6 +468,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
     double lam   = 3000.0;
     double lam_t = -10000.0;
+    double beta = 40.0;
     //double lam_t = 0.0;
     std::string DATA_DIR = "../../../projects/dwb/data/";
     // ---------------------------------
@@ -515,6 +516,9 @@ void dwba::make_tests_DWBA(std::string chn_string)
     Potential_mwpc Pot_Yam_nogrid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     
+    Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
+    Pot_Yam.params_["Yamaguchi_beta"] = beta;
+
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
     {
