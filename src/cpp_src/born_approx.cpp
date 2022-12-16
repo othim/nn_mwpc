@@ -447,7 +447,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 100; // Number of momentum-grid points
+    unsigned int number_of_p_points =100; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     bool REL_CORR = false;
     bool CUT_ON_SHELL = true;
@@ -469,7 +469,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     double lam   = 100.0;
     double lam_t = -10000.0;
     double beta  = 40.0;
-    double gamma = 10.0;
+    double gamma = 30.0;
     //double lam_t = 0.0;
     std::string DATA_DIR = "../../../projects/dwb/data/";
     // ---------------------------------
