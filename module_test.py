@@ -144,11 +144,11 @@ def M_matrix(obj):
     obj.print_LECs_in_use()
 
     # Just some test values
-    C1S0 = -0.09/100.0
-    C3S1 = -0.055/100.0
-    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
-    C3P0 = -1e-8;
-    C3P2 = -0.2e-8;
+    C1S0 = 0
+    C3S1 = 0
+    gA2  = 1.1*1.1; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    C3P0 = 0
+    C3P2 = 0
         
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     # Test to compute many observables at once
@@ -156,7 +156,7 @@ def M_matrix(obj):
     
     
     ang = 70.0 # deg
-    E   = 10.0 # MeV
+    E   = 200.0 # MeV
 
     # Time the funtion call
     start = time.time()
@@ -184,6 +184,7 @@ def M_matrix(obj):
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
 obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,700.0,4,True,True,True,60,True,False,True)
+#obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,10000.0,100,True,True,True,100,True,False,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)

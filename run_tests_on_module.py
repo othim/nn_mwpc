@@ -165,18 +165,18 @@ if (__name__ == '__main__'):
 
     # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
     # number_of_p_points, finite_grid
-    obj1 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,False,True,True,120,False)
-    obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,120,False)
+    obj1 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,False,True,True,120,False,False,True)
+    obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,120,False,False,True)
 
 
     # Same settings as I use in the computations
 
     # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
     # number_of_p_points, finite_grid
-    obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True)
-    obj2_finite = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,True,True,True,120,True)
+    obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True,False,True)
+    obj2_finite = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,True,True,True,120,True,False,True)
     
-    obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True)
+    obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True,False,True)
 
     print(f'******************************************************')
     print(f'******************************************************')
