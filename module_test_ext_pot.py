@@ -90,11 +90,40 @@ def diagonalization(obj):
     print(np.transpose(eigs).shape)
     print(f'Total time: {1e3*(end-start):0.3f} ms')
 
+def M_matrix(obj):
+    print('\n \nTesting diagonalization \n')
+    
+    ang = 140.0 # deg
+    E   = 100.0 # MeV
+
+    # Time the funtion call
+    start = time.time()
+    # First solve the LS equation. This saves phase shifts in the object obj.
+    # The saved phase shifts can be accessed with obj.get_saved_phase_shifts(chn_number)
+    obj.solve_LS_ext_pot(E)
+    end1 = time.time()
+    
+    # Call the function that computes an observable at a certain angle. This will
+    # be computed with the saves phase shifts from the previous call.
+    S  = 0
+    Mo = 0
+    Mi = 0
+    M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
+    end = time.time()
+    hbarc = 197.326971941683 
+    Mevm2_to_mbarn = (hbarc**2)*10.0
+    print(f'M_el = {M_el} MeV^-1')    
+    print(f'M_el = {M_el*np.sqrt(Mevm2_to_mbarn)} mbarn^1/2')    
+    print(f'S={S}, Mo={Mo}, Mi={Mi}') 
+    print(f'Total time: {1e3*(end-start):0.3f} ms')
+    print(f'Time to solve LS: {1e3*(end1-start):0.3f} ms')
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("nijmegen1",8,10000.0,6,False,True,True)
+#obj = nn_mwpc.nn_mwpc_interface("nijmegen1",8,10000.0,6,False,True,True)
+obj = nn_mwpc.nn_mwpc_interface("nijmegen1",9,20000.0,100,True,True,True,100,True,False,True)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 observables(obj)
 #diagonalization(obj)
+M_matrix(obj)

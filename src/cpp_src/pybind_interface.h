@@ -156,6 +156,21 @@ public:
      */
     std::vector<std::complex<double>> compute_T_on_shell(
             int chn_number, double T_lab, std::vector<double> LECs);
+    
+    /*
+     * This function computes M-matrix elements in a coupled spin
+     * basis. The M-matrix is computed in the convention that is 
+     * described in the article.
+     *
+     * T_lab    : lab energy of the incomping nucleon in MeV
+     * theta_cm : center-of-mass scattering angle in deg
+     * S        : total spin of the NN-system, 0,1
+     * mo       : spin projection of the outgoing NN-syatem, -1,0,1
+     * mi       : spin projection of the incoming NN-system, -1,0,1
+     */
+
+    std::complex<double> compute_M_element(double T_lab, 
+            double theta_cm, int S, int mo, int mi);
 
     /*
      * This function returns the wave function of the ground state. In case of

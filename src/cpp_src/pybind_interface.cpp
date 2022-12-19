@@ -26,6 +26,8 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("compute_T_on_shell",&nn_mwpc_interface::compute_T_on_shell,
                 py::return_value_policy::copy)
+        .def("compute_M_element",&nn_mwpc_interface::compute_M_element,
+                py::return_value_policy::copy)
         .def("compute_binding_energy",&nn_mwpc_interface::compute_binding_energy,
                 py::return_value_policy::copy)
         .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,
@@ -689,6 +691,37 @@ std::vector<std::complex<double>> nn_mwpc_interface::compute_T_on_shell(
 
     return T_elem_vec;
 
+}
+
+std::complex<double> nn_mwpc_interface::compute_M_element(double T_lab, 
+        double theta_cm, int S, int mo, int mi)
+{
+    // Check that the input is OK
+    if (S==0) {
+        if (mo != 0 || mi != 0) {
+            std::cout << "Warning! inconsistent spin indices... returning 0." << std::endl;
+            return std::complex<double>(0.0,0.0);
+        }
+    } else if (S==1) {
+        if (mo > 1 || mo < -1 || mi > 1 || mi < -1) {
+            std::cout << "Warning! inconsistent spin indices... returning 0." << std::endl;
+            return std::complex<double>(0.0,0.0);
+        }  
+    } else {
+        std::cout << "Warning! inconsistent spin indices... returning 0." << std::endl;
+        return std::complex<double>(0.0,0.0);
+    }
+    // Should be OK if program compes to here
+    double theta_rad = theta_cm*M_PI/180.0;
+    double mu, q_on_shell;
+    LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
+    
+    double rho_T = M_PI*q_on_shell*mu; // In the convention used
+    
+    std::complex<double> M_el =  sc::get_M_matrix_p(chns_,phase_shifts_,
+            S,mo,mi,std::cos(theta_rad),q_on_shell,rho_T,J_max_in_pot_);
+
+    return M_el;
 }
 
 double nn_mwpc_interface::get_on_shell_momentum(double T_lab)
