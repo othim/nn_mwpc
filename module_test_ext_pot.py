@@ -105,9 +105,9 @@ def M_matrix(obj):
     
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
-    S  = 0
+    S  = 1
     Mo = 0
-    Mi = 0
+    Mi = 1
     M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
     end = time.time()
     hbarc = 197.326971941683 
