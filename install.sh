@@ -5,7 +5,7 @@
 
 (cd src/cpp_src; make clean)
 
-(cd src/cpp_src; make so PY_BIND=-DPYBIND)
+(cd src/cpp_src; make -j so PY_BIND=-DPYBIND)
 
 rm nn_mwpc.so
 
