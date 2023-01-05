@@ -1,6 +1,4 @@
------------
-Description
------------
+# Description
 
 nn_mwpc is a code for computing nucleon-nucleon observables from different 
 potential models. The main purpose why the code was created was to make a 
@@ -30,23 +28,20 @@ open an issue on git or contact me
 
 (Oliver Thim, email: oliver.thim@chalmers.se).
 
------------
-DEFINITIONS
------------
+# DEFINITIONS
 
 A **coupled** channel in np-scattering is a channel where there are four possible
 states that can mix. E.g. the 3P0 channel is considered uncoupled since it 
 cannot mix with any other L-value. For J>0 the the S=3 channel can always have
 both L=J-1 and L=J+1.
 
------------
-CONVENTIONS
------------
+
+# CONVENTIONS
 
 ## POTENTIAL
 
 The potential is computed in a partial wave basis with the normalization 
-$<p',p> = \delta(p'-p)/p^2$. The potential can precomputed and save all matrix
+$ \braket{p'|p} = \delta(p'-p)/p^2$. The potential can precomputed and save all matrix
 elements that are not dependent on the on-shell energy.
 
 ## LS-EQUATION
@@ -62,31 +57,27 @@ wave LS eqiuation.
 The LS-equation is solved using discretization of the momentum states
 $\int dp p^2 -> \sum_i w_i p_i^2$. (see Rubin H. Landau Ch. 18)
 
-OBSERVABLES
+## OBSERVABLES
 
 Observables are calculated from phase shifts by first computing the M-matrix 
 and then computing the corresponding Saclay amplitudes which are then converted 
 to observables. For the moment the trace computation directly from the M-matrix
 is not implemented. 
 
-------------------
-COMPILING THE CODE
-------------------
+# COMPILING THE CODE
 
-EXTERNAL LIBRARIES NEEDED
-- gsl
-- pybind11
-- intel MKL (oneapi)
 
-COMPILING
+## EXTERNAL LIBRARIES NEEDED
+- gsl (https://www.gnu.org/software/gsl/)
+- pybind11 (https://pypi.org/project/pybind11/)
+- intel MKL, (oneAPI)
+- wigxjpf (http://fy.chalmers.se/subatom/wigxjpf/)
+
+## COMPILING
 
 1. The first thing you need to do is to compile the external fortran code for the
-nijmegen potential. This is done by running 'make cleanall' && 'make' in the 
-nijm-fort-working-class directory. The object files 'pnijm.o' and 
-'nijmegen_interface.o' then needs to be copied to 
-the src/cpp_src directory to be accessed when compiling the C++ code. You can
-see in the make file in src/cpp_src that it assumes that the fortran object
-files are in that directory.
+nijmegen potential and cdbonn potential. This is done by running
+`bash compile_nijmegen.sh` and `bash compile_cdbonn.sh`.
 
 2. The C++ code is compiled by running the appropriate make command as defined 
 in the make file in src/cpp_src depending on what target you want to have. 
