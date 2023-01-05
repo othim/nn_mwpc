@@ -41,7 +41,7 @@ both L=J-1 and L=J+1.
 ## POTENTIAL
 
 The potential is computed in a partial wave basis with the normalization 
-$ \braket{p'|p} = \delta(p'-p)/p^2$. The potential can precomputed and save all matrix
+$ \<p'|p> = \delta(p'-p)/p^2$. The potential can precomputed and save all matrix
 elements that are not dependent on the on-shell energy.
 
 ## LS-EQUATION
@@ -73,59 +73,46 @@ is not implemented.
 - intel MKL, (oneAPI)
 - wigxjpf (http://fy.chalmers.se/subatom/wigxjpf/)
 
-## COMPILING
+## COMPILING C++ CODE
 
 1. The first thing you need to do is to compile the external fortran code for the
 nijmegen potential and cdbonn potential. This is done by running
-`bash compile_nijmegen.sh` and `bash compile_cdbonn.sh`.
+`$ bash compile_nijmegen.sh` and `$ bash compile_cdbonn.sh`. If this step fails 
+you can try to perform the same tasks as the scripts manually.
 
-2. The C++ code is compiled by running the appropriate make command as defined 
-in the make file in src/cpp_src depending on what target you want to have. 
-e.g. 'make obs'.
+2. Make sure that you go to the makefile in `src/cpp_src` and choose the correct
+compiler, BLAS library and make sure that the paths to the external libraries
+are changes to where you have installed them. Note that if you use MKL, you 
+might need to source a setvars.sh file: `$ source intel/oneapi/setvars.sh`.
 
-If you link to MKL instead of GSL you need some additional tricks. This is 
-worth it because you can expect a speedup in the solution of LS-equation by a
-factor 2-3 depending on the system. If you compile with the MKL flag in the 
-makefile you will likely get errors that there are some missing shared library
-files. Sometimes even worse, you will just get segfaults... The solution is a 
-combination of what follows depending on the system you use.
+3. The C++ code is compiled by running the appropriate make command as defined 
+in the make file in `src/cpp_src` depending on what target you want to have, e.g.
+`make obs` or `make so`.
 
-    1. You need to locate the directory where MKL is installed. Sometimes the 
-    enviroment variable $MKLROOT is set automatically, and sometimes not. In
-    that directory under env/ or bin/ there is a shell script named
-    vars.sh or setvars.sh. You need to run it by 'source setvars.sh'. This 
-    will set some required enviroment variables. 
-
-    2. If you still get errors you might need to export some enviroment variables
-    manually. On the subatom computers you need to run:
-    
-    - 'export LD_LIBRARY_PATH=/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/'
-    - 'export LD_PRELOAD=/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_def.so.2: \
-    /net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_core.so: \
-    /net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_intel_lp64.so.2: \
-    /net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_intel_thread.so:/net/opt/intel/lib/intel64/libiomp5.so'
-
-    don't ask me why.....
-
-    3. You must tell OpenMP and MKL how many threads they should use by running.
-    The number of MKL threads should be one and the number of openMP threads
-    depends on the machine and what you run. More is not always better!
-    - 'export MKL_NUM_THREADS=1'
-    - 'export OMP_NUM_THREADS=16'
-
-    4. By doing all these steps you should get a factor 2-3 speedup on the 
-    SUBATOM computers. Note that the export and setting of enviroment variables 
-    needs to be done each time you go into a new terminal session.
-
-    5. On Tetralith you just need to run the setvars.sh script, set the thread
-    variables and run:
-    'export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib'
+4. To set the number of allowed threads for MKL and openMP you set the 
+the environment variables e.g.
+```
+export MKL_NUM_THREADS=1
+export OMP_NUM_THREADS=16
+```
 
 Note that the linking arguments might need a change since they are specific to
 where your libraris are installed on your system. There is also different arguments
 if you compile on Mac or Linux (check the makefile). If you compile the code on
-a subatom computer you could probabily access my (Oliver Thim) libraries and 
+a subatom-computer you could probabily access my (Oliver Thim) libraries and 
 the changes to the makefile should be minimal.
+
+## COMPILING AND INSTALLING PYTHON MODULE
+
+
+
+
+5. (Only on Tetralith) you just need to run the setvars.sh script, set the thread
+variables and run:
+```
+export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
+```
+
 
 TESTING
 
