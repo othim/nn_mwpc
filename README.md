@@ -1,6 +1,7 @@
 -----------
 Description
 -----------
+
 nn_mwpc is a code for computing nucleon-nucleon observables from different 
 potential models. The main purpose why the code was created was to make a 
 potential class that can include arbitrary potential terms, which makes it easy
@@ -26,13 +27,14 @@ bind the calls to python via the interface.
 
 If you have any questions or suggestions of improvement you are very welcome to
 open an issue on git or contact me 
+
 (Oliver Thim, email: oliver.thim@chalmers.se).
 
 -----------
 DEFINITIONS
 -----------
 
-A COUPLED channel in np-scattering is a channel where there are four possible
+A **coupled** channel in np-scattering is a channel where there are four possible
 states that can mix. E.g. the 3P0 channel is considered uncoupled since it 
 cannot mix with any other L-value. For J>0 the the S=3 channel can always have
 both L=J-1 and L=J+1.
@@ -41,24 +43,24 @@ both L=J-1 and L=J+1.
 CONVENTIONS
 -----------
 
-POTENTIAL
+## POTENTIAL
 
 The potential is computed in a partial wave basis with the normalization 
-<p',p> = \delta(p'-p)/p^2. There potential can precompute and save all matrix
+$<p',p> = \delta(p'-p)/p^2$. The potential can precomputed and save all matrix
 elements that are not dependent on the on-shell energy.
 
-LS-EQUATION
+## LS-EQUATION
 
 The LS-equatoin is written in the same partial wave basis as the potential.
-This menas that there is no \pi/2 in front of the integral which appear in 
-another widely used convention. This will affect the \rho_T parameter 
+This menas that there is no $\pi/2$ in front of the integral which appear in 
+another widely used convention. This will affect the $\rho_T$ parameter 
 (see. eg Quantum Mechanics II - A second Course in Quantum Theory by Rubin H.
-Landau) for a discussion. NOTE that this book uses the OTHER convention of
-normalization of the parital wave states which produces a \pi/2 in the partial
+Landau) for a discussion. *NOTE* that this book uses the *OTHER* convention of
+normalization of the parital wave states which produces a $\pi/2$ in the partial
 wave LS eqiuation.
 
 The LS-equation is solved using discretization of the momentum states
-\int dp p^2 -> \sum_i w_i p_i^2. (see Rubin H. Landau Ch. 18)
+$\int dp p^2 -> \sum_i w_i p_i^2$. (see Rubin H. Landau Ch. 18)
 
 OBSERVABLES
 
