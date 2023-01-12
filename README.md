@@ -92,8 +92,8 @@ in the make file in `src/cpp_src` depending on what target you want to have, e.g
 4. To set the number of allowed threads for MKL and openMP you set the 
 the environment variables e.g.
 ```
-export MKL_NUM_THREADS=1
-export OMP_NUM_THREADS=16
+$ export MKL_NUM_THREADS=1
+$ export OMP_NUM_THREADS=16
 ```
 
 Note that the linking arguments might need a change since they are specific to
@@ -104,19 +104,32 @@ the changes to the makefile should be minimal.
 
 ## COMPILING AND INSTALLING PYTHON MODULE
 
+If the makefile is set up correctly you just run 'bash install.sh' in the
+nn_mwpc directory. This will build the code and install the python library
+with pip. Then it is just to import it by 'import nn_mwpc' in python. Note that 
+the library is sensitive to the python version used so make sure you are in the
+conda environment nn-mwpc-env.
+
+There is not so much documentation on the python interface. I recomend that 
+one opens the interface files 'src/cpp_src/pybind_interfac.h and 
+src/cpp_src/pybind_interface.cpp' and read the comments. There is also a file 
+in this directory: 'module_test.py' that tests the library that you could run
+after 'bash install.sh' to make sure that everything loads and runs fine. 
+The code and comments in 'module_test.py' should give some guidance how to use 
+the code by providing some examples.
 
 
 
 5. (Only on Tetralith) you just need to run the setvars.sh script, set the thread
 variables and run:
 ```
-export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
+$ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
 ```
 
 
-TESTING
+# TESTING
 
-AUTOMATED:
+## AUTOMATED
 
 There is some autometed tests that are currently implemented. These can be run 
 by running 'bash run_tests.sh' in this directory. The bash file will call 
@@ -126,7 +139,7 @@ can be convention dependent. There are currently come coupled channels that will
 not pass, but if you run './obs phase not_test' and look at the ouput you see
 that the code is indeed correct. 
 
-NON AUTOMATED:
+## NON AUTOMATED
 
 In the file compute_observable.cpp there are some different functionalities
 acessed by giving different command line arguments. If you have compiled with
@@ -143,27 +156,8 @@ it can be plotted with the python script plot_obs.py  by running
 the exact values of the observables and phase shifts are dependent on the
 constants in the Constants.h file.
 
-----------------------------
-Compiling to a python module
-----------------------------
 
-If the makefile is set up correctly you just run 'bash install.sh' in the
-nn_mwpc directory. This will build the code and install the python library
-with pip. Then it is just to import it by 'import nn_mwpc' in python. Note that 
-the library is sensitive to the python version used so make sure you are in the
-conda environment nn-mwpc-env.
-
-There is not so much documentation on the python interface. I recomend that 
-one opens the interface files 'src/cpp_src/pybind_interfac.h and 
-src/cpp_src/pybind_interface.cpp' and read the comments. There is also a file 
-in this directory: 'module_test.py' that tests the library that you could run
-after 'bash install.sh' to make sure that everything loads and runs fine. 
-The code and comments in 'module_test.py' should give some guidance how to use 
-the code by providing some examples.
-
------------------------------
-RUNNING THE CODE AND EXAMPLES
------------------------------
+# RUNNING THE CODE AND EXAMPLES
 
 C++
 
