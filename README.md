@@ -76,9 +76,9 @@ elements give the following relation
 
 ```math
     \begin{align}
-    M^{s}_{m'_s m_s}(p,\theta_{cm},\phi) = \frac{\sqrt{4\pi}}{2ip} \sum_{j,l,l'} i^{l-l'} (2j+1)\sqrt{2l+1} \cdot \nonumber\\ Y^{l'}_{m_s -m'_s}(\theta_{cm},\phi)
+    &M^{s}_{m'_s m_s}(p,\theta_{cm},\phi) = \frac{\sqrt{4\pi}}{2ip} \sum_{j,l,l'} i^{l-l'} (2j+1)\sqrt{2l+1} \cdot \nonumber\\ &Y^{l'}_{m_s -m'_s}(\theta_{cm},\phi)
     \cdot \begin{pmatrix} l' & s & j  \\ m_s-m'_s & m'_s & -m_s \end{pmatrix} \cdot \begin{pmatrix} l & s & j \\ 0 & m_s& -m_s\end{pmatrix} \\
-    \cdot \left(S^{js}_{l'l}(p,p)-\delta_{l'l}\right)
+    &\cdot \left(S^{js}_{l'l}(p,p)-\delta_{l'l}\right)
     \end{align}
 ```
 
