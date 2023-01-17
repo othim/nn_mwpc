@@ -111,17 +111,15 @@ nijmegen potential and cdbonn potential. This is done by running
 - If this step fails you can try to perform the same tasks as the scripts manually.
 
 2. Make sure that you go to the makefile in `src/cpp_src` and choose the correct
-compiler, BLAS library. Make sure that the paths to the external libraries
+compiler and BLAS library. Make sure that the paths to the external libraries
 are changed to where you have installed them. Note that if you use MKL, you 
 might need to source a setvars.sh file: `$ source intel/oneapi/setvars.sh`.
 
-3. (Only if you run on Tetralith) You need to run:
-```
-$ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
-```
+3. If everything is setup correctly you should be able to go to `src/cpp_src` and run:
+`$ make clean` and then `$ make` without errors.
 
-### Compiling C++ Code (If you want to install and use the python module you can
-skip this section)
+
+### Compiling C++ Code (If you want to install and use the python module you can skip this section)
 
 1. The C++ code is compiled by running the appropriate make command as defined 
 in the makefile in `src/cpp_src`. 
@@ -134,9 +132,9 @@ an exexutable named `obs`.
 with non-default physics constants defined in `src/cpp_src/Constants.h`. This is
 is order to match the benchmarks exactly. Not including this flag will set the 
 default constant that are taken from PDG 2022. Examples:
-    - `$ make <target> FLAGS=-DANDREAS_CONST`
-    - `$ make <target> FLAGS=-DNIJM_CONST`
-    - Defalut: `$ make <target>`
+    - `$ make obs FLAGS=-DANDREAS_CONST`
+    - `$ make obs FLAGS=-DNIJM_CONST`
+    - Defalut: `$ make obs`
 
 2. The program is is parallelized using OpenMP. 
 The number of allowed threads for MKL and OpenMP are set prior to runtime using
@@ -159,43 +157,38 @@ This should give that all tests pass, otherwise something is wrong.
 
 ### Compiling and Installing Python Module
 
-1. Install the conda environment that is defined in the file `environment.yml`
+1. Install and activate the conda environment that is defined in the file `environment.yml`
 by runing the commands 
 - `conda env-create -f environment.yml`
 - `conda activate nn-mwpc-env`
 
-2. Make sure that you made the steps 1. and 2. under setup so that the makefile
+2. Make sure that you made the steps 1-3 under Setup so that the makefile
 is setup correctly.
     - Run `$ bash install.sh`, which is a shell script that will compile the 
     C++ code to a `.so` file and then makeing it into a python module with
     the use of pybind11.
-    - If you run `$ conda list` you should find a module named `nn-mwpc`
+    - If you run `$ conda list` you should find a module named `nn-mwpc`.
 
-Then it is just to import it by 'import nn_mwpc' in python. Note that 
-the library is sensitive to the python version used so make sure you are in the
-conda environment nn-mwpc-env.
-
-There is not so much documentation on the python interface. I recomend that 
-one opens the interface files 'src/cpp_src/pybind_interfac.h and 
-src/cpp_src/pybind_interface.cpp' and read the comments. There is also a file 
-in this directory: 'module_test.py' that tests the library that you could run
-after 'bash install.sh' to make sure that everything loads and runs fine. 
-The code and comments in 'module_test.py' should give some guidance how to use 
-the code by providing some examples.
 
 # Testing the code
+If everything is correct, all test should pass with no exceptions. If you are
+using the python module make sure that you run both the test of the C++ code
+and the python module.
 
-## Automated
+## C++ code
 
-There is some autometed tests that are currently implemented. These can be run 
-by running bash run_tests.sh' in this directory. The bash file will call 
-./obs with different arguments to test different things. Note that it is likely
-that some tests at the phase shift level will be marked as not passed. This 
-can be convention dependent. There are currently come coupled channels that will
-not pass, but if you run './obs phase not_test' and look at the ouput you see
-that the code is indeed correct. 
+- To run test on C++ code, run `$ bash run_test.sh`. This will do a bunch of 
+tests both with the Nijmegen potential and LO WPC potential. It will take a 
+few minutes for these tests to run.
 
-## Non-Automated
+## Python module
+
+- Make sure that you have installed the python module
+
+- Go to the directory run `$ python3 python_module/run_tests_on_module.py`
+
+
+## (Non-automated tests - this can be skipped)
 
 In the file compute_observable.cpp there are some different functionalities
 acessed by giving different command line arguments. If you have compiled with
@@ -213,10 +206,27 @@ the exact values of the observables and phase shifts are dependent on the
 constants in the Constants.h file.
 
 
-# Runing the code and examples
+# Runing the Python Module
 
 C++
 
 
 PYTHON
 
+Then it is just to import it by 'import nn_mwpc' in python. Note that 
+the library is sensitive to the python version used so make sure you are in the
+conda environment nn-mwpc-env.
+
+There is not so much documentation on the python interface. I recomend that 
+one opens the interface files 'src/cpp_src/pybind_interfac.h and 
+src/cpp_src/pybind_interface.cpp' and read the comments. There is also a file 
+in this directory: 'module_test.py' that tests the library that you could run
+after 'bash install.sh' to make sure that everything loads and runs fine. 
+The code and comments in 'module_test.py' should give some guidance how to use 
+the code by providing some examples.
+
+# Misc notes
+- (Only if you run on Tetralith) You need to run:
+```
+$ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
+```
