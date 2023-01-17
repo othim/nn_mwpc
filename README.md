@@ -1,3 +1,8 @@
+# Table of Contents
+
+1. [Description] (#Description)
+
+
 # Description
 
 nn_mwpc is a code for computing nucleon-nucleon observables from different 
