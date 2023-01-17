@@ -64,7 +64,7 @@ The LS-equation can be solved either for the $T$-matrix or the $R$ matrix.
 
 To summarize: The potential that is given e.g. by the `pot_nn_mwpc.get_matrix()` is 
 a potential that goes into the LS-equation above where the off-diagonal elements 
-have an extra minus sign such that the M-matrix equation will have a $i^l'-l$
+have an extra minus sign such that the M-matrix equation will have a $i^{l'-l}$
 factor.
 
 ## Observables
@@ -75,9 +75,9 @@ to observables. With the convention to add the extra minus sign to the off-diago
 elements give the following relation
 
 ```math
-    &M^{s}_{m'_s m_s}(p,\thetacm,\phi) = \frac{\sqrt{4\pi}}{2ip} \sum_{j,l,l'} i^{l-l'} (2j+1)\sqrt{2l+1} \cdot \nonumber\\ &Y^{l'}_{m_s -m'_s}(\thetacm,\phi)
-    \cdot \begin{pmatrix} l' & s & j \nonumber \\ m_s-m'_s & m'_s & -m_s \end{pmatrix} \cdot \begin{pmatrix} l & s & j \\ 0 & m_s& -m_s\end{pmatrix} \\
-    &\cdot \left(S^{js}_{l'l}(p,p)-\delta_{l'l}\right)
+    M^{s}_{m'_s m_s}(p,\thetacm,\phi) = \frac{\sqrt{4\pi}}{2ip} \sum_{j,l,l'} i^{l-l'} (2j+1)\sqrt{2l+1} \cdot \nonumber\\ Y^{l'}_{m_s -m'_s}(\thetacm,\phi)
+    \cdot \begin{pmatrix} l' & s & j  \\ m_s-m'_s & m'_s & -m_s \end{pmatrix} \cdot \begin{pmatrix} l & s & j \\ 0 & m_s& -m_s\end{pmatrix} \\
+    \cdot \left(S^{js}_{l'l}(p,p)-\delta_{l'l}\right)
 ```
 
 # COMPILING THE CODE
