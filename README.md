@@ -41,7 +41,7 @@ both L=J-1 and L=J+1.
 ## POTENTIAL
 
 The potential is computed in a partial wave basis with the normalization 
-$ \<p'|p> = \delta(p'-p)/p^2$. The potential can precomputed and save all matrix
+$\langle p'|p \rangle = \delta(p'-p)/p^2$. The potential can precomputed and save all matrix
 elements that are not dependent on the on-shell energy.
 
 ## LS-EQUATION
