@@ -30,12 +30,12 @@ The flow of the code is as follows.
   your choice.
 
 The code is a C++ code. If you want to use all of its features, you have to
-write this code in C++. However there is a python interface that is built for
+write this code in C++. However, there is a python interface that is built for
 easy access to certain key features that are pre-specified. To make more
 features available from python you have to write the code in C++ and then
 bind the calls to python via the interface. 
 
-If you have any questions or suggestions of improvement you are very welcome to
+If you have any questions or suggestions for improvement you are very welcome to
 open an issue on git or contact me 
 
 (Oliver Thim, email: oliver.thim@chalmers.se).
@@ -43,8 +43,8 @@ open an issue on git or contact me
 # Definitions
 
 - A **coupled** channel in np-scattering is a channel where there are four possible
-states that can mix. E.g. the $^3P_0$ channel is considered uncoupled since it 
-cannot mix with any other L-value. For J>0 the the S=3 channel can always have
+states that can mix. e.g. the $^3P_0$ channel is considered uncoupled since it 
+cannot mix with any other L-value. For J>0 the S=3 channel can always have
 both L=J-1 and L=J+1.
 
 
@@ -64,7 +64,7 @@ common convention.
 
 The partial wave decomposition is done according to the formulas in 
 "Momentum Space Calculations and Helicity Formalism in Nuclear Physics" by Erkelenz et al. (1971).
-NOTE: that there is an error in eq. (4.22) which is pointed out in 
+NOTE: There is an error in eq. (4.22) which is pointed out in 
 "Chiral effective field theory and nuclear forces" by Machleidt and Entem (2011).
 
 We use the convention to add an additional minus sign w.r.t. the above calculation
@@ -81,7 +81,7 @@ relation between the partial wave $S$-matrix and $T$-matrix in this basis reads
 
 To summarize: The potential that is given e.g. by the `pot_nn_mwpc.get_matrix()` is 
 a potential that goes into the LS-equation above where the off-diagonal elements 
-have an extra minus sign such that the M-matrix equation will have a $i^{l'-l}$
+have an extra minus sign such that the M-matrix equation will have a $i^{l-l'}$
 factor.
 
 ## Observables
@@ -102,7 +102,7 @@ are found in "Formalism of nucleon-nucleon elastic scattering experiments" by By
 et al. (1978).
 
 The method `get_M_matrix_T(...)` in `src/cpp_src/scattering.h` will compute 
-elements of the above defined $M$-matrix. This is then used in the other 
+elements of the above-defined $M$-matrix. This is then used in the other 
 methods in `scattering.h` to further compute observables.
 
 # Compiling the Code
@@ -116,8 +116,8 @@ methods in `scattering.h` to further compute observables.
 
 
 ## Setup
-1. The first thing you need to do is to compile the external fortran code for the
-nijmegen potential and cdbonn potential. This is done by running
+1. The first thing you need to do is to compile the external Fortran code for the
+nijmegen1 and cdbonn potential. This is done by running
 `$ bash compile_nijmegen.sh` and `$ bash compile_cdbonn.sh`. 
 
 - If this step fails you can try to perform the same tasks as the scripts manually.
@@ -139,16 +139,16 @@ in the makefile in `src/cpp_src`.
 - Always start with running `$ make clean` to remove any old object files.
 - If you want to compile the code in order to make some tests from the 
 `src/cpp_src/compute_observable.cpp` file you run `$ make obs` that will create
-an exexutable named `obs`.
+an executable named `obs`.
 - There are two flags that can be used in order to compile the code
 with non-default physics constants defined in `src/cpp_src/Constants.h`. This is
-is order to match the benchmarks exactly. Not including this flag will set the 
-default constant that are taken from PDG 2022. Examples:
+in order to match the benchmarks exactly. Not including this flag will set the 
+default constant that is taken from PDG 2022. Examples:
     - `$ make obs FLAGS=-DANDREAS_CONST`
     - `$ make obs FLAGS=-DNIJM_CONST`
     - Defalut: `$ make obs`
 
-2. The program is is parallelized using OpenMP. 
+2. The program is parallelized using OpenMP. 
 The number of allowed threads for MKL and OpenMP are set prior to runtime using
 the environment variables below.
 ```
@@ -163,27 +163,34 @@ to increase the number of threads given to MKL
 
 3. You can test the program by running `$ make -j && ./obs phase nijm`, which 
 will compute a bunch of phase shifts. You will most probably see that the test
-do not pass. This is because the benchmarks are generated with slightly different
+does not pass. This is because the benchmarks are generated with slightly different
 physics constants. Instead try `$ make -j FLAGS=-DNIJM_CONST && ./obs phase nijm`.
 This should give that all tests pass, otherwise something is wrong.
 
 ### Compiling and Installing Python Module
 
 1. Install and activate the conda environment that is defined in the file `environment.yml`
-by runing the commands 
+by running the commands 
 - `conda env-create -f environment.yml`
 - `conda activate nn-mwpc-env`
 
-2. Make sure that you made the steps 1-3 under Setup so that the makefile
+2. Make sure that you made steps 1-3 under Setup so that the makefile
 is setup correctly.
     - Run `$ bash install.sh`, which is a shell script that will compile the 
-    C++ code to a `.so` file and then makeing it into a python module with
+    C++ code to a `.so` file and then making it into a python module with
     the use of pybind11.
     - If you run `$ conda list` you should find a module named `nn-mwpc`.
 
+3. The program is parallelized using OpenMP. 
+The number of allowed threads for MKL and OpenMP are set prior to runtime using
+the environment variables below.
+```
+$ export MKL_NUM_THREADS=1
+$ export OMP_NUM_THREADS=16
+```
 
 # Testing the code
-If everything is correct, all test should pass with no exceptions. If you are
+If everything is correct, all tests should pass with no exceptions. If you are
 using the python module make sure that you run both the test of the C++ code
 and the python module.
 
@@ -203,14 +210,14 @@ few minutes for these tests to run.
 ## (Non-automated tests - this can be skipped)
 
 In the file compute_observable.cpp there are some different functionalities
-acessed by giving different command line arguments. If you have compiled with
-'make obs' you can run the ./obs excecutable. You have to give TWO arguments.
-You can test phase shifts by runnning ./obs phase X, or some differnent observables
+accessed by giving different command line arguments. If you have compiled with
+'make obs' you can run the ./obs executable. You have to give TWO arguments.
+You can test phase shifts by running ./obs phase X, or some different observables
 by running ./obs DSG X, or ./obs AYY X etc. Here if X = 'test' the code will 
 run in test mode and provide less output. If X \neq 'test' this will not happen.
 
 This will run the code with the
-nijmegen1 potential and check the results agains data from nn-on-line saved in 
+nijmegen1 potential and check the results against data from nn-on-line saved in 
 the data/ directory. When the observable data is generated by the ./obs program
 it can be plotted with the python script plot_obs.py  by running
 'python3 plot_obs.py <OBS_NAME>' in the src/python_src directory. Note that
@@ -221,7 +228,7 @@ constants in the Constants.h file.
 # Using the Python Module
 
 - The python module is made from the C++ class defined in `src/cpp_src/pybind_interface.h`.
-The class definition contans a lot of commenst that can be used to understand 
+The class definition contains a lot of comments that can be used to understand 
 the functionalities of the class.
 
 - If the module is installed you can import it by `import nn_mwpc` in python. 
@@ -229,8 +236,8 @@ Note that the library is sensitive to the python version used so make sure you a
 conda environment `nn-mwpc-env`.
 
 - There is a file `$ python_module/module_test.py` that contains examples of how to
-compute different things using the module. This file also cotains some uesfull 
-comments. If the the module is installed corrctly you can run 
+compute different things using the module. This file also contains some useful 
+comments. If the module is installed correctly you can run 
 `$ python3 python_module/module_test.py`
 
 # Appendix

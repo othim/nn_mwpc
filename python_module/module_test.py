@@ -1,5 +1,5 @@
 '''
-    This program is an example of how to use the python interface to comute
+    This program is an example of how to use the python interface to compute
     observables and phase shifts for some given potential models.
 
     - Imoprt the package and create and object with the potential you want
@@ -172,6 +172,7 @@ def M_matrix(obj):
     Mi = 0
     M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
     end = time.time()
+    
     hbarc = 197.326971941683 
     Mevm2_to_mbarn = (hbarc**2)*10.0
     print(f'M_el = {M_el} MeV^-1')    
