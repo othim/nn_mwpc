@@ -3,7 +3,7 @@
 1. [Description](#description)
 
 
-## Description
+# Description
 
 nn_mwpc is a code for computing nucleon-nucleon observables from different 
 potential models. The main purpose why the code was created was to make a 
