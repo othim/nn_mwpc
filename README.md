@@ -4,6 +4,10 @@
 2. [Definitions](#definitions)
 3. [Conventions](#conventions)
 4. [Compiling the Code](#compiling-the-code)
+5. [Testing the Code](#testing-the-code)
+6. [Using the Python Module](#using-the-python-module)
+6. [Appendix](#appendix)
+
 
 
 # Description
@@ -214,7 +218,7 @@ the exact values of the observables and phase shifts are dependent on the
 constants in the Constants.h file.
 
 
-# Runing the Python Module
+# Using the Python Module
 
 - The python module is made from the C++ class defined in `src/cpp_src/pybind_interface.h`.
 The class definition contans a lot of commenst that can be used to understand 
