@@ -46,7 +46,7 @@ thus reads
 
 ```math
 T^{js}_{l'l}(p', p) = V^{js}_{l'l}(p',p) \ + \nonumber + \sum_{l''}\int_0^\infty dk \ k^2 \ V^{js}_{l'l''}(p',k) \frac{m_N}{p^2-k^2+i\epsilon} T^{js}_{l''l}(k,p)$$
-´´´
+```
 
 The potential can precomputed and save all matrix
 elements that are not dependent on the on-shell energy.
