@@ -208,24 +208,21 @@ constants in the Constants.h file.
 
 # Runing the Python Module
 
-C++
+- The python module is made from the C++ class defined in `src/cpp_src/pybind_interface.h`.
+The class definition contans a lot of commenst that can be used to understand 
+the functionalities of the class.
 
+- If the module is installed you can import it by `import nn_mwpc` in python. 
+Note that the library is sensitive to the python version used so make sure you are in the
+conda environment `nn-mwpc-env`.
 
-PYTHON
+- There is a file `$ python_module/module_test.py` that contains examples of how to
+compute different things using the module. This file also cotains some uesfull 
+comments. If the the module is installed corrctly you can run 
+`$ python3 python_module/module_test.py`
 
-Then it is just to import it by 'import nn_mwpc' in python. Note that 
-the library is sensitive to the python version used so make sure you are in the
-conda environment nn-mwpc-env.
-
-There is not so much documentation on the python interface. I recomend that 
-one opens the interface files 'src/cpp_src/pybind_interfac.h and 
-src/cpp_src/pybind_interface.cpp' and read the comments. There is also a file 
-in this directory: 'module_test.py' that tests the library that you could run
-after 'bash install.sh' to make sure that everything loads and runs fine. 
-The code and comments in 'module_test.py' should give some guidance how to use 
-the code by providing some examples.
-
-# Misc notes
+# Appendix
+## Misc notes
 - (Only if you run on Tetralith) You need to run:
 ```
 $ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
