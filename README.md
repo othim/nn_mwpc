@@ -1,6 +1,9 @@
 # Table of Contents
 
 1. [Description](#description)
+2. [Definitions](#definitions)
+3. [Conventions](#conventions)
+4. [Compiling the Code](#compiling-the-code)
 
 
 # Description
