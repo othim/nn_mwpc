@@ -30,7 +30,7 @@ open an issue on git or contact me
 
 # Definitions
 
-A **coupled** channel in np-scattering is a channel where there are four possible
+- A **coupled** channel in np-scattering is a channel where there are four possible
 states that can mix. E.g. the $^3P_0$ channel is considered uncoupled since it 
 cannot mix with any other L-value. For J>0 the the S=3 channel can always have
 both L=J-1 and L=J+1.
@@ -93,37 +93,58 @@ The method `get_M_matrix_T(...)` in `src/cpp_src/scattering.h` will compute
 elements of the above defined $M$-matrix. This is then used in the other 
 methods in `scattering.h` to further compute observables.
 
-# COMPILING THE CODE
+# Compiling the Code
 
 
-## EXTERNAL LIBRARIES NEEDED
+## External Libraries Needed
 - gsl (https://www.gnu.org/software/gsl/)
 - pybind11 (https://pypi.org/project/pybind11/)
 - intel MKL, (oneAPI)
 - wigxjpf (http://fy.chalmers.se/subatom/wigxjpf/)
 
-## COMPILING C++ CODE
 
+## Setup
 1. The first thing you need to do is to compile the external fortran code for the
 nijmegen potential and cdbonn potential. This is done by running
-`$ bash compile_nijmegen.sh` and `$ bash compile_cdbonn.sh`. If this step fails 
-you can try to perform the same tasks as the scripts manually.
+`$ bash compile_nijmegen.sh` and `$ bash compile_cdbonn.sh`. 
+
+- If this step fails you can try to perform the same tasks as the scripts manually.
 
 2. Make sure that you go to the makefile in `src/cpp_src` and choose the correct
-compiler, BLAS library and make sure that the paths to the external libraries
-are changes to where you have installed them. Note that if you use MKL, you 
+compiler, BLAS library. Make sure that the paths to the external libraries
+are changed to where you have installed them. Note that if you use MKL, you 
 might need to source a setvars.sh file: `$ source intel/oneapi/setvars.sh`.
 
-3. The C++ code is compiled by running the appropriate make command as defined 
-in the make file in `src/cpp_src` depending on what target you want to have, e.g.
-`make obs` or `make so`.
+### Compiling C++ Code (If you want to install and use the python module you can
+skip this section)
 
-4. To set the number of allowed threads for MKL and openMP you set the 
-the environment variables e.g.
+1. The C++ code is compiled by running the appropriate make command as defined 
+in the makefile in `src/cpp_src`. 
+
+- Always start with running `$ make clean` to remove any old object files.
+- If you want to compile the code in order to make some tests from the 
+`src/cpp_src/compute_observable.cpp` file you run `$ make obs` that will create
+an exexutable named `obs`.
+- There are two flags that can be used in order to compile the code
+with non-default physics constants defined in `src/cpp_src/Constants.h`. This is
+is order to match the benchmarks exactly. Not including this flag will set the 
+default constant that are taken from PDG 2022. Examples:
+    - `$ make <target> FLAGS=-DANDREAS_CONST`
+    - `$ make <target> FLAGS=-DNIJM_CONST`
+    - Defalut: `$ make <target>`
+
+2. The program is is parallelized using OpenMP. 
+The number of allowed threads for MKL and OpenMP are set prior to runtime using
+the environment variables below.
 ```
 $ export MKL_NUM_THREADS=1
 $ export OMP_NUM_THREADS=16
 ```
+- It is advised to keep the number of threads to MKL low and to OMP high for 
+optimal performance. 
+- The code is parallelized over the channels when solving 
+for phase shifts, so if you just solve in one channel it might be beneficial 
+to increase the number of threads given to MKL
 
 Note that the linking arguments might need a change since they are specific to
 where your libraris are installed on your system. There is also different arguments
@@ -131,7 +152,7 @@ if you compile on Mac or Linux (check the makefile). If you compile the code on
 a subatom-computer you could probabily access my (Oliver Thim) libraries and 
 the changes to the makefile should be minimal.
 
-## COMPILING AND INSTALLING PYTHON MODULE
+## Compiling and Installing Python Module
 
 If the makefile is set up correctly you just run 'bash install.sh' in the
 nn_mwpc directory. This will build the code and install the python library
