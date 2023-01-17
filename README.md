@@ -51,7 +51,7 @@ i.e. without a factor of $2/\pi$ in front of the integral, which is another
 common convention.
 
 The partial wave decomposition is done according to the formulas in 
-"MOMENTUM SPACE CALCULATIONS AND HELICITY FORMALISM IN NUCLEAR PHYSICS" by Erkelenz et al. (1971).
+"Momentum Space Calculations and Helicity Formalism in Nuclear Physics" by Erkelenz et al. (1971).
 NOTE: that there is an error in eq. (4.22) which is pointed out in 
 "Chiral effective field theory and nuclear forces" by Machleidt and Entem (2011).
 
@@ -60,7 +60,12 @@ on the potential elements that are off-diagonal in $l$. This added minus sign
 is a basis convention that will be compensated in the calculation of the 
 spin-scattering matrix.
 
-The LS-equation can be solved either for the $T$-matrix or the $R$ matrix. 
+The LS-equation can be solved either for the $T$-matrix or the $R$ matrix. The 
+relation between the partial wave $S$-matrix and $T$-matrix in this basis reads
+
+```math
+     S^{js}_{l'l}(p',p) = \delta_{l'l} - 2\pi i \mu p \ T^{js}_{l'l}(p',p).
+```
 
 To summarize: The potential that is given e.g. by the `pot_nn_mwpc.get_matrix()` is 
 a potential that goes into the LS-equation above where the off-diagonal elements 
@@ -69,11 +74,10 @@ factor.
 
 ## Observables
 
-Observables are calculated from phase shifts by first computing the M-matrix 
+Observables are calculated from phase shifts by first computing the $M$-matrix 
 and then computing the corresponding Saclay amplitudes which are then converted 
 to observables. With the convention to add the extra minus sign to the off-diagonal
 elements give the following relation
-
 ```math
     \begin{align}
     &M^{s}_{m'_s m_s}(p,\theta_{cm},\phi) = \frac{\sqrt{4\pi}}{2ip} \sum_{j,l,l'} i^{l-l'} (2j+1)\sqrt{2l+1} \cdot \nonumber\\ &Y^{l'}_{m_s -m'_s}(\theta_{cm},\phi)
@@ -81,6 +85,13 @@ elements give the following relation
     &\cdot \left(S^{js}_{l'l}(p,p)-\delta_{l'l}\right)
     \end{align}
 ```
+The relation between the $M$-matrix elements and the Saclay amplitudes and observables
+are found in "Formalism of nucleon-nucleon elastic scattering experiments" by Bystricky
+et al. (1978).
+
+The method `get_M_matrix_T(...)` in `src/cpp_src/scattering.h` will compute 
+elements of the above defined $M$-matrix. This is then used in the other 
+methods in `scattering.h` to further compute observables.
 
 # COMPILING THE CODE
 
