@@ -28,48 +28,57 @@ open an issue on git or contact me
 
 (Oliver Thim, email: oliver.thim@chalmers.se).
 
-# DEFINITIONS
+# Definitions
 
 A **coupled** channel in np-scattering is a channel where there are four possible
-states that can mix. E.g. the 3P0 channel is considered uncoupled since it 
+states that can mix. E.g. the $^3P_0$ channel is considered uncoupled since it 
 cannot mix with any other L-value. For J>0 the the S=3 channel can always have
 both L=J-1 and L=J+1.
 
 
-# CONVENTIONS
+# Conventions
 
-## POTENTIAL
+## Potential and LS-equation
 
 The potential is computed in a partial wave basis with the normalization 
-$$\langle p'|p \rangle = \delta(p'-p)/p^2$$. The LS-equation for the potential
+$\langle p'|p \rangle = \delta(p'-p)/p^2$. The LS-equation for the potential
 thus reads
 
 ```math
-T^{js}_{l'l}(p', p) = V^{js}_{l'l}(p',p) \ + \nonumber + \sum_{l''}\int_0^\infty dk \ k^2 \ V^{js}_{l'l''}(p',k) \frac{m_N}{p^2-k^2+i\epsilon} T^{js}_{l''l}(k,p)$$
+T^{js}_{l'l}(p', p) = V^{js}_{l'l}(p',p) \ + \sum_{l''}\int_0^\infty dk \ k^2 \ V^{js}_{l'l''}(p',k) \frac{m_N}{p^2-k^2+i\epsilon} T^{js}_{l''l}(k,p)$$,
 ```
+i.e. without a factor of $2/\pi$ in front of the integral, which is another
+common convention.
 
-The potential can precomputed and save all matrix
-elements that are not dependent on the on-shell energy.
+The partial wave decomposition is done according to the formulas in 
+"MOMENTUM SPACE CALCULATIONS AND HELICITY FORMALISM IN NUCLEAR PHYSICS" by Erkelenz et al. (1971).
+NOTE: that there is an error in eq. (4.22) which is pointed out in 
+"Chiral effective field theory and nuclear forces" by Machleidt and Entem (2011).
 
-## LS-EQUATION
+We use the convention to add an additional minus sign w.r.t. the above calculation
+on the potential elements that are off-diagonal in $l$. This added minus sign
+is a basis convention that will be compensated in the calculation of the 
+spin-scattering matrix.
 
-The LS-equatoin is written in the same partial wave basis as the potential.
-This menas that there is no $\pi/2$ in front of the integral which appear in 
-another widely used convention. This will affect the $\rho_T$ parameter 
-(see. eg Quantum Mechanics II - A second Course in Quantum Theory by Rubin H.
-Landau) for a discussion. *NOTE* that this book uses the *OTHER* convention of
-normalization of the parital wave states which produces a $\pi/2$ in the partial
-wave LS eqiuation.
+The LS-equation can be solved either for the $T$-matrix or the $R$ matrix. 
 
-The LS-equation is solved using discretization of the momentum states
-$\int dp p^2 -> \sum_i w_i p_i^2$. (see Rubin H. Landau Ch. 18)
+To summarize: The potential that is given e.g. by the `pot_nn_mwpc.get_matrix()` is 
+a potential that goes into the LS-equation above where the off-diagonal elements 
+have an extra minus sign such that the M-matrix equation will have a $i^l'-l$
+factor.
 
-## OBSERVABLES
+## Observables
 
 Observables are calculated from phase shifts by first computing the M-matrix 
 and then computing the corresponding Saclay amplitudes which are then converted 
-to observables. For the moment the trace computation directly from the M-matrix
-is not implemented. 
+to observables. With the convention to add the extra minus sign to the off-diagonal
+elements give the following relation
+
+```math
+    &M^{s}_{m'_s m_s}(p,\thetacm,\phi) = \frac{\sqrt{4\pi}}{2ip} \sum_{j,l,l'} i^{l-l'} (2j+1)\sqrt{2l+1} \cdot \nonumber\\ &Y^{l'}_{m_s -m'_s}(\thetacm,\phi)
+    \cdot \begin{pmatrix} l' & s & j \nonumber \\ m_s-m'_s & m'_s & -m_s \end{pmatrix} \cdot \begin{pmatrix} l & s & j \\ 0 & m_s& -m_s\end{pmatrix} \\
+    &\cdot \left(S^{js}_{l'l}(p,p)-\delta_{l'l}\right)
+```
 
 # COMPILING THE CODE
 
