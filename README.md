@@ -115,6 +115,11 @@ compiler, BLAS library. Make sure that the paths to the external libraries
 are changed to where you have installed them. Note that if you use MKL, you 
 might need to source a setvars.sh file: `$ source intel/oneapi/setvars.sh`.
 
+3. (Only if you run on Tetralith) You need to run:
+```
+$ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
+```
+
 ### Compiling C++ Code (If you want to install and use the python module you can
 skip this section)
 
@@ -146,17 +151,27 @@ optimal performance.
 for phase shifts, so if you just solve in one channel it might be beneficial 
 to increase the number of threads given to MKL
 
-Note that the linking arguments might need a change since they are specific to
-where your libraris are installed on your system. There is also different arguments
-if you compile on Mac or Linux (check the makefile). If you compile the code on
-a subatom-computer you could probabily access my (Oliver Thim) libraries and 
-the changes to the makefile should be minimal.
+3. You can test the program by running `$ make -j && ./obs phase nijm`, which 
+will compute a bunch of phase shifts. You will most probably see that the test
+do not pass. This is because the benchmarks are generated with slightly different
+physics constants. Instead try `$ make -j FLAGS=-DNIJM_CONST && ./obs phase nijm`.
+This should give that all tests pass, otherwise something is wrong.
 
-## Compiling and Installing Python Module
+### Compiling and Installing Python Module
 
-If the makefile is set up correctly you just run 'bash install.sh' in the
-nn_mwpc directory. This will build the code and install the python library
-with pip. Then it is just to import it by 'import nn_mwpc' in python. Note that 
+1. Install the conda environment that is defined in the file `environment.yml`
+by runing the commands 
+- `conda env-create -f environment.yml`
+- `conda activate nn-mwpc-env`
+
+2. Make sure that you made the steps 1. and 2. under setup so that the makefile
+is setup correctly.
+    - Run `$ bash install.sh`, which is a shell script that will compile the 
+    C++ code to a `.so` file and then makeing it into a python module with
+    the use of pybind11.
+    - If you run `$ conda list` you should find a module named `nn-mwpc`
+
+Then it is just to import it by 'import nn_mwpc' in python. Note that 
 the library is sensitive to the python version used so make sure you are in the
 conda environment nn-mwpc-env.
 
@@ -168,28 +183,19 @@ after 'bash install.sh' to make sure that everything loads and runs fine.
 The code and comments in 'module_test.py' should give some guidance how to use 
 the code by providing some examples.
 
+# Testing the code
 
-
-5. (Only on Tetralith) you just need to run the setvars.sh script, set the thread
-variables and run:
-```
-$ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
-```
-
-
-# TESTING
-
-## AUTOMATED
+## Automated
 
 There is some autometed tests that are currently implemented. These can be run 
-by running 'bash run_tests.sh' in this directory. The bash file will call 
+by running bash run_tests.sh' in this directory. The bash file will call 
 ./obs with different arguments to test different things. Note that it is likely
 that some tests at the phase shift level will be marked as not passed. This 
 can be convention dependent. There are currently come coupled channels that will
 not pass, but if you run './obs phase not_test' and look at the ouput you see
 that the code is indeed correct. 
 
-## NON AUTOMATED
+## Non-Automated
 
 In the file compute_observable.cpp there are some different functionalities
 acessed by giving different command line arguments. If you have compiled with
@@ -207,7 +213,7 @@ the exact values of the observables and phase shifts are dependent on the
 constants in the Constants.h file.
 
 
-# RUNNING THE CODE AND EXAMPLES
+# Runing the code and examples
 
 C++
 
