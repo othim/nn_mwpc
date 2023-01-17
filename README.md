@@ -41,7 +41,13 @@ both L=J-1 and L=J+1.
 ## POTENTIAL
 
 The potential is computed in a partial wave basis with the normalization 
-$$\langle p'|p \rangle = \delta(p'-p)/p^2$$. The potential can precomputed and save all matrix
+$$\langle p'|p \rangle = \delta(p'-p)/p^2$$. The LS-equation for the potential
+thus reads
+$$T^{js}_{l'l}(p', p) = V^{js}_{l'l}(p',p) \ + \nonumber 
++ \sum_{l''}\int_0^\infty dk \ k^2 \ 
+V^{js}_{l'l''}(p',k) \frac{m_N}{p^2-k^2+i\epsilon} T^{js}_{l''l}(k,p)$$
+
+The potential can precomputed and save all matrix
 elements that are not dependent on the on-shell energy.
 
 ## LS-EQUATION
