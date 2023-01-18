@@ -69,8 +69,15 @@ private:
     bool finite_grid_;
     double finite_grid_max_;
     // Objects 
+    
     Potential_mwpc* Pot_;
     Potential_ext* Pot_ext_;
+
+    // This potential is taking over the Pot_ext_ in prtial waves with
+    // J >= J_pot_ext_cut_.
+    Potential_mwpc* Pot_ext_aux_;
+    int J_pot_ext_cut_;
+
     LS_Solver* LS_Solver_;
     
     // Saved data
@@ -180,7 +187,20 @@ public:
     std::vector<double> compute_wave_function(int chn_number, 
             std::vector<double> LECs);
 
-    void print_LEC_values();
+
+    /*
+     * You can choose if you have an external potential or an nn_mwpc potential.
+     * There is an additional choice to have an external potential up to a
+     * certain maximum J and then have a nn_mwpc potential. The logic for 
+     * handling this is taken care of by this function.
+     *
+     * You should not use the 'Pot_->...' directly in to code, but instead use
+     * this function to get the correct potential in each partial wave.
+     */
+    gsl_matrix* get_my_potential_matrix(double q_on_shell,qs::quantum_channel chn);
+    
+        
+        void print_LEC_values();
     void print_LECs_in_use();
 
     
