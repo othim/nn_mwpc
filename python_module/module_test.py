@@ -42,7 +42,6 @@ def observables(obs):
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     # Test to compute many observables at once
     # -----------------------------------------
-    
     print("Many observables at once")
     angles = np.linspace(1,179,50) # in degrees
     angles_l = angles.tolist()
@@ -146,14 +145,11 @@ def M_matrix(obj):
     # Just some test values
     C1S0 = 0
     C3S1 = 0
-    gA2  = 1.1*1.1; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0
     C3P2 = 0
         
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
-    # Test to compute many observables at once
-    # -----------------------------------------
-    
     
     ang = 70.0 # deg
     E   = 200.0 # MeV
@@ -163,8 +159,8 @@ def M_matrix(obj):
     # First solve the LS equation. This saves phase shifts in the object obj.
     # The saved phase shifts can be accessed with obj.get_saved_phase_shifts(chn_number)
     obj.solve_LS(E,[C1S0,C3P0,C3P2,C3S1,gA2])
-    end1 = time.time()
     
+    end1 = time.time()
     # Call the function that computes an observable at a certain angle. This will
     # be computed with the saves phase shifts from the previous call.
     S  = 0
@@ -173,10 +169,13 @@ def M_matrix(obj):
     M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
     end = time.time()
     
+    # Compute comversion factor from MeV^2 to mbarn
     hbarc = 197.326971941683 
     Mevm2_to_mbarn = (hbarc**2)*10.0
-    print(f'M_el = {M_el} MeV^-1')    
-    print(f'M_el = {M_el*Mevm2_to_mbarn} mbarn^1/2')    
+
+    # Print result
+    print(f'M_el = {M_el} MeV^-1 sr^{-1/2}')    
+    print(f'M_el = {M_el*Mevm2_to_mbarn} (mbarn/sr)^1/2')    
     print(f'S={S}, Mo={Mo}, Mi={Mi}') 
     print(f'Total time: {1e3*(end-start):0.3f} ms')
     print(f'Time to solve LS: {1e3*(end1-start):0.3f} ms')
@@ -184,8 +183,23 @@ def M_matrix(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,700.0,4,True,True,True,60,True,False,True)
-#obj = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,10000.0,100,True,True,True,100,True,False,True)
+# Settings
+# ------------------------------
+potential          = "MWPC_LO_J"
+Jmax               = 2
+cutoff             = 700.0     # MeV
+cut_pow            = 4          # This is the power, n,  in the e^(-p/Lambda)^n regularization
+sharp_cutoff       = True      # If true the potential is zer to zero for p>Lambda + 300
+precompute_pot     = True       # Precompute and store potential
+rel_correction     = True      # If relativistic corrections are implemented
+num_grid_points    = 60       # Number of momentum grid points
+finite_grid        = True      # If finte momentum grid 
+inc_weights_in_pot = False      # Include w and p in potential matrix
+cut_on_shell       = True       # Implement the cutoff also on on-shell elements
+# -----------------------------
+obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
+        precompute_pot,rel_correction,num_grid_points,finite_grid,\
+        inc_weights_in_pot,cut_on_shell)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)

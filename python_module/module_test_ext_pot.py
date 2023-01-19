@@ -36,9 +36,6 @@ def observables(obs):
     print(f'Total time: {1e3*(end-start):0.3f} ms')
     print(f'Time to solve LS: {1e3*(end1-start):0.3f} ms')
 
-    # ------------------------------------------
-#print(obj.print_LEC_values()) # To confirm they are correct
-
 
 # ------------
 # Phase shifts
@@ -68,27 +65,6 @@ def phase_shifts(obj):
         end = time.time()
         print(f'Phase shifts in Stapp convention in radians: {phases}')
         print(f'Total time: {1e3*(end-start):0.3f} ms')
-
-def diagonalization(obj):
-    print('\n \nTesting diagonalization \n')
-
-
-    C1S0 = -0.117/100.0
-    C3S1 = -0.108/100.0
-    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
-    C3P0 = 1.3e-8;
-    C3P2 = 0.1e-8;
-
-    LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
-    chn_number = 3
-    start = time.time()
-    eigs = obj.compute_binding_energy(chn_number,LECs)
-    end = time.time()
-    print(f'Eigenvalues in {obj.get_chn_LS_term(chn_number)} for LECs:')
-    obj.print_LEC_values()
-    print(np.transpose(eigs))
-    print(np.transpose(eigs).shape)
-    print(f'Total time: {1e3*(end-start):0.3f} ms')
 
 def M_matrix(obj):
     print('\n \nTesting diagonalization \n')
@@ -120,10 +96,24 @@ def M_matrix(obj):
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
-#obj = nn_mwpc.nn_mwpc_interface("nijmegen1",8,10000.0,6,False,True,True)
-obj = nn_mwpc.nn_mwpc_interface("nijmegen1",9,20000.0,100,True,True,True,100,True,False,True)
+# Settings
+# ------------------------------
+potential          = "nijmegen1"
+Jmax               = 14
+cutoff             = 5000.0     # MeV
+cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
+sharp_cutoff       = False      # If true the potential is zer to zero for p>Lambda + 300
+precompute_pot     = True       # Precompute and store potential
+rel_correction     = False      # If relativistic corrections are implemented
+num_grid_points    = 120        # Number of momentum grid points
+finite_grid        = False      # If finte momentum grid 
+inc_weights_in_pot = False      # Include w and p in potential matrix
+cut_on_shell       = True       # Implement the cutoff also on on-shell elements
+# -----------------------------
+obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
+        precompute_pot,rel_correction,num_grid_points,finite_grid,\
+        inc_weights_in_pot,cut_on_shell)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 observables(obj)
-#diagonalization(obj)
 M_matrix(obj)
