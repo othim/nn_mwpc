@@ -107,12 +107,14 @@ int main(int argc, char** argv)
     
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
-    int J_max = 8;
+    
+    // When checking agains Andreas code Jmax=8
+    int J_max = 14;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
     bool print = true;
-    bool OPE_inclue = false;
+    bool OPE_inclue = true;
     
  
     if (std::string(argv[2]) == "nijm")
@@ -442,7 +444,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     }
   
     //OPE.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
-    OPE.LECs_["gA2"]  = 1.1*1.1; // Set correct LEC
+    OPE.LECs_["gA2"]  = 1.29*1.29; // Set correct LEC
 
     // Compute the observables
     std::string obs_string2;
