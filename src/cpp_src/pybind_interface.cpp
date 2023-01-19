@@ -253,8 +253,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
                 Pot_ext_aux_->populate_saved_mtx(chn,rel_corr_); // Realtivistic factor on
             }
         }
-
-        Pot_ext_aux_->LECs_["gA2"] = 1.1*1.1;
+        double ga = 1.29;
+        Pot_ext_aux_->LECs_["gA2"] = ga*ga;
         //std::cout << Pot_ext_aux_->LECs_in_use_[0] << std::endl;
 
         // Construct LS Solver
