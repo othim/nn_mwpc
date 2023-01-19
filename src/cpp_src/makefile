@@ -5,21 +5,21 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = SUBATOM
+#SYSTEM = MAC
+SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
-#BLAS_LIB = MKL
-BLAS_LIB = GSL
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
 # -------------------
 
 # Compiler
 # --------
-CC = g++
-#CC = icpc
+#CC = g++
+CC = icpc
 # --------
 
 # Optimization
@@ -56,13 +56,21 @@ endif
 ifeq ($(SYSTEM), SUBATOM)
 
 CFLAGS2 = -Wall -std=c++11 $(OPT)
+
+# Linker flags for the wigxjpf and gsl libraries
 LDFLAGS =  -L/net/home/toliver/wigxjpf-1.11/lib/ -L/net/home/toliver/gsl-2.7/lib -L/usr/local/lib -fopenmp
 
 ifeq ($(BLAS_LIB), MKL)
 
-LDFLAGS  += -L/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64 \
+# Using these linkerflags you need to do export the following paths:
+#export LD_LIBRARY_PATH=/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/
+#export LD_PRELOAD=/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_def.so.2:/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_core.so:/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_intel_lp64.so.2:/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64/libmkl_intel_thread.so:/net/opt/intel/lib/intel64/libiomp5.so
+#LDFLAGS  += -L/net/opt/intel/2022.1.2.146/intel/oneapi/mkl/2022.0.2/lib/intel64 \
 			-Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
-#LDFLAGS += -mkl
+
+# Using this flag you can do when using the icpc compiler
+#
+LDFLAGS += -qmkl
 endif
 ifeq ($(BLAS_LIB), GSL)
 LDFLAGS += -lgslcblas
