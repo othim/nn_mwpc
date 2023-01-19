@@ -254,6 +254,9 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
             }
         }
 
+        Pot_ext_aux_->LECs_["gA2"] = 1.1*1.1;
+        //std::cout << Pot_ext_aux_->LECs_in_use_[0] << std::endl;
+
         // Construct LS Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
 
