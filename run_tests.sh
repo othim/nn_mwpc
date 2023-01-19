@@ -14,7 +14,7 @@
 # The compile flag -DANDREAS_CONST will define a variable ANDREAS_CONST
 # cor the C++ preprocessor that will take the constants used to produced
 # the test data and define change Mn <-> Mp in the rel.kinematics.
-(cd src/cpp_src; make obs FLAGS=-DANDREAS_CONST)
+(cd src/cpp_src; make -j obs FLAGS=-DANDREAS_CONST)
 (cd src/cpp_src; ./obs WPC_p_all no)
 (cd src/cpp_src; ./obs WPC_PB no)
 
@@ -27,7 +27,7 @@
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 (cd src/cpp_src; make clean)
-(cd src/cpp_src; make obs)
+(cd src/cpp_src; make -j obs)
 (cd src/cpp_src; ./obs WPC_p_all no)
 (cd src/cpp_src; ./obs WPC_PB no)
 # -----------------------------------------------------------------------------
@@ -43,7 +43,7 @@
 # The compile flag -DNIJM_CONST will define a variable NIJM_CONST
 # cor the C++ preprocessor that will take the constants use in the 
 # Nijmegen potential and define change Mn <-> Mp in the rel.kinematics.
-(cd src/cpp_src; make obs FLAGS=-DNIJM_CONST)
+(cd src/cpp_src; make -j obs FLAGS=-DNIJM_CONST)
 
 (cd src/cpp_src; ./obs phase nijm)
 (cd src/cpp_src; ./obs DIAG test)
