@@ -70,20 +70,44 @@ def compare(obj,E,S,Mo,Mi):
     max_rel_real = np.max(np.abs(M_code.real-M_nn.real)/np.abs(M_nn.real))
     max_rel_imag = np.max(np.abs(M_code.imag-M_nn.imag)/np.abs(M_nn.imag))
     
-    max_abs_real = np.max(np.abs(M_code.real-M_nn.real))
-    max_abs_imag = np.max(np.abs(M_code.imag-M_nn.imag))
-    return max_rel_real,max_rel_imag,max_abs_real,max_abs_imag
+    mean_rel_real = np.mean(np.abs(M_code.real-M_nn.real)/np.abs(M_nn.real))
+    mean_rel_imag = np.mean(np.abs(M_code.imag-M_nn.imag)/np.abs(M_nn.imag))
+    #max_abs_real = np.max(np.abs(M_code.real-M_nn.real))
+    #max_abs_imag = np.max(np.abs(M_code.imag-M_nn.imag))
+    print(np.abs(M_code.real-M_nn.real)/np.abs(M_nn.real))
+    return max_rel_real,max_rel_imag,mean_rel_real,mean_rel_imag
  
 # ---------------------------------
 # MAIN
 # ---------------------------------
 print("Constructing object and saving potential")
-#obj = nn_mwpc.nn_mwpc_interface("nijmegen1",8,10000.0,6,False,True,True)
-obj = nn_mwpc.nn_mwpc_interface("nijmegen1",7,20000.0,100,True,True,True,100,True,False,True)
+
+# Settings
+# ------------------------------
+potential          = "nijmegen1"
+Jmax               = 20
+cutoff             = 10000.0     # MeV
+cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
+sharp_cutoff       = False      # If true the potential is zer to zero for p>Lambda + 300
+precompute_pot     = True       # Precompute and store potential
+rel_correction     = False      # If relativistic corrections are implemented
+num_grid_points    = 150        # Number of momentum grid points
+finite_grid        = False      # If finte momentum grid 
+inc_weights_in_pot = False      # Include w and p in potential matrix
+cut_on_shell       = True       # Implement the cutoff also on on-shell elements
+# -----------------------------
+obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
+        precompute_pot,rel_correction,num_grid_points,finite_grid,\
+        inc_weights_in_pot,cut_on_shell)
+
+# Print info
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
-DATA_DIR = 'data/'
-energies = [10,50,200]
+
+
+DATA_DIR = '../data/'
+#energies = [10,50,200]
+energies = [200]
 
 with open('out_M_test.txt', 'w') as f:
     print(f'',file=f)
@@ -95,7 +119,7 @@ for E in energies:
                 with open('out_M_test.txt', 'a') as f:
                     print(f'S= {S}, Mo={Mo}, Mi={Mi}',file=f)
                     print(f'E= {E}, max.rel.diff (real,imag)= {diff[:2]}',file=f)
-                    print(f'E= {E}, max.abs.diff (real,imag)= {diff[2:]}',file=f)
+                    print(f'E= {E}, mean.rel.diff (real,imag)= {diff[2:]}',file=f)
 
 
 
