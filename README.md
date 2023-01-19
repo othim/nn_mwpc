@@ -196,7 +196,7 @@ and the python module.
 
 ## C++ code
 
-- To run test on C++ code, run `$ bash run_test.sh`. This will do a bunch of 
+- To run test on the C++ code, run `$ bash run_test.sh`. This will do a bunch of 
 tests both with the Nijmegen potential and LO WPC potential. It will take a 
 few minutes for these tests to run.
 
@@ -204,7 +204,7 @@ few minutes for these tests to run.
 
 - Make sure that you have installed the python module
 
-- Go to the directory run `$ python3 python_module/run_tests_on_module.py`
+- Run `$ python3 python_module/run_tests_on_module.py`
 
 
 ## (Non-automated tests - this can be skipped)
@@ -235,7 +235,7 @@ the functionalities of the class.
 Note that the library is sensitive to the python version used so make sure you are in the
 conda environment `nn-mwpc-env`.
 
-- There is a file `$ python_module/module_test.py` that contains examples of how to
+- There is a file `python_module/module_test.py` that contains examples of how to
 compute different things using the module. This file also contains some useful 
 comments. If the module is installed correctly you can run 
 `$ python3 python_module/module_test.py`
