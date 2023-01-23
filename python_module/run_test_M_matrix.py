@@ -96,6 +96,103 @@ def compare(obj,E,S,Mo,Mi,ax,ax2):
     ax2.set_ylabel(r'(mb/sr)$^{1/2}$')
     
     return max_rel_real,max_rel_imag,mean_rel_real,mean_rel_imag
+
+def PB(a,b,c,d,e):
+    
+    DSG = np.abs(a*a) + np.abs(b*b) + np.abs(c*c) + np.abs(d*d) + np.abs(e*e)
+    DSG = DSG/2.0
+    return np.real(np.conj(a)*e)/DSG
+
+def read_M(E,ang,S,Mo,Mi):
+    print(f'Comparing for, S={S}, Mo={Mo}, Mi={Mi}')   
+    filename=''
+    if (S==0):
+        filename = 'np_M_ss_' + str(int(E)) + '_nijm1.txt'
+    elif (Mo==0 and Mi==0):
+        filename = 'np_M_00_' + str(int(E)) + '_nijm1.txt'
+    elif (Mo==1 and Mi==0):
+        filename = 'np_M_10_' + str(int(E)) + '_nijm1.txt'
+    elif (Mo==0 and Mi==1):
+        filename = 'np_M_01_' + str(int(E)) + '_nijm1.txt'
+    elif (Mo==1 and Mi==1):
+        filename = 'np_M_11_' + str(int(E)) + '_nijm1.txt'
+    else:
+        print('Error, in quantum numbers')
+
+    print(f'Reading file... + {filename}')
+    ang_arr,M_nn = read_file_ang_M(DATA_DIR + filename)
+
+    return M_nn[int(ang)-1]
+def sac_from_M(theta,M_s,M_00,M_pm,M_pp,M_p0,M_0p):
+    if np.abs(theta-90.0)<0.001:
+        theta=90.001
+    
+    theta = theta*np.pi/180.0
+    a = (1/2)*(M_pp + M_00 - M_pm)
+    b = (1/2)*(M_pp + M_s + M_pm)
+    c = (1/2)*(M_pp - M_s + M_pm)
+
+    d = (1/(2*np.cos(theta)))*(-M_pp+M_00+M_pm)
+    e = (1j/np.sqrt(2))*(M_p0 - M_0p)
+
+    return a,b,c,d,e
+    
+def all_M(obj,E,ang):
+    if np.abs(ang-90.0)<0.001:
+        ang=90.001
+    M_pp = M_matrix(obj,E, ang,1,1,1)
+    M_00 = M_matrix(obj,E, ang,1,0,0)
+    M_pm = M_matrix(obj,E, ang,1,1,-1)
+    M_s = M_matrix(obj,E, ang,0,0,0)
+    M_p0 = M_matrix(obj,E, ang,1,1,0)
+    M_0p = M_matrix(obj,E, ang,1,0,1)
+
+    return M_s,M_00,M_pm,M_pp,M_p0,M_0p
+
+def all_M_nn(obj,E,ang):
+    M_pp = read_M(E, ang,1,1,1)
+    M_00 = read_M(E, ang,1,0,0)
+    M_s =  read_M(E, ang,0,0,0)
+    M_p0 = read_M(E, ang,1,1,0)
+    M_0p = read_M(E, ang,1,0,1)
+    
+    if np.abs(ang-90.0)<0.001:
+        ang=90.001
+    M_pm = M_pp - M_00 - np.sqrt(2)*(M_p0+M_0p)/np.tan(ang*np.pi/180)
+    return M_s,M_00,M_pm,M_pp,M_p0,M_0p
+
+
+def test_PB(obj,E):
+    '''
+        This function compares the calculation of PB from the code,
+        nn-on-line and from the M-matrix elements published on nn-on-line.
+
+        The conculsion is that the observables for sure include EM effects
+        while the amplitudes does not.
+    '''
+    obj.solve_LS_ext_pot(E)
+
+    PB_nn = np.loadtxt('../data/np_PB_50_nijm1.txt')
+    ang_arr = PB_nn[:-2,0]
+    PB_arr = []
+    PB_arr_nn = []
+    for ang in ang_arr: 
+        M_s,M_00,M_pm,M_pp,M_p0,M_0p = all_M_nn(obj,E,ang)
+        a,b,c,d,e = sac_from_M(ang,M_s,M_00,M_pm,M_pp,M_p0,M_0p)
+        PB_arr_nn.append(PB(a,b,c,d,e))
+        
+        M_s,M_00,M_pm,M_pp,M_p0,M_0p = all_M(obj,E,ang)
+        a,b,c,d,e = sac_from_M(ang,M_s,M_00,M_pm,M_pp,M_p0,M_0p)
+        PB_arr.append(PB(a,b,c,d,e))
+    
+    fig,ax = plt.subplots()
+    ax.plot(ang_arr*np.pi/180,PB_arr,label='code')
+    ax.plot(ang_arr*np.pi/180,PB_arr_nn,label='nn')
+    
+    ax.plot(ang_arr*np.pi/180,PB_nn[:-2,1],color='r',label='obs nn')
+    plt.legend()
+    plt.show()
+    
  
 # ---------------------------------
 # MAIN
@@ -124,8 +221,9 @@ obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 
-
 DATA_DIR = '../data/'
+test_PB(obj,50.0)
+
 energies = [10,50,200]
 
 
