@@ -129,7 +129,7 @@ DATA_DIR = '../data/'
 energies = [10,50,200]
 
 
-with open('out_M_test.txt', 'w') as f:
+with open('figures/out_M_test.txt', 'w') as f:
     print(f'',file=f)
 for E in energies:
     print(f'E={E}')
@@ -155,12 +155,12 @@ for E in energies:
                     print(f'S= {S}, Mo={Mo}, Mi={Mi}',file=f)
                     print(f'E= {E}, max.rel.diff (real,imag)= {diff[:2]}',file=f)
                     print(f'E= {E}, mean.rel.diff (real,imag)= {diff[2:]}',file=f)
-    path = f'fig_M_test_{E}.pdf'
+    path = f'figures/fig_M_test_{E}.pdf'
     ax[0].legend()
     fig.tight_layout()
     fig.savefig(path, dpi=500,bbox_inches='tight',pad_inches = 0.1)
     
-    path2 = f'fig2_M_test_{E}.pdf'
+    path2 = f'figures/fig2_M_test_{E}.pdf'
     ax2[0].legend()
     fig2.tight_layout()
     fig2.savefig(path2, dpi=500,bbox_inches='tight',pad_inches = 0.1)
