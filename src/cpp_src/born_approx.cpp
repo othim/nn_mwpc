@@ -380,7 +380,7 @@ void dwba::make_tests(std::string chn_string)
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
     gsl_matrix* V_1S0_nogrid  = Pot_1S0_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    //gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
     
     
     std::cout << "Solving exact 1S0" << std::endl;
@@ -459,7 +459,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     bool print = false;
     
     int cut_pow = 100000000;
-    double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    //double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
     
     double Lambda = 1000000.0;
     bool FINITE_GRID = false;
@@ -667,7 +667,7 @@ void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
             weights_momenta *= std::sqrt(w[i])*p[i];
             }
             
-            if (M->size1 == mom_grid_size+1)
+            if ((int)M->size1 == mom_grid_size+1)
             {   
                 gsl_complex fac = gsl_complex_rect(weights_momenta,0.0);
                 
@@ -698,7 +698,7 @@ void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
 {
     gsl_matrix_complex_set_zero(M);
     // Set the diagonal values to the vecotr values
-    for (int i = 0; i < M->size1; i++)
+    for (int i = 0; i < (int)M->size1; i++)
     {
         gsl_matrix_complex_set(M,i,i,gsl_vector_complex_get(vec,i));
     }

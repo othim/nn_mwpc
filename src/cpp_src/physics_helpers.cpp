@@ -362,12 +362,12 @@ void ph::mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2,
 void ph::on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res)
 {
-    for(int i=0; i<m1->size1; i++)
+    for(int i=0; i<(int)m1->size1; i++)
     {
-        for(int j=0; j<m2->size2; j++)
+        for(int j=0; j<(int)m2->size2; j++)
         {
             gsl_complex el = gsl_complex_rect(0,0);
-            for(int k=0; k< m1->size1-1; k++)
+            for(int k=0; k<(int)m1->size1-1; k++)
             {
                 el = gsl_complex_add(el, gsl_complex_mul(gsl_matrix_complex_get(m1,i,k),
                             gsl_matrix_complex_get(m2,k,j)));
@@ -381,9 +381,9 @@ void ph::on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2,
 
 void ph::make_matrix_complex(gsl_matrix_complex* Mz,gsl_matrix* M)
 {
-    for (int i = 0; i < M->size1; i++)
+    for (int i = 0; i < (int)M->size1; i++)
     {
-        for (int j = 0; j < M->size2; j++)
+        for (int j = 0; j < (int)M->size2; j++)
         {
             double el = gsl_matrix_get(M,i,j);
             gsl_complex elz = gsl_complex_rect(el,0.0);

@@ -944,7 +944,7 @@ double Potential_mwpc::get_total_rel_cut_weight_factor(double p_in, int j,
      } else 
      {
          // If ingoing momenta is of shell
-         if (j<mom_grid_size_)
+         if (j<(int)mom_grid_size_)
          {
             cutoff_regulator *= exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_));
             /*if (p_in > cutoff_Lambda_)
@@ -957,7 +957,7 @@ double Potential_mwpc::get_total_rel_cut_weight_factor(double p_in, int j,
          }
         
          // If outgoing momenta is of shell
-         if (i<mom_grid_size_)
+         if (i<(int)mom_grid_size_)
          {
             cutoff_regulator *= exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
             /*if (p_in > cutoff_Lambda_)
@@ -982,13 +982,13 @@ double Potential_mwpc::get_total_rel_cut_weight_factor(double p_in, int j,
      if (inc_grid_weights_in_pot_)
      {
          // If ingoing momenta is of shell
-         if (j<mom_grid_size_)
+         if (j<(int)mom_grid_size_)
          {
             weights_momenta *= std::sqrt(w_grid_[j])*p_grid_[j];
          }
         
          // If outgoing momenta is of shell
-         if (i<mom_grid_size_)
+         if (i<(int)mom_grid_size_)
          {
             weights_momenta *= std::sqrt(w_grid_[i])*p_grid_[i];
          }
