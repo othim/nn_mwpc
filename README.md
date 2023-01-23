@@ -246,3 +246,15 @@ comments. If the module is installed correctly you can run
 ```
 $ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/lib
 ```
+
+- For some reason, the nijmegen and cdbonn potentials can not be used from 
+  the python module when `OMP_NUM_THREADS>1`. For using these potentials from
+  the python interface, make sure that you run `$ export OMP_NUM_THREADS=1`
+  before running.
+
+- If you excounter MKL-related errors when running the python module you might 
+  try the following.
+  - Check that the python package versions are correct in the conda environement.
+  - You might try to update some package, e.g. numpy.
+  - If there are specific library files that not are loaded correctly you can 
+    try to add them manually to `LD_LIBRARY_PATH` and `LD_PRELOAD`.
