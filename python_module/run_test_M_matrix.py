@@ -1,7 +1,11 @@
 '''
     This file tests the M-matrix element
     computation agains nn-on-line for the
-    Nijmegen1 potential
+    Nijmegen1 potential.
+
+    The Nijmegen1 potential is used in partial waves up to Jmax=9 and then
+    the OPE up to Jmax=14. This shows a small error of a few percent in some 
+    regions.
 
     Oliver Thim 2022-12
 '''
@@ -13,6 +17,11 @@ import nn_mwpc
 import numpy as np 
 import time
 import matplotlib.pyplot as plt
+
+
+plt.style.use('../../plot_examples/plt_settings.mplstyle')
+
+
 def M_matrix(obj,E, ang,S,Mo,Mi):
     
     M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
@@ -24,6 +33,7 @@ def M_matrix(obj,E, ang,S,Mo,Mi):
     M_el_barn_unit = np.sqrt(MeVm2_to_mbarn)*M_el 
 
     return M_el_barn_unit
+
 def M_matrix_arr(obj,E, ang_arr,S,Mo,Mi):
     M_arr = np.zeros(ang_arr.shape,dtype=complex)
     for i,a in enumerate(ang_arr):
@@ -37,7 +47,7 @@ def read_file_ang_M(filename):
     data = np.loadtxt(filename,skiprows=3)
     return data[:,0],np.array(data[:,1] +1j*data[:,2])
 
-def compare(obj,E,S,Mo,Mi,ax):
+def compare(obj,E,S,Mo,Mi,ax,ax2):
     print(f'Comparing for, S={S}, Mo={Mo}, Mi={Mi}')   
     if (S==0):
         filename = 'np_M_ss_' + str(int(E)) + '_nijm1.txt'
@@ -55,8 +65,6 @@ def compare(obj,E,S,Mo,Mi,ax):
     print(f'Reading file... + {filename}')
     ang_arr,M_nn = read_file_ang_M(DATA_DIR + filename)
     
-    #ind = np.array([0, 9,49,99,149, 178])
-    #ind = np.arange(0,178)
     ind = np.arange(0,178)
     ang_arr = np.take(ang_arr,ind)
     M_nn = np.take(M_nn,ind)
@@ -70,21 +78,23 @@ def compare(obj,E,S,Mo,Mi,ax):
     
     mean_rel_real = np.mean(np.abs(M_code.real-M_nn.real)/np.abs(M_nn.real))
     mean_rel_imag = np.mean(np.abs(M_code.imag-M_nn.imag)/np.abs(M_nn.imag))
-    #max_abs_real = np.max(np.abs(M_code.real-M_nn.real))
-    #max_abs_imag = np.max(np.abs(M_code.imag-M_nn.imag))
 
-    #ax.plot(M_nn.real, color='r',alpha=0.8)
-    #ax.plot(M_code.real,color='b',alpha=0.8)
-    #ax.plot(M_nn.imag, color='r',linestyle='--',alpha=0.8)
-    #ax.plot(M_code.imag,color='b',linestyle='--',alpha=0.8)
+    ax2.plot(M_nn.real, color='r',alpha=0.8,label='re nn')
+    ax2.plot(M_code.real,color='b',alpha=0.8,label='re code')
+    ax2.plot(M_nn.imag, color='r',linestyle='--',alpha=0.8,label='im nn')
+    ax2.plot(M_code.imag,color='b',linestyle='--',alpha=0.8,label='im code')
 
-    ax.plot(np.abs(M_nn.real-M_code.real), color='C0',alpha=0.8)
-    ax.plot(np.abs(M_nn.imag-M_code.imag), color='C1',alpha=0.8)
+    ax.plot(np.abs(M_nn.real-M_code.real), color='C0',alpha=0.8,label='re abs.err')
+    ax.plot(np.abs(M_nn.imag-M_code.imag), color='C1',alpha=0.8,label='im abs.err')
     
-    ax.set_title(f'M^{S}_{Mo},{Mi}')
-    ax.set_xlabel(r'$\theta_{cm}$')
+    ax.set_title(f'$M^{S}_{{{Mo}{Mi}}}$')
+    ax.set_xlabel(r'$\theta_{cm}$ [deg]')
     ax.set_ylabel(r'(mb/sr)$^{1/2}$')
-    #print(np.abs(M_code.real-M_nn.real)/np.abs(M_nn.real))
+    
+    ax2.set_title(f'$M^{S}_{{{Mo}{Mi}}}$')
+    ax2.set_xlabel(r'$\theta_{cm}$ [deg]')
+    ax2.set_ylabel(r'(mb/sr)$^{1/2}$')
+    
     return max_rel_real,max_rel_imag,mean_rel_real,mean_rel_imag
  
 # ---------------------------------
@@ -116,7 +126,6 @@ print(f'Number of channels: {num_chn}')
 
 
 DATA_DIR = '../data/'
-#energies = [10,50,200]
 energies = [10,50,200]
 
 with open('out_M_test.txt', 'w') as f:
@@ -125,20 +134,30 @@ for E in energies:
     fig,ax = plt.subplots(2,3,figsize=(13,10))
     fig.suptitle(f'E={E} MeV')
     ax = ax.reshape(-1)
+    
+    fig2,ax2 = plt.subplots(2,3,figsize=(13,10))
+    fig2.suptitle(f'E={E} MeV')
+    ax2 = ax2.reshape(-1)
     i = 0
     obj.solve_LS_ext_pot(E)
     for S in [0,1]:
         for Mo in range(0,S+1):
             for Mi in range(0,S+1):
-                diff = compare(obj,E,S,Mo,Mi,ax[i])
+                diff = compare(obj,E,S,Mo,Mi,ax[i],ax2[i])
                 i = i+1
                 with open('out_M_test.txt', 'a') as f:
                     print(f'S= {S}, Mo={Mo}, Mi={Mi}',file=f)
                     print(f'E= {E}, max.rel.diff (real,imag)= {diff[:2]}',file=f)
                     print(f'E= {E}, mean.rel.diff (real,imag)= {diff[2:]}',file=f)
     path = f'fig_M_test_{E}.pdf'
+    ax[0].legend()
     fig.tight_layout()
     fig.savefig(path, dpi=500,bbox_inches='tight',pad_inches = 0.1)
+    
+    path2 = f'fig2_M_test_{E}.pdf'
+    ax2[0].legend()
+    fig2.tight_layout()
+    fig2.savefig(path2, dpi=500,bbox_inches='tight',pad_inches = 0.1)
 
 plt.show()
 
