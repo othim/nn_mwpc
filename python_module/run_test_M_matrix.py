@@ -128,9 +128,11 @@ print(f'Number of channels: {num_chn}')
 DATA_DIR = '../data/'
 energies = [10,50,200]
 
+
 with open('out_M_test.txt', 'w') as f:
     print(f'',file=f)
 for E in energies:
+    print(f'E={E}')
     fig,ax = plt.subplots(2,3,figsize=(13,10))
     fig.suptitle(f'E={E} MeV')
     ax = ax.reshape(-1)
@@ -139,10 +141,14 @@ for E in energies:
     fig2.suptitle(f'E={E} MeV')
     ax2 = ax2.reshape(-1)
     i = 0
+
+    print(f'Solving LS equation...')
     obj.solve_LS_ext_pot(E)
+    print(f'Done!')
     for S in [0,1]:
         for Mo in range(0,S+1):
             for Mi in range(0,S+1):
+                print(f'solving...')
                 diff = compare(obj,E,S,Mo,Mi,ax[i],ax2[i])
                 i = i+1
                 with open('out_M_test.txt', 'a') as f:
