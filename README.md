@@ -125,7 +125,7 @@ nijmegen1 and cdbonn potential. This is done by running
 2. Make sure that you go to the makefile in `src/cpp_src` and choose the correct
 compiler and BLAS library. Make sure that the paths to the external libraries
 are changed to where you have installed them. Note that if you use MKL, you 
-might need to source a setvars.sh file: `$ source intel/oneapi/setvars.sh`.
+might need to source a setvars.sh file: `$ source /net/home/toliver/intel/oneapi/setvars.sh`.
 
 3. If everything is setup correctly you should be able to go to `src/cpp_src` and run:
 `$ make clean` and then `$ make` without errors.

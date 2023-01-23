@@ -71,6 +71,7 @@ ifeq ($(BLAS_LIB), MKL)
 # Using this flag you can do when using the icpc compiler
 #
 LDFLAGS += -qmkl
+
 endif
 ifeq ($(BLAS_LIB), GSL)
 LDFLAGS += -lgslcblas

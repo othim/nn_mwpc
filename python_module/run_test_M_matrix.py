@@ -19,7 +19,7 @@ import time
 import matplotlib.pyplot as plt
 
 
-plt.style.use('../../plot_examples/plt_settings.mplstyle')
+#plt.style.use('../../plot_examples/plt_settings.mplstyle')
 
 
 def M_matrix(obj,E, ang,S,Mo,Mi):
