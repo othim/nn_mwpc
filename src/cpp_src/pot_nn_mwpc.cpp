@@ -59,15 +59,15 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    // Use a set to not have duplicates
    std::set<std::string> tmp_set_LECs;
    std::set<std::string> tmp_set_params;
-   for (std::size_t i = 0; i < terms_in_pot_.size(); i++)
+   for (std::size_t j = 0; j < terms_in_pot_.size(); j++)
    {
-      std::vector<std::string> term_string_LECs = terms_in_pot_[i].get_lecs_in_term();
+      std::vector<std::string> term_string_LECs = terms_in_pot_[j].get_lecs_in_term();
       for (std::size_t i = 0; i < term_string_LECs.size(); i++)
       {
          tmp_set_LECs.insert(term_string_LECs[i]);
       }
 
-      std::vector<std::string> term_string_params = terms_in_pot_[i].get_params_in_term();
+      std::vector<std::string> term_string_params = terms_in_pot_[j].get_params_in_term();
       for (std::size_t i = 0; i < term_string_params.size(); i++)
       {
          tmp_set_params.insert(term_string_params[i]);
