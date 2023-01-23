@@ -77,6 +77,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     inc_weights_in_pot_ = inc_weights_in_pot;
     cut_on_shell_ = cut_on_shell;
     J_pot_ext_cut_ = 5000;
+    Pot_ext_aux_ = nullptr;
     // For the quantum states
     int J_max = J_max_chn;
     int J_min = 0;

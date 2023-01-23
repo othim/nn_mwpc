@@ -67,7 +67,6 @@ def phase_shifts(obj):
         print(f'Total time: {1e3*(end-start):0.3f} ms')
 
 def M_matrix(obj):
-    print('\n \nTesting diagonalization \n')
     
     ang = 140.0 # deg
     E   = 100.0 # MeV
@@ -76,6 +75,7 @@ def M_matrix(obj):
     start = time.time()
     # First solve the LS equation. This saves phase shifts in the object obj.
     # The saved phase shifts can be accessed with obj.get_saved_phase_shifts(chn_number)
+    print('Solving LS eq.')
     obj.solve_LS_ext_pot(E)
     end1 = time.time()
     
@@ -98,8 +98,8 @@ def M_matrix(obj):
 print("Constructing object and saving potential")
 # Settings
 # ------------------------------
-potential          = "nijmegen1"
-Jmax               = 14
+potential          = "cdbonn"
+Jmax               = 1
 cutoff             = 5000.0     # MeV
 cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
 sharp_cutoff       = False      # If true the potential is zer to zero for p>Lambda + 300
@@ -115,5 +115,5 @@ obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
         inc_weights_in_pot,cut_on_shell)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
-observables(obj)
+#observables(obj)
 M_matrix(obj)
