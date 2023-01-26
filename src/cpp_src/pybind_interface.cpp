@@ -1,4 +1,5 @@
 #include "pybind_interface.h"
+#include "pybind_interface_dwb.h"
 
 #ifdef PYBIND
 
@@ -51,6 +52,33 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("get_mpi", &nn_mwpc_interface::get_mpi, py::return_value_policy::copy)
         .def("get_Mp", &nn_mwpc_interface::get_Mp, py::return_value_policy::copy)
         .def("get_Mn", &nn_mwpc_interface::get_Mn, py::return_value_policy::copy);
+    
+    py::class_<nn_mwpc_dwb_interface>(m,"nn_mwpc_dwb_interface")
+        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,bool,bool,bool>())
+        
+        
+        
+        .def("print_LECs_in_use", &nn_mwpc_dwb_interface::print_LECs_in_use,
+                py::return_value_policy::copy)
+        .def("print_LEC_values", &nn_mwpc_dwb_interface::print_LEC_values, 
+                py::return_value_policy::copy)
+        .def("get_on_shell_momentum",&nn_mwpc_dwb_interface::get_on_shell_momentum, 
+                py::return_value_policy::copy)
+        .def("get_scale", &nn_mwpc_dwb_interface::get_scale, 
+                py::return_value_policy::copy)
+        .def("get_ang_int_points", &nn_mwpc_dwb_interface::get_ang_int_points, 
+                py::return_value_policy::copy)
+        .def("get_momentum_grid_points", &nn_mwpc_dwb_interface::get_momentum_grid_points, 
+                py::return_value_policy::copy)
+        .def("get_chn_len", &nn_mwpc_dwb_interface::get_chn_len, 
+                py::return_value_policy::copy)
+        .def("get_chn_LS_term", &nn_mwpc_dwb_interface::get_chn_LS_term, 
+                py::return_value_policy::copy)
+        .def("get_gA", &nn_mwpc_dwb_interface::get_gA, py::return_value_policy::copy)
+        .def("get_fpi", &nn_mwpc_dwb_interface::get_fpi, py::return_value_policy::copy)
+        .def("get_mpi", &nn_mwpc_dwb_interface::get_mpi, py::return_value_policy::copy)
+        .def("get_Mp", &nn_mwpc_dwb_interface::get_Mp, py::return_value_policy::copy)
+        .def("get_Mn", &nn_mwpc_dwb_interface::get_Mn, py::return_value_policy::copy);
 }
 #endif
 
