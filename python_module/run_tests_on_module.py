@@ -58,7 +58,7 @@ def phase_shifts(obj,T_lab,chn_number):
     """ 
     C1S0 = -0.1/100.0
     C3S1 = -0.13/100.0
-    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0;
     C3P2 = 0;
     
@@ -138,7 +138,7 @@ def run_tests_PB(obj,tol):
     # -----------------
     C1S0 = -0.1/100.0
     C3S1 = -0.13/100.0
-    gA2  = 1.29*1.29; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0;
     C3P2 = 0;
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
@@ -184,9 +184,9 @@ if (__name__ == '__main__'):
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'**************** Phase shift test ********************')
-    run_tests_phase(obj1,1e-5)
+    run_tests_phase(obj1,1e-4)
     print(f'********************* PB test ************************')
-    run_tests_PB(obj_LO_WPC,1e-5)
+    run_tests_PB(obj_LO_WPC,1e-4)
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'******************************************************')

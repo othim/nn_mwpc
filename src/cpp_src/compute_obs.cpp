@@ -867,11 +867,6 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
     #if defined(ANDREAS_CONST)
     files.push_back("../../data/phase_shifts_Andreas_original_part.txt");
     #else
-    // This file constains the phase shifts produced when I have the correct
-    // kinematics p -> n that I have produced. When I use the same kinematics as
-    // Andreas I get absolute errros of 10^{-5} w.r.t. the
-    // original testfile phase_shifts_Andreas_original_part.txt 
-    // when I produced this test data.
     files.push_back("../../data/data_gen_corr_Andreas.txt");
     #endif
     // Make constants the same
@@ -975,7 +970,7 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         }
 
         // Set correct LECs
-        Pot.LECs_["gA2"]  = 1.29*1.29;
+        Pot.LECs_["gA2"]  = constants::gA*constants::gA;
         Pot.LECs_["C1S0"] = C1S0;
         Pot.LECs_["C3S1"] = C3S1;
         Pot.LECs_["C3P0"] = C3P0;
@@ -1080,6 +1075,7 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
 
             delete[] pot_V_mtx;
         }
+
         *computed = computed_tmp;
         std::cout << "Mean error (deg): " << mean_err/350.0 << std::endl <<
             "Max error (deg): " << max_err << std::endl;
@@ -1130,11 +1126,6 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
     #if defined(ANDREAS_CONST)
     files.push_back("../../data/PB_30_MeV_Andreas_original.txt");
     #else
-    // This file constains the phase shifts produced when I have the correct
-    // kinematics p -> n that I have produced. When I use the same kinematics as
-    // Andreas I get absolute errros of 10^{-5} w.r.t. the
-    // original testfile phase_shifts_Andreas_original_part.txt 
-    // when I produced this test data.
     files.push_back("../../data/PB_30_MeV_Andreas_corr.txt");
     #endif
     // Make constants the same
@@ -1171,7 +1162,7 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         while(infile >> t_cm >> t_lab >> th >> PB >> th >> th >> th >> th) 
         {
             D_PB[k]   = PB;
-            std::cout << t_cm << "   " << PB << std::endl;
+            //std::cout << t_cm << "   " << PB << std::endl;
             k++;
         }
         
@@ -1199,7 +1190,7 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         }
         
         // Set correct LECs
-        Pot.LECs_["gA2"]  = 1.29*1.29;
+        Pot.LECs_["gA2"]  = constants::gA*constants::gA;
         Pot.LECs_["C1S0"] = C1S0;
         Pot.LECs_["C3S1"] = C3S1;
         Pot.LECs_["C3P0"] = C3P0;
@@ -1337,9 +1328,8 @@ bool check_chn_all(std::vector<qs::quantum_channel> chns, unsigned int number_of
     std::cout << std::endl;
     #ifdef ANDREAS_CONST
     std::cout << "This test was with the compile flag FLAGS=-DANDREAS_CONST \n"
-        "which sets the C++ variable ANDREAS_CONST as defined as that 1. \n"
-        "selects the correct constants and 2. changes Mn <-> Mp in the \n"
-        "T_lab q_on_shell relation." << std::endl;
+        "which sets the C++ variable ANDREAS_CONST as defined as that \n"
+        "selects the correct constants" << std::endl;
     #else
     std::cout << "These tests was wich my constants and the kinematics \n"
     "relation that is reversed w.r.t. Andreas code. For this i compare \n"
