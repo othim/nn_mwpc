@@ -95,7 +95,11 @@ public:
     ~nn_mwpc_dwb_interface();
     
 
-    
+    /*
+     * This function solves for the full T-matrix for the 
+     * the potential V_I + V_II
+     */
+    void nn_mwpc_dwb_interface::solve_exact();
 
 
     void print_LEC_values();
