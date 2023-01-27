@@ -391,3 +391,86 @@ void ph::make_matrix_complex(gsl_matrix_complex* Mz,gsl_matrix* M)
         }
     }
 }
+
+void matrix_set(gsl_matrix* m, const size_t i, const size_t j, double el)
+{
+    gsl_matrix_set(m,i,j,el);
+}
+
+void matrix_set(gsl_matrix_complex* m, const size_t i, const size_t j, 
+        const gsl_complex el)
+{
+    gsl_matrix_complex_set(m,i,j,el);
+
+}
+
+gsl_matrix* matrix_alloc(const size_t i,const size_t j,gsl_matrix* m)
+{
+    return gsl_matrix_alloc(i,j);
+}
+
+gsl_matrix* matrix_alloc(const size_t i,const size_t j,gsl_matrix_complex* m)
+{
+    return gsl_matrix_complex_alloc(i,j);
+}
+
+void matrix_free(gsl_matrix* m)
+{
+    gsl_matrix_free(m);
+}
+
+void matrix_free(gsl_matrix_complex*)
+{
+    gsl_matrix_complex_free(m);
+}
+
+void matrix_set_zero(gsl_matrix* m)
+{
+    gsl_matrix_set_zero(m);
+}
+
+void matrix_set_zero(gsl_matrix_complex* m)
+{
+    gsl_matrix_complex_set_zero(m);
+}
+
+void matrix_add(gsl_matrix* m1, gsl_matrix* m2)
+{
+    gsl_matrix_add(m1,m2);
+}
+
+void matrix_add(gsl_matrix_complex* m1, gsl_matrix_complex* m2)
+{
+    gsl_matrix_complex_add(m1,m2);
+}
+
+void matrix_sub(gsl_matrix* m1, gsl_matrix* m2)
+{
+    gsl_matrix_sub(m1,m2);
+}
+
+void matrix_sub(gsl_matrix_complex* m1, gsl_matrix_complex* m2)
+{
+    gsl_matrix_complex_sub(m1,m2);
+}
+
+void matrix_memcpy(gsl_matrix* m1, gsl_matrix* m2)
+{
+    gsl_matrix_memcpy(m1,m2);
+}
+
+void matrix_memcpy(gsl_matrix_complex* m1, gsl_matrix_complex* m2)
+{
+    gsl_matrix_complex_memcpy(m1,m2);
+}
+
+void matrix_scale(gsl_matrix* m1, const double scale)
+{
+
+}
+
+void matrix_scale(gsl_matrix_complex* m1, const gsl_complex scale)
+{
+}
+
+
