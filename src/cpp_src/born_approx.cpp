@@ -24,10 +24,10 @@ gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_com
     if (print)
     {
         std::cout << "V:" << std::endl;
-        ph::print_m_complex(V);
+        ph::print_m(V);
     
         std::cout << "G0:" << std::endl;
-        ph::print_m_complex(G0);
+        ph::print_m(G0);
     }
     gsl_matrix_complex* G0V = gsl_matrix_complex_alloc(V->size1,V->size2);
     ph::mult(G0,V,G0V);
@@ -35,7 +35,7 @@ gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_com
     if (print)
     {
         std::cout << "G0V:" << std::endl;
-        ph::print_m_complex(G0V);
+        ph::print_m(G0V);
     }
 
     gsl_matrix_complex* tmp1 = gsl_matrix_complex_alloc(V->size1,V->size2);
@@ -55,19 +55,19 @@ gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_com
             pow_matrix_mult(G0V,i,tmp1);
             
             //std::cout << "(G0V)^i:" << std::endl;
-            //ph::print_m_complex(tmp1);
+            //ph::print_m(tmp1);
             
             ph::mult(V,tmp1,tmp2);
             
             //std::cout << "CGV:" << std::endl;
-            //ph::print_m_complex(tmp2);
+            //ph::print_m(tmp2);
             // Add to the result
             gsl_matrix_complex_add(res,tmp2);
             
         }
             
         //std::cout << "res:" << std::endl;
-        //ph::print_m_complex(res);
+        //ph::print_m(res);
     }
     // Deallocate 
     gsl_matrix_complex_free(G0V);

@@ -960,7 +960,7 @@ std::complex<double>* LS_Solver::T_matrix_from_R_matrix(double Rmm, double Rmp,
     gsl_matrix_complex_set(R_complex,1,1,gsl_complex_rect(f*Rpp,0));
 
     std::cout << "R_complex:" << std::endl;
-    ph::print_m_complex(R_complex);
+    ph::print_m(R_complex);
     
     // Make the other matrix
     gsl_matrix_complex* temp_matrix = gsl_matrix_complex_alloc(R_complex->size1
@@ -987,7 +987,7 @@ std::complex<double>* LS_Solver::T_matrix_from_R_matrix(double Rmm, double Rmp,
     gsl_linalg_complex_LU_invert(temp_matrix,perm,inverse);
 
     std::cout << "inverse:" << std::endl;
-    ph::print_m_complex(inverse);
+    ph::print_m(inverse);
 
     // Performs inverse <- inverse*R_complex
     gsl_complex alpha2 = gsl_complex_rect(1.0,0.0);
@@ -998,7 +998,7 @@ std::complex<double>* LS_Solver::T_matrix_from_R_matrix(double Rmm, double Rmp,
             tmp); 
     
     std::cout << "tmp:" << std::endl;
-    ph::print_m_complex(tmp);
+    ph::print_m(tmp);
     // Now inverse is the T-matrix
     
     std::complex<double>* T = new std::complex<double>[4];

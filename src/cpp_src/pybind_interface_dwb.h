@@ -99,7 +99,11 @@ public:
      * This function solves for the full T-matrix for the 
      * the potential V_I + V_II
      */
-    void nn_mwpc_dwb_interface::solve_exact();
+    void solve_exact();
+    void solve_exact_full_T();
+    void solve_LO_full_T();
+    void solve_DWBA_full_T(int order);
+    void solve_DWBA_PC_full_T(int order);
 
 
     void print_LEC_values();

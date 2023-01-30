@@ -628,19 +628,6 @@ void Potential_mwpc::populate_saved_mtx(qs::quantum_channel chn, bool rel_correc
    but loades the saved part and just fills in the parts that depends on the on-shell momentum.
 */
 
-void p_m(gsl_matrix* matrix)
-{
-   std::cout << "---------" << std::endl;
-   for (std::size_t i = 0; i < matrix->size1; i++)
-   {
-      for (std::size_t j = 0; j < matrix->size1; j++)
-      {
-         std::cout << gsl_matrix_get(matrix,i,j) << " ";
-      }   
-      std::cout << std::endl;
-   }
-   std::cout << "---------" << std::endl;
-}
 
 gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction)
 {

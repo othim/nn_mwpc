@@ -24,7 +24,7 @@ CC = g++
 
 # Optimization
 # ------------
-OPT = -O3 #-ggdb
+OPT = -O3 -ggdb
 # ------------
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -117,14 +117,14 @@ NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 CDBONN_FILES = cdbonn_interface.o cdbonn.o # Compiled separately from Fortran code
 NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 				quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
-				born_approx.o pybind_interface_dwb.o
+				born_approx.o pybind_interface_dwb.o potential_mwpc.o
 
 obs: $(NN_MWPC_FILES)
 	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
 FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
-		   born_approx.o pybind_interface_dwb.o
+		   born_approx.o pybind_interface_dwb.o potential_mwpc.o
 
 so: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
@@ -161,7 +161,10 @@ born_approx.o: born_approx.h
 
 pybind_interface_dwb.o: pybind_interface_dwb.h
 	$(CC) $(CFLAGS) $(FLAGS) -c pybind_interface_dwb.cpp
+
+potential_mwpc.o: potential_mwpc.h
+	$(CC) $(CFLAGS) $(FLAGS) -c potential_mwpc.cpp
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
-	   	pot_ext.o born_approx.o
+	   	pot_ext.o born_approx.o potential_mwpc.o

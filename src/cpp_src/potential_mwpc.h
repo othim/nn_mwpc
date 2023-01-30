@@ -1,4 +1,4 @@
-/* pot_nn_mwpc.h
+/* potential_mwpc.h
    This file is part of the nn_mwpc project.
 
    The potential class creats nucleon-nucleon potential objects in a specific
@@ -14,8 +14,8 @@
    Department of Physics, Chalmers
 */
 
-#ifndef POT_NN_MWPC_H
-#define POT_NN_MWPC_H
+#ifndef POTENTIAL_MWPC_H
+#define POTENTIAL_MWPC_H
 
 #include <vector>
 #include <iostream>
@@ -27,7 +27,7 @@
 #include "gsl_sf_legendre.h"
 #include "gsl_integration.h" 
 #include "gsl_matrix.h"
-#include "gsl_matrix_complex.h"
+#include "gsl_matrix_complex_double.h"
 #include "Term.h"
 #include "Constants.h"
 #include "quantum_states.h"
@@ -35,7 +35,7 @@
 //#define ENABLE_DEBUG
 
 template <class gsl_m>
-class Potential_mwpc
+class Pot_mwpc
 {
 private:
    // The matrices are saved in a specific channel and the class
@@ -76,6 +76,7 @@ private:
    double* w_z_mesh; // GL integration weights
    unsigned int len_z_mesh; // GL integration number of points
 
+   int isoFac(int L, int S);
 private:
    /*
       ---------------------------
@@ -144,7 +145,7 @@ public:
     /* 
       Constructor
     */
-    Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
+    Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
@@ -153,7 +154,7 @@ public:
     /* 
       Destructor
     */ 
-    ~Potential_mwpc();
+    ~Pot_mwpc();
     /*
       This function computes matrix elements of the potential. NOTE that this is done with the
       CURRENT values of LECs_, so be sure to set them to the correct values prior

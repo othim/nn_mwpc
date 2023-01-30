@@ -292,7 +292,7 @@ void print_v(gsl_vector* vec)
    std::cout << "---------" << std::endl;
 }
 
-void ph::print_m_complex(gsl_matrix_complex* matrix)
+void ph::print_m(gsl_matrix_complex* matrix)
 {
    std::cout << "---------" << std::endl;
    for (std::size_t i = 0; i < matrix->size1; i++)
@@ -307,7 +307,7 @@ void ph::print_m_complex(gsl_matrix_complex* matrix)
    std::cout << "---------" << std::endl;
 }
 
-void ph::print_v_complex(gsl_vector_complex* vec)
+void ph::print_v(gsl_vector_complex* vec)
 {
    std::cout << "---------" << std::endl;
    for (std::size_t i = 0; i < vec->size; i++)
@@ -409,7 +409,7 @@ gsl_matrix* matrix_alloc(const size_t i,const size_t j,gsl_matrix* m)
     return gsl_matrix_alloc(i,j);
 }
 
-gsl_matrix* matrix_alloc(const size_t i,const size_t j,gsl_matrix_complex* m)
+gsl_matrix_complex* matrix_alloc(const size_t i,const size_t j,gsl_matrix_complex* m)
 {
     return gsl_matrix_complex_alloc(i,j);
 }
@@ -419,7 +419,7 @@ void matrix_free(gsl_matrix* m)
     gsl_matrix_free(m);
 }
 
-void matrix_free(gsl_matrix_complex*)
+void matrix_free(gsl_matrix_complex* m)
 {
     gsl_matrix_complex_free(m);
 }

@@ -12,6 +12,8 @@
 #include "pybind_interface.h"
 #include "pot_ext.h"
 #include "born_approx.h"
+#include "potential_mwpc.h"
+
 /*
  * This function can be called if this file is linked with 
  * the .o files from the fortran libray compiled.
@@ -60,6 +62,8 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
         unsigned int J_max_in_pot, bool print_all);
 void check_born(std::string chn_string);
 void check_DWBA(std::string chn_string);
+void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string);
 
 void test_f()
 {
@@ -184,6 +188,8 @@ int main(int argc, char** argv)
         check_born(std::string(argv[2]));
     } else if (std::string(argv[1]) == "DWBA") {
         check_DWBA(std::string(argv[2]));
+    } else if (std::string(argv[1]) == "NPOT") {
+        check_NPOT(chns, number_of_p_points, scale,ang_int_points, J_max_in_pot, std::string(argv[2]));
     }
     ph::physics_helpers_free();
     return 0;
@@ -641,8 +647,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
                 g   sl_matrix_complex* M_matrix = get_M_matrix(chns, phases_vec, q_on_shell, angle*M_PI/180.0, rho_T, l_max);
                 gsl_matrix_complex* eig = gsl_matrix_complex_alloc(2,2);
                 gsl_matrix_complex_set_identity(eig);
-                ph::print_m_complex(eig);
-                ph::print_m_complex(M_matrix);
+                ph::print_m(eig);
+                ph::print_m(M_matrix);
                 obs_M = get_observables(eig,eig,eig,eig,M_matrix); 
             }            
             std::cout << angle << "   " << obs_M << " mb" << std::endl; */
@@ -1413,7 +1419,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     if (TEST) {
         std::cout << "The eigenvalues in 3S1-3D1 LO MWPC" << quantum_channel_to_string(chn) << " is: "
             << std::endl;
-        ph::print_v_complex(diag_res.eigenvalues);    
+        ph::print_v(diag_res.eigenvalues);    
     }
     gsl_matrix_complex_free(diag_res.eigenvectors);
     gsl_vector_complex_free(diag_res.eigenvalues); 
@@ -1434,7 +1440,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     if (TEST) {
         std::cout << "The eigenvalues in 3S1-3D1 LO nijmegen1" << quantum_channel_to_string(chn) << " is: "
             << std::endl;
-        ph::print_v_complex(diag_res.eigenvalues);    
+        ph::print_v(diag_res.eigenvalues);    
     }
     std::cout << "Nijmegen1 binding energy: -2.224575 MeV" << std::endl;
     
@@ -1688,4 +1694,86 @@ void check_born(std::string chn_string)
 void check_DWBA(std::string chn_string)
 {
     dwba::make_tests_DWBA(chn_string);
+}
+
+void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
+        double scale,unsigned int ang_int_points, unsigned int J_max_in_pot, std::string chn_string)
+{
+    std::cout << "Testing phase shifts of LO MWPC new pot" << std::endl << std::endl;
+    
+    //std::cout << " These tests are done with the finite p-mesh" << std::endl;
+    //std::clock_t start, end;   
+    
+    // Make grid
+    double* p_grid;
+    double* w_grid;
+    double Lambda = 500.0;
+    bool FINITE_GRID = false;
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    
+    int cut_pow = 6;
+    double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    double C3P0 = 0.0;
+    double C3P2 = 0.0;    
+    // Choose terms in LO WPC potential
+    std::vector<std::string> terms;
+    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("C1S0");
+    terms.push_back("C3S1");
+    terms.push_back("C3P0");
+    terms.push_back("C3P2");
+
+    Pot_mwpc<gsl_matrix> Pot = Pot_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    for (auto chn : chns)
+    {
+        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+
+    // Set correct LECs
+    Pot.LECs_["gA2"]  = 1.29*1.29;
+    Pot.LECs_["C1S0"] = C1S0;
+    Pot.LECs_["C3S1"] = C3S1;
+    Pot.LECs_["C3P0"] = C3P0;
+    Pot.LECs_["C3P2"] = C3P2;
+
+
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+   
+    double q_on_shell;
+    double mu;
+    //double rho_T;
+    qs::quantum_channel chn = chns[0];
+    for (int i = 0; i < (int)chns.size(); i++)
+    {
+        chn = chns[i];
+        if (quantum_channel_to_string(chn) == chn_string) {
+            break;
+        }
+    }
+    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
+    if (chn.coupled) {
+        std::cout  << "E (MeV) |  uncoup | dm | dp | epsilon (all in deg)" << std::endl;
+    } else {
+        std::cout  << "E (MeV) |  uncoup (deg)" << std::endl;
+    }
+    for (int i = 0; i < 350; i++) 
+    {
+        double Tl = (double)(i+1);
+        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+        Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
+        
+        double x = 180.0/M_PI;        
+        if (chn.coupled) {
+            std::cout << Tl << "   " <<  phases.delta_m*x << "   "
+                << phases.delta_p*x << "   " << phases.epsilon*x << std::endl;
+        } else {
+            std::cout  << Tl << "   " << phases.delta_uncoupled*x << std::endl;
+        } 
+        gsl_matrix_free(pot_V_mtx);
+    } 
 }

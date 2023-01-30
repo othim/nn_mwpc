@@ -98,8 +98,8 @@ double rad_to_deg(double in);
 void print_m(gsl_matrix* matrix);
 void print_v(gsl_vector* vec);
 
-void print_m_complex(gsl_matrix_complex* matrix);
-void print_v_complex(gsl_vector_complex* vec);
+void print_m(gsl_matrix_complex* matrix);
+void print_v(gsl_vector_complex* vec);
 
 void print_m_complex_to_file(std::string path,gsl_matrix_complex* matrix);
 
