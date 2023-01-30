@@ -145,9 +145,11 @@ void on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2,
  */
 void make_matrix_complex(gsl_matrix_complex* Mz,gsl_matrix* M);
 
-void matrix_set(gsl_matrix* m,         const size_t i, const size_t j, double el);
+void matrix_set(gsl_matrix* m,         size_t i, size_t j, double el);
 void matrix_set(gsl_matrix_complex* m, const size_t i, const size_t j, 
         const gsl_complex el);
+void matrix_set(gsl_matrix_complex* m, const size_t i, const size_t j, 
+        const double el);
 
 /*
  * This function assumes that el is the real part if the matrix element
@@ -174,7 +176,7 @@ void matrix_memcpy(gsl_matrix* m1, gsl_matrix* m2);
 void matrix_memcpy(gsl_matrix_complex* m1, gsl_matrix_complex* m2);
 
 void matrix_scale(gsl_matrix* m1, const double scale);
-void matrix_scale(gsl_matrix_complex* m1, const gsl_complex scale);
+void matrix_scale(gsl_matrix_complex* m1, const double scale);
 
 }
 #endif

@@ -1,10 +1,39 @@
 #include "potential_mwpc.h"
 
-// This struct is to define what set of parameters the function f_int want
-//struct my_f_params { double qi; double qo; int J; int l; Term* term; Pot_mwpc* this_pot;};
+/* These declarations are neccessary to be able to have the declarations
+ * in a separate .cpp file.
+ */
+template void Pot_mwpc<gsl_matrix>::populate_saved_mtx(qs::quantum_channel chn, 
+        bool rel_correction);
+
+template gsl_matrix* Pot_mwpc<gsl_matrix>::get_saved_matrix(double q_on_shell,qs::quantum_channel chn, 
+        bool rel_correction);
+
+template gsl_matrix* Pot_mwpc<gsl_matrix>::get_matrix(double q_on_shell,qs::quantum_channel chn, 
+        bool rel_correction);
+
+template Pot_mwpc<gsl_matrix>::~Pot_mwpc();
+
+template Pot_mwpc<gsl_matrix>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
+   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell);
+
+template void Pot_mwpc<gsl_matrix_complex>::populate_saved_mtx(qs::quantum_channel chn, 
+        bool rel_correction);
+
+template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_saved_matrix(double q_on_shell,qs::quantum_channel chn, 
+        bool rel_correction);
+
+template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_matrix(double q_on_shell,qs::quantum_channel chn, 
+        bool rel_correction);
+
+template Pot_mwpc<gsl_matrix_complex>::~Pot_mwpc();
+
+template Pot_mwpc<gsl_matrix_complex>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
+   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell);
 
 
-// Constructor
 template <class gsl_m>
 Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
@@ -136,7 +165,7 @@ Pot_mwpc<gsl_m>::~Pot_mwpc()
         {
             for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
             {
-                matrix_free(it->second[LECs_in_use_[i]]);
+                ph::matrix_free(it->second[LECs_in_use_[i]]);
             }
         }
     }
@@ -459,16 +488,16 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,boo
    // to be computed at runtime
    gsl_m* matrix_data;
    if (chn.coupled) {
-      matrix_data = matrix_alloc((2*mom_grid_size_ + 2),(2*mom_grid_size_ + 2),
+      matrix_data = ph::matrix_alloc((2*mom_grid_size_ + 2),(2*mom_grid_size_ + 2),
               matrix_data);
    } else {
-      matrix_data = matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1,
+      matrix_data = ph::matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1,
               matrix_data);
    }
 
    // Set all elements to zero to be able to add the contribution of the on-shell 
    // part later. This ensures that the elements in these saved matrices are zero.
-   matrix_set_zero(matrix_data);
+   ph::matrix_set_zero(matrix_data);
 
    // For each grid point, including qi, and qo
    
@@ -512,32 +541,32 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,boo
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-               matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
+                ph::matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
                //std::cout << "Pot el S0: " << V_arr[0]*rel_fac << std::endl;
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                  matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
+                   ph::matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
                } else // For J=0,S=1,L=1 case
                {
-                  matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
+                   ph::matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
                }
                
             }
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
+             ph::matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-            matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*tot_fac); //mp
-            matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*tot_fac); //pm
-            matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*tot_fac); //pp
+             ph::matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*tot_fac); //mp
+             ph::matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*tot_fac); //pm
+             ph::matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*tot_fac); //pp
          }
       }
    }
@@ -559,7 +588,7 @@ void Pot_mwpc<gsl_m>::clear_saved_matrices()
       for (typename std::map<std::string, gsl_m*>::iterator it=it1->second.begin(); 
               it!=it1->second.end(); ++it)
       {
-         matrix_free(it->second);
+          ph::matrix_free(it->second);
       }
    }
    #ifdef ENABLE_DEBUG
@@ -609,7 +638,7 @@ void Pot_mwpc<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, bool rel_corre
       gsl_m* matrix = get_matrix(0.0,chn,rel_correction); // Do not care about on-shell part
       
       // Subtract the constant matrix
-      matrix_sub(matrix,mtx_const);
+      ph::matrix_sub(matrix,mtx_const);
 
       #ifdef ENABLE_DEBUG
          std::cerr << std::endl << "populate_saved_mtx(): Printing matrix associated to LEC: " << LECs_in_use_[i] << "." << std::endl;
@@ -668,25 +697,27 @@ gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel 
    gsl_m* matrix_saved_sum;
    if (!coupled)
    {
-      matrix_saved_sum  = matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
-      gsl_m* tmp_matrix = matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1);
-      matrix_set_zero(matrix_saved_sum);
+      matrix_saved_sum  = ph::matrix_alloc((size_t)(mom_grid_size_ + 1),
+              (size_t)(mom_grid_size_ + 1),matrix_saved_sum);
+      gsl_m* tmp_matrix = ph::matrix_alloc((size_t)(mom_grid_size_ + 1),
+              (size_t)(mom_grid_size_ + 1),matrix_saved_sum);
+      ph::matrix_set_zero(matrix_saved_sum);
       for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
       {
          // Copy saved matrix to not mess it upp
-         matrix_memcpy(tmp_matrix, saved_matrices_[chn][LECs_in_use_[i]]);
+          ph::matrix_memcpy(tmp_matrix, saved_matrices_[chn][LECs_in_use_[i]]);
          //p_m(saved_matrices_[chn][LECs_in_use_[i]]);
          // Scale tmp_matrix by the correct LEC
-         matrix_scale(tmp_matrix, LECs_[LECs_in_use_[i]]);
+          ph::matrix_scale(tmp_matrix, LECs_[LECs_in_use_[i]]);
          //std::cout << "LEC=" << LECs_[LECs_in_use_[i]] << std::endl;
          // Add this contribution to the sum
 
-         matrix_add(matrix_saved_sum,tmp_matrix);
+          ph::matrix_add(matrix_saved_sum,tmp_matrix);
       }
       // Add constant
-      matrix_add(matrix_saved_sum,saved_matrices_[chn]["const"]);
+      ph::matrix_add(matrix_saved_sum,saved_matrices_[chn]["const"]);
       // Delete the tmp matrix
-      matrix_free(tmp_matrix);
+      ph::matrix_free(tmp_matrix);
 
       /* The dashed part are filled in
          (     |)
@@ -713,44 +744,44 @@ gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel 
          
          if (J == 0 && S == 1) // 3P_0 case
          {
-            matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[2]*tot_fac);
-            matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[2]*tot_fac);
+             ph::matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[2]*tot_fac);
+             ph::matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[2]*tot_fac);
          }
          else if (S==0)
          {
             // Take element zero and insert it into the matrix
-            matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[0]*tot_fac);
-            matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[0]*tot_fac);
+             ph::matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[0]*tot_fac);
+             ph::matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[0]*tot_fac);
             
          } else 
          {
-            matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[1]*tot_fac);
-            matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[1]*tot_fac);
+             ph::matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[1]*tot_fac);
+             ph::matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[1]*tot_fac);
          }
       }
 
    } else 
    {
-      matrix_saved_sum       = matrix_alloc(2*mom_grid_size_ + 2,2*mom_grid_size_ + 2);
-      gsl_m* tmp_matrix = matrix_alloc(2*mom_grid_size_ + 2,2*mom_grid_size_ + 2);
-      matrix_set_zero(matrix_saved_sum);
+      matrix_saved_sum       = ph::matrix_alloc(2*mom_grid_size_ + 2,2*mom_grid_size_ + 2,matrix_saved_sum);
+      gsl_m* tmp_matrix = ph::matrix_alloc(2*mom_grid_size_ + 2,2*mom_grid_size_ + 2,matrix_saved_sum);
+      ph::matrix_set_zero(matrix_saved_sum);
        for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
       {
          // Copy saved matrix to not mess it upp
-         matrix_memcpy(tmp_matrix, saved_matrices_[chn][LECs_in_use_[i]]);
+          ph::matrix_memcpy(tmp_matrix, saved_matrices_[chn][LECs_in_use_[i]]);
 
          // Scale tmp_matrix by the correct LEC
          //std::cout << "LEC=" << LECs_[LECs_in_use_[i]] << std::endl;
-         matrix_scale(tmp_matrix, LECs_[LECs_in_use_[i]]);
+          ph::matrix_scale(tmp_matrix, LECs_[LECs_in_use_[i]]);
 
          // Add this contribution to the sum
-         matrix_add(matrix_saved_sum,tmp_matrix);
+          ph::matrix_add(matrix_saved_sum,tmp_matrix);
       }
       // Add constant
-      matrix_add(matrix_saved_sum,saved_matrices_[chn]["const"]);
+       ph::matrix_add(matrix_saved_sum,saved_matrices_[chn]["const"]);
      
       // Delete the tmp matrix
-      matrix_free(tmp_matrix);
+       ph::matrix_free(tmp_matrix);
 
       /* The dashed parts are filled in
          (     |)(     |)
@@ -785,29 +816,29 @@ gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel 
 
          // Take mm element and insert it into the matrix
          // mm
-         matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]*tot_fac); // Column
-         matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]*tot_fac); // Row
+         ph::matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]*tot_fac); // Column
+         ph::matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]*tot_fac); // Row
 
          // Take mp element one and insert it into the matrix
          // mp 
-         matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[4]*tot_fac); // Column
-         matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[5]*tot_fac); // Row 
+         ph::matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[4]*tot_fac); // Column
+         ph::matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[5]*tot_fac); // Row 
 
          // Take pm element one and insert it into the matrix
          // pm
-         matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[5]*tot_fac); // Column
-         matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[4]*tot_fac); // Row 
+         ph::matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[5]*tot_fac); // Column
+         ph::matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[4]*tot_fac); // Row 
 
          // Take pp element one and insert it into the matrix
          // pp
-         matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i+mom_grid_size_+1,tmp_arr[2]*tot_fac); // Column
-         matrix_set(matrix_saved_sum,i+mom_grid_size_+1,2*mom_grid_size_+1,tmp_arr[2]*tot_fac); // Row 
+         ph::matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i+mom_grid_size_+1,tmp_arr[2]*tot_fac); // Column
+         ph::matrix_set(matrix_saved_sum,i+mom_grid_size_+1,2*mom_grid_size_+1,tmp_arr[2]*tot_fac); // Row 
       }
    }
 
    #ifdef ENABLE_DEBUG
       std::cout << std::endl << "get_saved_matrix(): Printing matrix." << std::endl;
-      print_m(matrix_saved_sum);
+      ph::print_m(matrix_saved_sum);
    #endif
      
    // Return pointer to the full potential matrix.
@@ -847,9 +878,9 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn, bool rel_
    // to be computed at runtime
    gsl_m* matrix_data;
    if (chn.coupled) {
-      matrix_data = matrix_alloc((2*mom_grid_size_),(2*mom_grid_size_));
+      matrix_data = ph::matrix_alloc((2*mom_grid_size_),(2*mom_grid_size_),matrix_data);
    } else {
-      matrix_data = matrix_alloc(mom_grid_size_,mom_grid_size_);
+      matrix_data = ph::matrix_alloc(mom_grid_size_,mom_grid_size_,matrix_data);
    }
 
    // For each grid point
@@ -878,31 +909,31 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn, bool rel_
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-               matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
+                ph::matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                  matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
+                   ph::matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
                } else // For J=0,S=1,L=1 case
                {
-                  matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
+                   ph::matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
                }
             }
 
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
+             ph::matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-            matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*tot_fac); //mp
-            matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*tot_fac); //pm
-            matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*tot_fac); //pp
+             ph::matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*tot_fac); //mp
+             ph::matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*tot_fac); //pm
+             ph::matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*tot_fac); //pp
          }
       }
    }

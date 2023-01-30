@@ -13,7 +13,7 @@
 #include "pot_ext.h"
 #include "born_approx.h"
 #include "potential_mwpc.h"
-
+#include "physics_helpers.h"
 /*
  * This function can be called if this file is linked with 
  * the .o files from the fortran libray compiled.
@@ -1725,6 +1725,9 @@ void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     terms.push_back("C3P2");
 
     Pot_mwpc<gsl_matrix> Pot = Pot_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
+    
+    Pot_mwpc<gsl_matrix_complex> Pot_complex = Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
     
     std::cout << "Saving potential matrices" << std::endl;

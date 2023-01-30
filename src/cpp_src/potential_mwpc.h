@@ -31,6 +31,7 @@
 #include "Term.h"
 #include "Constants.h"
 #include "quantum_states.h"
+#include "physics_helpers.h"
 
 //#define ENABLE_DEBUG
 
@@ -76,7 +77,6 @@ private:
    double* w_z_mesh; // GL integration weights
    unsigned int len_z_mesh; // GL integration number of points
 
-   int isoFac(int L, int S);
 private:
    /*
       ---------------------------
@@ -114,6 +114,8 @@ private:
     
    double get_total_rel_cut_weight_factor(double p_in, int j, 
            double p_out, int i, double mu, bool rel_correction);
+   
+   int isoFac(int L, int S);
 public:
    
     /*
