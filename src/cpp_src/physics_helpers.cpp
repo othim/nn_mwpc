@@ -466,11 +466,14 @@ void matrix_memcpy(gsl_matrix_complex* m1, gsl_matrix_complex* m2)
 
 void matrix_scale(gsl_matrix* m1, const double scale)
 {
-
+    gsl_matrix_scale(m1, scale);
 }
 
-void matrix_scale(gsl_matrix_complex* m1, const gsl_complex scale)
+void matrix_scale(gsl_matrix_complex* m1, const double scale)
 {
+    gsl_complex alpha = gsl_complex_rect(0.0,0.0);
+    gsl_complex beta  = gsl_complex_rect(scale,0.0);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, m1, m1, beta, m1); 
 }
 
 
