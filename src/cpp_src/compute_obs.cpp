@@ -1724,59 +1724,29 @@ void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     terms.push_back("C3P0");
     terms.push_back("C3P2");
 
-    Pot_mwpc<gsl_matrix> Pot = Pot_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
-            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
-    
     Pot_mwpc<gsl_matrix_complex> Pot_complex = Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
     
     std::cout << "Saving potential matrices" << std::endl;
     for (auto chn : chns)
     {
-        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+        Pot_complex.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
 
     // Set correct LECs
-    Pot.LECs_["gA2"]  = 1.29*1.29;
-    Pot.LECs_["C1S0"] = C1S0;
-    Pot.LECs_["C3S1"] = C3S1;
-    Pot.LECs_["C3P0"] = C3P0;
-    Pot.LECs_["C3P2"] = C3P2;
+    Pot_complex.LECs_["gA2"]  = 1.29*1.29;
+    Pot_complex.LECs_["C1S0"] = C1S0;
+    Pot_complex.LECs_["C3S1"] = C3S1;
+    Pot_complex.LECs_["C3P0"] = C3P0;
+    Pot_complex.LECs_["C3P2"] = C3P2;
 
-
-    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
-   
-    double q_on_shell;
-    double mu;
-    //double rho_T;
     qs::quantum_channel chn = chns[0];
     for (int i = 0; i < (int)chns.size(); i++)
     {
         chn = chns[i];
-        if (quantum_channel_to_string(chn) == chn_string) {
-            break;
-        }
-    }
-    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
-    if (chn.coupled) {
-        std::cout  << "E (MeV) |  uncoup | dm | dp | epsilon (all in deg)" << std::endl;
-    } else {
-        std::cout  << "E (MeV) |  uncoup (deg)" << std::endl;
-    }
-    for (int i = 0; i < 350; i++) 
-    {
-        double Tl = (double)(i+1);
-        LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
-        Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
-        
-        double x = 180.0/M_PI;        
-        if (chn.coupled) {
-            std::cout << Tl << "   " <<  phases.delta_m*x << "   "
-                << phases.delta_p*x << "   " << phases.epsilon*x << std::endl;
-        } else {
-            std::cout  << Tl << "   " << phases.delta_uncoupled*x << std::endl;
-        } 
-        gsl_matrix_free(pot_V_mtx);
+        double q_on_shell = 10.0;
+        gsl_matrix_complex* pot_V_mtx = Pot_complex.get_saved_matrix(q_on_shell, chn, true);
+        ph::print_matrix(pot_V_mtx);
+        gsl_matrix_complex_free(pot_V_mtx);
     } 
 }

@@ -298,7 +298,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
     double q_on_shell;
     get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
 
-    //std::cout << "q_on_shell=" << q_on_shell << std::endl;
+    // std::cout << "q_on_shell=" << q_on_shell << std::endl;
     // rho = 2*q*mu   
     // This is a convecntion dependent parameter that relates the 
     // R-matrix to the T/S matrices. rho will be different if a different 

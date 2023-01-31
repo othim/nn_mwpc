@@ -436,6 +436,12 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_free(V_1S0);
 }
 
+void dwba::T_DWBA(Potential_mwpc V_I,Potential_mwpc V_II)
+{
+
+
+
+}
 
 void dwba::make_tests_DWBA(std::string chn_string)
 {
@@ -507,7 +513,6 @@ void dwba::make_tests_DWBA(std::string chn_string)
     /*
      * Construct the potential
      */
-    
     
     std::vector<std::string> terms;
     terms.push_back("Yamaguchi_1S0");
@@ -636,6 +641,291 @@ void dwba::make_tests_DWBA(std::string chn_string)
     }
     myfile.close();
 
+    gsl_matrix_complex_free(V_1S0_I);
+    gsl_matrix_complex_free(V_1S0_II);
+    gsl_matrix_complex_free(G0);
+    gsl_vector_complex_free(prop_vec);
+    gsl_matrix_free(V_Yam_I);
+    gsl_matrix_free(V_Yam_II);
+}
+
+void dwba::make_tests_DWBA_2(std::string chn_string)
+{
+    std::cout << "Testing the Born and DW Born approximation" << std::endl;
+    
+
+    // ------ CONSTANTS TO CHANGE ------
+    // ---------------------------------
+    double scale = 100.0; // Scale of momenutm grid MeV
+    unsigned int ang_int_points = 76; // Number of points in angular integration
+    unsigned int number_of_p_points =100; // Number of momentum-grid points
+    unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
+    bool REL_CORR = false;
+    bool CUT_ON_SHELL = true;
+    
+    int J_max = 2;
+    int J_min = 0;
+    int Tz_min = 0;
+    int Tz_max = 0;
+    bool print = false;
+    
+    int cut_pow = 100000000;
+    //double C1S0	= -0.01/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    
+    double Lambda = 1000000.0;
+    bool FINITE_GRID = false;
+    
+    double Tl = 1.0; // MeV
+    
+    double lam   = 100.0;
+    double lam_t = -10000.0;
+    double beta  = 40.0;
+    double gamma = 30.0;
+    //double lam_t = 0.0;
+    std::string DATA_DIR = "../../../projects/dwb/data/";
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Do precomputations
+    // ---------------------------------
+    ph::physics_helpers_init();
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Construct the quantum states
+    // ---------------------------------
+    std::cout << "Constructing quantum states..." << std::endl;
+    std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
+     
+    // Construct the quantum scattering channels from the states
+    std::cout << "Contruction scattering channels..." << std::endl;
+    std::vector<qs::quantum_channel> chns = get_channels(states, print);   
+    // ---------------------------------
+    // ---------------------------------
+    
+    
+    // Construct the momentum grid
+    // ---------------------------------
+    double* p_grid;
+    double* w_grid;
+    if (FINITE_GRID)
+    {
+        ph::gauss_legendre_finite_mesh(number_of_p_points,0,
+                Lambda + 300.0,&p_grid,&w_grid);
+    } else 
+    {
+        ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    }
+    // ---------------------------------
+    // ---------------------------------
+
+    
+    // Construct the potential
+    // ---------------------------------
+    std::vector<std::string> terms;
+    terms.push_back("Yamaguchi_1S0");
+    Pot_mwpc<gsl_matrix> Pot_Yam = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
+    
+    Pot_mwpc<gsl_matrix> Pot_Yam_nogrid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Set the parameters of the potentials
+    // ---------------------------------
+    Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
+    Pot_Yam.params_["Yamaguchi_beta"] = gamma;
+    // ---------------------------------
+    // ---------------------------------
+
+    std::cout << "Saving potential matrices" << std::endl;
+    
+    // Populate the saved matrices. Important that the parameters are set 
+    // prior to this step!!
+    // ---------------------------------
+    for (auto chn : chns)
+    {
+        Pot_Yam.populate_saved_mtx(chn,REL_CORR); 
+        Pot_Yam_nogrid.populate_saved_mtx(chn,REL_CORR);
+    }
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Construct a LS-solver for the T-matrix
+    // ---------------------------------
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+    // ---------------------------------
+    // ---------------------------------
+    
+    double q_on_shell;
+    double mu;
+    
+    // Select a specific partial wave
+    qs::quantum_channel chn = chns[0];
+
+    // Get the channel
+    for (int i = 0; i < (int)chns.size(); i++)
+    {
+        chn = chns[i];
+        if (quantum_channel_to_string(chn) == chn_string) {
+            break;
+        }
+    }
+
+    // Print 
+    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
+    
+        
+    // Get the on-shell momenta and reduced mass
+    // ---------------------------------
+    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
+    // ---------------------------------
+    // ---------------------------------
+    
+
+    // Get the potential without the grid
+    // ---------------------------------
+    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam_t;
+    Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
+    gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_matrix(q_on_shell, chn, REL_CORR);
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Set different parameters and get a new matrix
+    // NOTE: When params_ array is updated the save routine needs to be re-run
+    // for the saving to work properly. This can be circumvented by using the 
+    // .get_matrix() method instead of the get_saved_matrix() one.
+    // ---------------------------------
+    Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam;
+    Pot_Yam_nogrid.params_["Yamaguchi_beta"] = gamma;
+    gsl_matrix* tmp  = Pot_Yam_nogrid.get_matrix(q_on_shell, chn, REL_CORR);
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Add these potential matrices
+    // Now, V_Yam_nogrid contains the sum of the above potentials.
+    gsl_matrix_add(V_Yam_nogrid,tmp);
+
+
+    // Solving for the full T-matrix
+    // ---------------------------------
+    std::cout << "Solving exact 1S0" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,V_Yam_nogrid);
+    //gsl_matrix_free(V_Yam_nogrid);
+    std::cout << "T (exact) = " << tt[3] << std::endl;
+    std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt[3]),2) << std::endl;
+    std::cout << "-----------------" << std::endl;
+    // ---------------------------------
+    // ---------------------------------
+
+    // Make the potentials complex
+    // ---------------------------------
+    std::cout << "Making potential complex" << std::endl;
+    gsl_matrix_complex* V_1S0_I   = 
+        gsl_matrix_complex_alloc(V_Yam_nogrid->size1,V_Yam_nogrid->size2);
+    gsl_matrix_complex* V_1S0_II  = 
+        gsl_matrix_complex_alloc(V_Yam_nogrid->size1,V_Yam_nogrid->size2);
+    
+    Pot_Yam.params_["Yamaguchi_beta"] = beta;
+    Pot_Yam.LECs_["Yamaguchi_1S0"] = lam_t;
+    gsl_matrix* V_Yam_I  = Pot_Yam.get_matrix(q_on_shell, chn, REL_CORR);
+    
+    ph::make_matrix_complex(V_1S0_I,V_Yam_I);
+    ph::print_m_complex_to_file(DATA_DIR+"VI.txt",V_1S0_I);
+    
+    Pot_Yam.params_["Yamaguchi_beta"] = gamma;
+    Pot_Yam.LECs_["Yamaguchi_1S0"] = lam;
+    gsl_matrix* V_Yam_II  = Pot_Yam.get_matrix(q_on_shell, chn, REL_CORR);
+    
+    ph::make_matrix_complex(V_1S0_II,V_Yam_II);
+    ph::print_m_complex_to_file(DATA_DIR+"VII.txt",V_1S0_II);
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Get the propagator matrix
+    // ---------------------------------
+    std::cout << "Computing the propagator" << std::endl;
+    gsl_vector_complex* prop_vec = solver.setup_G0_vector_complex(q_on_shell,
+            chn.coupled,mu);
+    // ---------------------------------
+    // ---------------------------------
+    
+    std::cout << "-----------------" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    
+    // Make the propagator vector to a matrix
+    // ---------------------------------
+    gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    matrix_from_vector(G0,prop_vec);
+    // ---------------------------------
+    // ---------------------------------
+ 
+    // Store some matrices to file
+    ph::print_m_complex_to_file(DATA_DIR+"G0.txt",G0);
+    
+
+    
+    std::ofstream myfile;
+    //std::string DATA_DIR = "~/Documents/phd/projects/dwb/data/";
+    std::string filename = DATA_DIR +"DWBA"+std::to_string((int)number_of_p_points)+ ".txt"; 
+    myfile.open(filename);
+    myfile << "Np =" << number_of_p_points << std::endl;
+    myfile << "Order, |T|^2" << std::endl;
+    for (int ord = 0; ord < 11; ord++)
+    {
+        // Solve for the full LO T matrix using the real form of the LOO potential
+        // ---------------------------------
+        Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
+        Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = lam_t;
+        gsl_matrix* V_Yam_nogrid  = Pot_Yam_nogrid.get_matrix(q_on_shell, chn, REL_CORR);
+        gsl_matrix_complex* T_I = solver.solve_in_chn_T_fullT(Tl,chn,V_Yam_nogrid);
+        // ---------------------------------
+        // ---------------------------------
+        
+        // Add the needed weights on the LO T-matrix in order for it to fit
+        // in the comming framework
+        dress_in_weights(T_I,p_grid,w_grid,(int)number_of_p_points);
+        ph::print_m_complex_to_file(DATA_DIR+"TI.txt",T_I);
+        
+        // Get and print the on-shell T-matrix element
+        gsl_complex onT_I = gsl_matrix_complex_get(T_I,number_of_p_points,number_of_p_points);
+        std::cout << "T_I= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+    
+        // Compute the T-matrix in DWBA to some order
+        // ---------------------------------
+        gsl_matrix_complex* T_DWBA = dwba::pw_T_DWBA(ord,T_I,V_1S0_I,V_1S0_II,G0);
+        gsl_complex onT = gsl_matrix_complex_get(T_DWBA,number_of_p_points,number_of_p_points);
+        // ---------------------------------
+        // ---------------------------------
+
+        gsl_matrix_complex_free(T_I);
+        
+        // Something is wrong with this memory...
+        gsl_matrix_complex_free(T_DWBA); 
+        gsl_matrix_free(V_Yam_nogrid);
+
+        // Print the result
+        // ---------------------------------
+        std::cout << "order=" << ord << ", in DWBA" << std::endl; 
+        std::cout << "T= " << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
+        double T2 = std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2);
+        std::cout <<"|T|^2 = " <<  T2 << std::endl << std::endl;
+        // ---------------------------------
+        // ---------------------------------
+        
+
+        // Write to file in format order, |T|^2
+        // ---------------------------------
+        myfile << ord << "   " << T2 << std::endl;
+        // ---------------------------------
+        // ---------------------------------
+    }
+    myfile.close();
+
+    // Deleta all data
     gsl_matrix_complex_free(V_1S0_I);
     gsl_matrix_complex_free(V_1S0_II);
     gsl_matrix_complex_free(G0);
