@@ -838,6 +838,20 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
 gsl_matrix_complex* LS_Solver::solve_in_chn_T_fullT(double T_lab, 
         qs::quantum_channel chn, gsl_matrix* pot_V_mtx)
 {
+    gsl_matrix_complex* pot_complex = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
+    for (int i=0; i < (int)F_matrix->size1; i++)
+    {
+        for (int j=0; j < (int)F_matrix->size2; j++)
+        {
+            gsl_matrix_complex_set(pot_complex,i,j,gsl_complex_rect(gsl_matrix_get(pot_V_mtx,i,j),0.0));
+        }
+    }
+    return solve_in_chn_T_fullT(T_lab,chn,pot_complex);
+}
+
+gsl_matrix_complex* LS_Solver::solve_in_chn_T_fullT(double T_lab, 
+        qs::quantum_channel chn, gsl_matrix_complex* pot_complex)
+{
     // Compute reduced mass mu, which depends on the isospin-prijection.
     double mu;
     double q_on_shell;
@@ -849,19 +863,9 @@ gsl_matrix_complex* LS_Solver::solve_in_chn_T_fullT(double T_lab,
     // a factor of 2.0/M_PI is added...
 
     gsl_vector_complex* D_vector = setup_D_vector_complex(q_on_shell,chn.coupled,mu);
-
+    
     gsl_matrix_complex* F_matrix = setup_F_matrix_complex(chn.coupled,D_vector,pot_V_mtx);
     
-    /*
-    print_matrix(pot_V_mtx);
-    std::cout << "D-vector" << std::endl;
-    print_vector_complex(D_vector);
-    std::cout << std::endl << "F-matrix" << std::endl;
-    print_matrix_complex(F_matrix);
-    */
-
-    // Solve matrix equation F*R = V
-
     // LU decompose
     gsl_permutation* perm = gsl_permutation_alloc(F_matrix->size1);
     int signum;
@@ -870,29 +874,63 @@ gsl_matrix_complex* LS_Solver::solve_in_chn_T_fullT(double T_lab,
     // Invert from LU decompusition
  
     gsl_matrix_complex* inverse = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
-    gsl_linalg_complex_LU_invert(F_matrix,perm,inverse); // Some error here
+    gsl_linalg_complex_LU_invert(F_matrix,perm,inverse);
 
     gsl_matrix_complex* T_result = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
 
     gsl_complex alpha = gsl_complex_rect(1.0,0.0);
     gsl_complex beta  = gsl_complex_rect(0.0,0.0);
 
-    gsl_matrix_complex* pot_complex = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
-    for (int i=0; i < (int)F_matrix->size1; i++)
-    {
-        for (int j=0; j < (int)F_matrix->size2; j++)
-        {
-            gsl_matrix_complex_set(pot_complex,i,j,gsl_complex_rect(gsl_matrix_get(pot_V_mtx,i,j),0.0));
-        }
-    }
  
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, inverse, pot_complex, beta, T_result); 
 
-    gsl_vector_complex_free(D_vector);
     gsl_matrix_complex_free(pot_complex);
+    gsl_vector_complex_free(D_vector);
     gsl_matrix_complex_free(F_matrix);
     gsl_matrix_complex_free(inverse);
     gsl_permutation_free(perm);
+    return T_result;
+}
+
+gsl_matrix_complex* LS_Solver::solve_in_chn_T_fullT_weights(double T_lab, 
+        qs::quantum_channel chn, gsl_matrix_complex* pot_complex,
+        gsl_matrix_complex* G0)
+{
+    // Compute reduced mass mu, which depends on the isospin-prijection.
+    double mu;
+    double q_on_shell;
+    get_mu_q_on_shell(T_lab,chn,&mu,&q_on_shell);
+
+    // Compute K = (1 - V*G0)
+    gsl_matrix_complex* id = 
+        gsl_matrix_complex_alloc(pot_complex->size1,pot_complex->size2);
+    gsl_matrix_complex_set_identity(id);
+    gsl_complex alpha = gsl_complex_rect(-1.0,0.0);
+    gsl_complex beta  = gsl_complex_rect(1.0,0.0);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, pot_complex, 
+            G0, beta, id); 
+    
+    // Invert id=K now
+    gsl_permutation* perm = gsl_permutation_alloc(id->size1);
+    int signum;
+    gsl_linalg_complex_LU_decomp(id,perm,&signum);
+
+    // Invert from LU decompusition
+    gsl_matrix_complex* K_inv = 
+        gsl_matrix_complex_alloc(pot_complex->size1,pot_complex->size2);
+    gsl_linalg_complex_LU_invert(id,perm,K_inv);
+
+    // Multiply K_inv*V
+    gsl_matrix_complex* T_result = gsl_matrix_complex_alloc(F_matrix->size1,F_matrix->size2);
+    alpha = gsl_complex_rect(1.0,0.0);
+    beta  = gsl_complex_rect(0.0,0.0);
+    gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, K_inv, 
+            pot_complex, beta, T_result); 
+
+    gsl_permutation_free(perm);
+    gsl_matrix_complex_free(id);
+    gsl_matrix_complex_free(K_inv);
+    
     return T_result;
 }
 
