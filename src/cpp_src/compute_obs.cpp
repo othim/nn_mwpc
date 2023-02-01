@@ -1694,6 +1694,8 @@ void check_born(std::string chn_string)
 void check_DWBA(std::string chn_string)
 {
     dwba::make_tests_DWBA(chn_string);
+    std::cout << "\n\n\n\n\n\n";
+    dwba::make_tests_DWBA_2(chn_string);
 }
 
 void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 
@@ -1746,7 +1748,7 @@ void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
         chn = chns[i];
         double q_on_shell = 10.0;
         gsl_matrix_complex* pot_V_mtx = Pot_complex.get_saved_matrix(q_on_shell, chn, true);
-        ph::print_matrix(pot_V_mtx);
+        ph::print_m(pot_V_mtx);
         gsl_matrix_complex_free(pot_V_mtx);
     } 
 }

@@ -80,6 +80,10 @@ public:
 
     gsl_matrix_complex* setup_F_matrix_complex(bool coupled, 
             gsl_vector_complex* D_vector, gsl_matrix* V_mtx);
+    
+    gsl_matrix_complex* setup_F_matrix_complex(bool coupled, 
+            gsl_vector_complex* D_vector, gsl_matrix_complex* V_mtx);
+    
     Phase_shifts_chn solve_in_chn_T(double T_lab, qs::quantum_channel chn, 
             gsl_matrix* pot_V_mtx);
    
@@ -87,7 +91,7 @@ public:
             qs::quantum_channel chn, gsl_matrix* pot_V_mtx);
 
     gsl_matrix_complex* solve_in_chn_T_fullT(double T_lab, 
-            qs::quantum_channel chn, gsl_matrix_complex* pot_V_mtx);
+            qs::quantum_channel chn, gsl_matrix_complex* pot_complex);
     /*
      * This function solves for the T-matrix where the poential incluses
      * the weights and momentum factors. This means that resulting T-matrix
@@ -95,7 +99,8 @@ public:
      * in a DWB solver for example.
      */
     gsl_matrix_complex* solve_in_chn_T_fullT_weights(double T_lab, 
-            qs::quantum_channel chn, gsl_matrix_complex* pot_V_mtx);
+            qs::quantum_channel chn, gsl_matrix_complex* pot_V_mtx,
+            gsl_matrix_complex* G0);
     
         std::complex<double>* solve_in_chn_T_Telem(double T_lab, 
             qs::quantum_channel chn, gsl_matrix* pot_V_mtx);

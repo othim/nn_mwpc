@@ -25,6 +25,7 @@
 #include "gsl_linalg.h"
 #include "gsl_complex.h"
 #include "pot_nn_mwpc.h"
+#include "potential_mwpc.h"
 #include "LS_Solver.h"
 #include <string>
 namespace dwba 
@@ -67,7 +68,7 @@ gsl_matrix_complex* pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* 
  * V_II : is the correction to the leading order potential
  * G0   : is the free Greens function
  *
- * V_I, V_II and G0 has to be in the same form as accepted into 
+ * T_I, V_I, V_II and G0 has to be in the same form as accepted into 
  * 'dwba::pw_compute_BA()' i.e. including the momentum space factors and 
  * weights.
  *
@@ -86,6 +87,21 @@ gsl_matrix_complex* pw_T_DWBA(int order, gsl_matrix_complex* T_I,
         gsl_matrix_complex* G0);
 
 
+gsl_matrix_complex* pw_T_DWBA_PC_LO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_LO);
+
+
+/* This function computes the DWBA according to 
+ * T_NLO = 
+ */
+gsl_matrix_complex* pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_LO,
+        gsl_matrix_complex* V_NLO);
+
+gsl_matrix_complex* pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_LO,
+        gsl_matrix_complex* V_N2LO);
+
 /*
  * Helperfunctions to compute the Möller wave operators
  */
@@ -102,6 +118,7 @@ gsl_matrix_complex* full_DWBA_T_matrix();
 
 void make_tests(std::string chn_string);
 void make_tests_DWBA(std::string chn_string);
+void make_tests_DWBA_2(std::string chn_string);
 
 }
 

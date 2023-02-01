@@ -436,13 +436,6 @@ void dwba::make_tests(std::string chn_string)
     gsl_matrix_free(V_1S0);
 }
 
-void dwba::T_DWBA(Potential_mwpc V_I,Potential_mwpc V_II)
-{
-
-
-
-}
-
 void dwba::make_tests_DWBA(std::string chn_string)
 {
 
@@ -837,6 +830,20 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     std::cout << "-----------------" << std::endl;
     // ------------------------------------------------------------------------
     // ------------------------------------------------------------------------
+    
+    // Get the propagator matrix
+    // ---------------------------------
+    std::cout << "Computing the propagator" << std::endl;
+    gsl_vector_complex* prop_vec = solver.setup_G0_vector_complex(q_on_shell,
+            chn.coupled,mu);
+    // Make it to a diagonal matrix
+    gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    matrix_from_vector(G0,prop_vec);
+ 
+    // Store some matrices to file
+    //ph::print_m_complex_to_file(DATA_DIR+"G0.txt",G0);
+    // ---------------------------------
+    // ---------------------------------
 
     // Make the potentials complex
     // ---------------------------------
@@ -847,8 +854,28 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
         get_saved_matrix(q_on_shell, chn, REL_CORR);
 
     pot2_complex_weights.LECs_["Yamaguchi_1S0"] = lam;
-    gsl_matrix_complex* V_1S0_II   = pot1_complex_weights.
+    gsl_matrix_complex* V_1S0_II   = pot2_complex_weights.
         get_saved_matrix(q_on_shell, chn, REL_CORR);
+    
+    std::cout << "Solving exact 1S0 complex potentials" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    gsl_matrix_complex* sum_complex = gsl_matrix_complex_alloc(
+            V_1S0_I->size1,V_1S0_II->size2);
+    gsl_matrix_complex_set_zero(sum_complex);
+    gsl_matrix_complex_add(sum_complex,V_1S0_I);
+    gsl_matrix_complex_add(sum_complex,V_1S0_II);
+
+    gsl_matrix_complex* T_tmp = 
+        solver.solve_in_chn_T_fullT_weights(Tl,chn,sum_complex,G0);
+    gsl_complex tel = gsl_matrix_complex_get(T_tmp,T_tmp->size1-1,
+            T_tmp->size2-1);
+    std::complex<double> tt2(GSL_REAL(tel),GSL_IMAG(tel));
+
+    gsl_matrix_complex_free(sum_complex); // Can't free?!?
+    gsl_matrix_complex_free(T_tmp);
+    std::cout << "T (exact) = " << tt2 << std::endl;
+    std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt2),2) << std::endl;
+    std::cout << "-----------------" << std::endl;
     
     // Print the potentials to file
     // ph::print_m_complex_to_file(DATA_DIR+"VI.txt",V_1S0_I);
@@ -856,26 +883,10 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     // ---------------------------------
     // ---------------------------------
     
-    // Get the propagator matrix
-    // ---------------------------------
-    std::cout << "Computing the propagator" << std::endl;
-    gsl_vector_complex* prop_vec = solver.setup_G0_vector_complex(q_on_shell,
-            chn.coupled,mu);
-    // Make it to a diagonal matrix
-    gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
-    ph::matrix_from_vector(G0,prop_vec);
- 
-    // Store some matrices to file
-    //ph::print_m_complex_to_file(DATA_DIR+"G0.txt",G0);
-    // ---------------------------------
-    // ---------------------------------
-    
     std::cout << "-----------------" << std::endl;
     std::cout << "-----------------" << std::endl;
-
     
     std::ofstream myfile;
-    //std::string DATA_DIR = "~/Documents/phd/projects/dwb/data/";
     std::string filename = DATA_DIR +"DWBA"+std::to_string((int)number_of_p_points)+ ".txt"; 
     myfile.open(filename);
     myfile << "Np =" << number_of_p_points << std::endl;
@@ -884,10 +895,14 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     {
         // Solve for the full LO T matrix using the real form of the LOO potential
         // ---------------------------------
+        
         gsl_matrix_complex* T_I = 
             solver.solve_in_chn_T_fullT_weights(Tl,chn,V_1S0_I,G0);
         
-        ph::print_m_complex_to_file(DATA_DIR+"TI.txt",T_I);
+        //gsl_matrix_complex* T_I = solver.solve_in_chn_T_fullT(Tl,chn,pot1_rw_matrix);
+        //dress_in_weights(T_I,p_grid,w_grid,(int)number_of_p_points);
+        
+        //ph::print_m_complex_to_file(DATA_DIR+"TI.txt",T_I);
         
         // Get and print the on-shell T-matrix element
         gsl_complex onT_I = 
@@ -991,90 +1006,3 @@ void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
 }
 
 
-/*
- *
-    // Get the on-shell momenta and reduced mass
-    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-
-    gsl_matrix* V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    gsl_matrix* V_grid = Pot_grid.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    gsl_matrix* V_3P0  = Pot_3P0.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    
-    std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
-    double fac = 1.0;
-    std::cout << "Full potential" << std::endl;
-    std::cout << "T: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
-            "   " << fac*T_elem[2] << "   " << fac*T_elem[3] << std::endl;
-    
-    
-    // Do it in distorted wave parturbation theory
-    // -------------------------------------------
-
-    // First solve the problem where C3P0 is zero
-    Pot.LECs_["C3P0"] = 0;
-    gsl_matrix_free(V_Pot);
-    V_Pot  = Pot.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    std::complex<double>* T_elem_0 = solver.solve_in_chn_T_Telem(Tl, chn, V_Pot);
-    gsl_matrix_complex* T_full     = solver.solve_in_chn_T_fullT(Tl,chn,V_Pot);
-
-    std::cout << "C3P0=0" << std::endl;
-    std::cout << "T: " <<  fac*T_elem_0[0] << "   " << fac*T_elem_0[1] << 
-            "   " << fac*T_elem_0[2] << "   " << fac*T_elem_0[3] << std::endl;
-    
-    
-    std::cout << "Dressing T in the weights and momenta" << std::endl;
-    
-    dress_in_weights(T_full,p_grid,w_grid,(int)number_of_p_points);
-    
-    // Make potential complex (this is already dresses in the weights)
-    std::cout << "Making potential complex" << std::endl;
-    gsl_matrix_complex* V_pot_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
-    gsl_matrix_complex* V_grid_z = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
-    gsl_matrix_complex* V_3P0_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
-    gsl_matrix_complex* V_1S0_z  = gsl_matrix_complex_alloc(V_Pot->size1,V_Pot->size2);
-
-    // Get the propagator matrix
-    std::cout << "Computing the propagator" << std::endl;
-    gsl_vector_complex* prop_vec = solver.setup_D_vector_complex(q_on_shell,
-            chn.coupled,mu);
-    
-    gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
-    matrix_from_vector(G0,prop_vec);
-
-    int order = 1;
-    gsl_matrix_complex* T_dwba = pw_T_DWBA(order,T_full,V_grid_z,V_3P0_z,G0);
-
-    gsl_complex onT = gsl_matrix_complex_get(T_dwba,number_of_p_points,number_of_p_points);
-
-    std::cout << "order=" << order << ", in DWBA" << std::endl; 
-    std::cout << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
-    std::cout << "\n\n\n";
-    
-    for (int ord = 0; ord < 1; ord++)
-    {
-        gsl_matrix_complex* T_ba = dwba::pw_T_BA((int)0,ord,V_3P0_z,G0);
-        onT = gsl_matrix_complex_get(T_ba,number_of_p_points,number_of_p_points);
-        std::cout << "order=" << ord << ", in BA" << std::endl; 
-        std::cout << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
-        std::cout <<"|T|^2 = " <<  std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2) << std::endl << std::endl;
-    }
-    std::cout << "C3P0 = " << C3P0 << std::endl;
-    std::cout << "(2*pi)^3*C3P0 = " << std::pow((2*M_PI),3)*C3P0 << std::endl;
-
-    std::cout << "|C3P0|^2 = " << std::pow(C3P0,2) << std::endl;
-    std::cout << "(2*pi)^6*|C3P0|^2 = " << std::pow((2*M_PI),6)*std::pow(C3P0,2) << std::endl;
-
-
-    gsl_matrix_complex_free(T_dwba);
-    gsl_matrix_complex_free(V_pot_z);
-    gsl_matrix_complex_free(V_grid_z);
-    gsl_matrix_complex_free(V_3P0_z);
-    gsl_matrix_complex_free(V_1S0_z);
-    gsl_matrix_complex_free(G0);
-    gsl_vector_complex_free(prop_vec);
-    gsl_matrix_complex_free(T_full);
-    gsl_matrix_free(V_Pot);
-    gsl_matrix_free(V_grid);
-    gsl_matrix_free(V_3P0);
-}*/
