@@ -98,7 +98,7 @@ def M_matrix(obj):
 print("Constructing object and saving potential")
 # Settings
 # ------------------------------
-potential          = "cdbonn"
+potential          = "nijmegen1"
 Jmax               = 1
 cutoff             = 5000.0     # MeV
 cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
