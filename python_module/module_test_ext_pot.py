@@ -44,7 +44,7 @@ def phase_shifts(obj):
     print('\n \nTesting phase shifts \n')
     # Print the LECs that are in use to know in what order to eneter them in 
     # the calls later.
-    obj.print_LECs_in_use()
+    #obj.print_LECs_in_use()
 
     # Just some test values
     C1S0 = -0.112927/100.0
@@ -55,13 +55,13 @@ def phase_shifts(obj):
     
     LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
     
-    T_lab = np.linspace(10,50,100) # MeV
 
+    obj.solve_LS_ext_pot(10.0)
     for chn_number in [0,0,3]:
         LS_term = obj.get_chn_LS_term(chn_number)
         print(f'LS-Term: {LS_term}')
         start = time.time()
-        phases = obj.compute_phase_shift(chn_number,T_lab[0],LECs)
+        phases = obj.get_saved_phase_shifts(chn_number)
         end = time.time()
         print(f'Phase shifts in Stapp convention in radians: {phases}')
         print(f'Total time: {1e3*(end-start):0.3f} ms')
@@ -99,7 +99,7 @@ print("Constructing object and saving potential")
 # Settings
 # ------------------------------
 potential          = "nijmegen1"
-Jmax               = 1
+Jmax               = 5
 cutoff             = 5000.0     # MeV
 cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
 sharp_cutoff       = False      # If true the potential is set to zero for p>Lambda + 300
@@ -115,5 +115,5 @@ obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
         inc_weights_in_pot,cut_on_shell)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
-#observables(obj)
+phase_shifts(obj)
 M_matrix(obj)
