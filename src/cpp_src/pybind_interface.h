@@ -121,6 +121,11 @@ public:
     double compute_observable(const std::string& name, 
             double angle);
     
+
+    /*
+     * Method for getting the saved phase shifts that are generated
+     * when runnning solve_LS(...) or solve_LS_ext_pot(...)
+     */
     std::vector<double> get_saved_phase_shifts(int chn_number); 
     
     /*
