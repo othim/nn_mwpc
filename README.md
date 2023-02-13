@@ -258,3 +258,8 @@ $ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/l
   - You might try to update some package, e.g. numpy.
   - If there are specific library files that not are loaded correctly you can 
     try to add them manually to `LD_LIBRARY_PATH` and `LD_PRELOAD`.
+
+- If you run in to problems running the python module with MKL ang you get an
+  error like `Intel MKL FATAL ERROR: Cannot load libmkl_avx2.so.2 or libmkl_def.so.2.`
+  try to just update numpy with `$ conda update numpy`. Even is the version
+  will be the same it might fix it!
