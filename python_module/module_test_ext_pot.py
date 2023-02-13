@@ -115,5 +115,6 @@ obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
         inc_weights_in_pot,cut_on_shell)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
+observables(obj)
 phase_shifts(obj)
 M_matrix(obj)

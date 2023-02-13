@@ -171,7 +171,7 @@ This should give that all tests pass, otherwise something is wrong.
 
 1. Install and activate the conda environment that is defined in the file `environment.yml`
 by running the commands 
-- `conda env-create -f environment.yml`
+- `conda env create -f environment.yml`
 - `conda activate nn-mwpc-env`
 
 2. Make sure that you made steps 1-3 under Setup so that the makefile
