@@ -166,7 +166,7 @@ def M_matrix(obj):
     S  = 0
     Mo = 0
     Mi = 0
-    M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
+    M_el = obj.compute_M_element(ang,S,Mo,Mi)
     end = time.time()
     
     # Compute comversion factor from MeV^2 to mbarn

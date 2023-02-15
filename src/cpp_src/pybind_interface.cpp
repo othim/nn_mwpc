@@ -757,8 +757,8 @@ std::vector<std::complex<double>> nn_mwpc_interface::compute_T_on_shell(
 
 }
 
-std::complex<double> nn_mwpc_interface::compute_M_element(double T_lab, 
-        double theta_cm, int S, int mo, int mi)
+std::complex<double> nn_mwpc_interface::compute_M_element(double theta_cm, 
+        int S, int mo, int mi)
 {
     // Check that the input is OK
     if (S==0) {

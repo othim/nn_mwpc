@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 # -----------
 # Observables
 # -----------
-def observables(obs):
+def observables(obj):
     print("\n \nTesting observables \n")
     print("One observable at the time \n")
     ang = 10.0 # deg
@@ -84,7 +84,7 @@ def M_matrix(obj):
     S  = 0
     Mo = 0
     Mi = 0
-    M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
+    M_el = obj.compute_M_element(ang,S,Mo,Mi)
     end = time.time()
     hbarc = 197.326971941683 
     Mevm2_to_mbarn = (hbarc**2)*10.0
@@ -103,7 +103,7 @@ Jmax               = 5
 cutoff             = 5000.0     # MeV
 cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
 sharp_cutoff       = False      # If true the potential is set to zero for p>Lambda + 300
-precompute_pot     = True       # Precompute and store potential
+precompute_pot     = False       # Precompute and store potential
 rel_correction     = False      # If relativistic corrections are implemented
 num_grid_points    = 120        # Number of momentum grid points
 finite_grid        = False      # If finte momentum grid 

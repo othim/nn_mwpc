@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 def M_matrix(obj,E, ang,S,Mo,Mi):
     
-    M_el = obj.compute_M_element(E,ang,S,Mo,Mi)
+    M_el = obj.compute_M_element(ang,S,Mo,Mi)
     
     # Same as in Constants.h (2022-12)
     hbarc = 197.326971941683 
