@@ -92,6 +92,21 @@ public:
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
 
+    static double mom_Yamaguchi_3S1(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_Yamaguchi_3S_D1(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_Yamaguchi_3D_S1(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_Yamaguchi_3D1(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 };
 
 #endif
