@@ -5,21 +5,21 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-#SYSTEM = MAC
-SYSTEM = SUBATOM
+SYSTEM = MAC
+#SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
-BLAS_LIB = MKL
-#BLAS_LIB = GSL
+#BLAS_LIB = MKL
+BLAS_LIB = GSL
 # -------------------
 
 # Compiler
 # --------
-#CC = g++
-CC = icpc
+CC = g++
+#CC = icpc
 # --------
 
 # Optimization
@@ -35,7 +35,7 @@ OPT = -O3 -ggdb
 ifeq ($(SYSTEM), MAC)
 
 CFLAGS2 = -Wall -std=c++11 -stdlib=libc++ $(OPT)
-LDFLAGS =  -undefined dynamic_lookup -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/11.3.0/lib/gcc/11/  \
+LDFLAGS =  -undefined dynamic_lookup -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/12.2.0/lib/gcc/12  \
 		   -L/usr/local/opt/llvm/lib 
 
 ifeq ($(BLAS_LIB), MKL)
