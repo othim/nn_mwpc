@@ -1692,10 +1692,16 @@ void check_born(std::string chn_string)
     dwba::make_tests(chn_string);
 }
 void check_DWBA(std::string chn_string)
-{
-    dwba::make_tests_DWBA(chn_string);
-    std::cout << "\n\n\n\n\n\n";
-    dwba::make_tests_DWBA_2(chn_string);
+{   if (chn_string=="1S0")
+    {
+        dwba::make_tests_DWBA(chn_string);
+        std::cout << "\n\n\n\n\n\n";
+        dwba::make_tests_DWBA_2(chn_string);
+    } else
+    {
+        dwba::make_tests_DWBA_3(chn_string);
+    }
+
 }
 
 void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, 

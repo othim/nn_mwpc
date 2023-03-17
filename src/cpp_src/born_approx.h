@@ -119,7 +119,15 @@ gsl_matrix_complex* full_DWBA_T_matrix();
 void make_tests(std::string chn_string);
 void make_tests_DWBA(std::string chn_string);
 void make_tests_DWBA_2(std::string chn_string);
+void make_tests_DWBA_3(std::string chn_string);
 
+void solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
+    Pot_mwpc<gsl_matrix_complex>& pot1_complex_weights,
+    Pot_mwpc<gsl_matrix>& pot2_real_noweights,
+    Pot_mwpc<gsl_matrix_complex>& pot2_complex_weights, 
+    double number_of_p_points,
+    double* p_grid, double* w_grid, bool FINITE_GRID, double Tl, 
+    qs::quantum_channel chn, double REL_CORR);
 }
 
 /*

@@ -98,7 +98,8 @@ Term::Term(std::string name)
         LS_well_def_pw_.S  = 1;
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_Yamaguchi_3S1;
-        params_in_term_.push_back("Yamaguchi_lambda_00");
+        lecs_in_term_.push_back("Yamaguchi_lambda_00");
+        params_in_term_.push_back("Yamaguchi_beta");
     }
     else if (name == "Yamaguchi_3S-D1") 
     {
@@ -111,7 +112,8 @@ Term::Term(std::string name)
         LS_well_def_pw_.S  = 1;
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_Yamaguchi_3S_D1;
-        params_in_term_.push_back("Yamaguchi_lambda_01");
+        lecs_in_term_.push_back("Yamaguchi_lambda_01");
+        params_in_term_.push_back("Yamaguchi_beta");
     }
     else if (name == "Yamaguchi_3D-S1") 
     {
@@ -124,7 +126,8 @@ Term::Term(std::string name)
         LS_well_def_pw_.S  = 1;
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_Yamaguchi_3D_S1;
-        params_in_term_.push_back("Yamaguchi_lambda_10");
+        lecs_in_term_.push_back("Yamaguchi_lambda_10");
+        params_in_term_.push_back("Yamaguchi_beta");
     }
     else if (name == "Yamaguchi_3D1") 
     {
@@ -137,7 +140,8 @@ Term::Term(std::string name)
         LS_well_def_pw_.S  = 1;
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_Yamaguchi_3D1;
-        params_in_term_.push_back("Yamaguchi_lambda_11");
+        lecs_in_term_.push_back("Yamaguchi_lambda_11");
+        params_in_term_.push_back("Yamaguchi_beta");
     } else 
     {
         std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;
@@ -301,7 +305,7 @@ double Term::mom_Yamaguchi_3S1(double qi, double qo,
         std::unordered_map<std::string,double>& params)
 {
     double beta   = params["Yamaguchi_beta"];
-    double lambda = params["Yamaguchi_lambda_00"];
+    double lambda = LECs["Yamaguchi_lambda_00"];
     
     return lambda*g2(qo,beta)*g2(qi,beta);
 }
@@ -311,7 +315,7 @@ double Term::mom_Yamaguchi_3S_D1(double qi, double qo,
         std::unordered_map<std::string,double>& params)
 {
     double beta   = params["Yamaguchi_beta"];
-    double lambda = params["Yamaguchi_lambda_01"];
+    double lambda = LECs["Yamaguchi_lambda_01"];
     
     return lambda*g2(qo,beta)*g2(qi,beta)*qi*qi;
 }
@@ -321,7 +325,7 @@ double Term::mom_Yamaguchi_3D_S1(double qi, double qo,
         std::unordered_map<std::string,double>& params)
 {
     double beta   = params["Yamaguchi_beta"];
-    double lambda = params["Yamaguchi_lambda_10"];
+    double lambda = LECs["Yamaguchi_lambda_10"];
     
     return lambda*g2(qo,beta)*g2(qi,beta)*qo*qo;
 }
@@ -331,7 +335,7 @@ double Term::mom_Yamaguchi_3D1(double qi, double qo,
         std::unordered_map<std::string,double>& params)
 {
     double beta   = params["Yamaguchi_beta"];
-    double lambda = params["Yamaguchi_lambda_11"];
+    double lambda = LECs["Yamaguchi_lambda_11"];
     
     return lambda*g2(qo,beta)*g2(qi,beta)*qo*qo*qi*qi;
 }
