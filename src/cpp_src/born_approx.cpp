@@ -671,8 +671,9 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
  
     // Potential   
     double fac = std::pow((2*M_PI),3)*20;
-    double lambda_[4] = {-fac*1e6,-fac*10.0,-fac*10.0,-fac*0.1}; // Row major 2x2 matrix
+    double lambda_[4]   = {-fac*1e6,-fac*10.0,-fac*10.0,-fac*0.1}; // Row major 2x2 matrix
     double lambda_t_[4] = {-fac*1e5,-fac*40,-fac*40.0,-fac*0.1}; // Row major 2x2 matrix
+    //double lambda_t_[4] = {0,0,0,0}; // Row major 2x2 matrix
     double beta  = 20.0; // MeV
 
     // Do precomputations
@@ -756,9 +757,9 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     // Set the parameters of the potentials
     // ---------------------------------
 
-    pot1_real_noweights.params_["Yamaguchi_beta"]  = beta;
+    pot1_real_noweights.params_["Yamaguchi_beta"]   = beta;
     pot1_complex_weights.params_["Yamaguchi_beta"]  = beta;
-    pot2_real_noweights.params_["Yamaguchi_beta"]  = beta;
+    pot2_real_noweights.params_["Yamaguchi_beta"]   = beta;
     pot2_complex_weights.params_["Yamaguchi_beta"]  = beta;
     
     // ---------------------------------
@@ -945,7 +946,15 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
         // Get and print the on-shell T-matrix element
         gsl_complex onT_I = 
             gsl_matrix_complex_get(T_I,number_of_p_points,number_of_p_points);
-        std::cout << "T_I= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+        std::cout << "T_I[0,0]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+        
+        onT_I = 
+            gsl_matrix_complex_get(T_I,number_of_p_points,2*number_of_p_points+1);
+        std::cout << "T_I[0,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+        
+        onT_I = 
+            gsl_matrix_complex_get(T_I,2*number_of_p_points+1,2*number_of_p_points+1);
+        std::cout << "T_I[1,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
     
         // Compute the T-matrix in DWBA to some order
         // ---------------------------------
