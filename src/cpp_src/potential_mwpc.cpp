@@ -326,7 +326,7 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, bool coupled, int 
                {
                   V_coupled_mp += 
                       terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
-               } else if (LS_term.Li == J-1 && LS_term.Lo == J+1) // +-
+               } else if (LS_term.Li == J+1 && LS_term.Lo == J-1) // +-
                {
                   V_coupled_pm += 
                       terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
