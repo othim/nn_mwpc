@@ -651,7 +651,7 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points =150; // Number of momentum-grid points
+    unsigned int number_of_p_points = 200; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     bool REL_CORR = false;
     bool CUT_ON_SHELL = true;
@@ -662,17 +662,18 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     int Tz_max = 0;
     bool print = false;
     
-    int cut_pow = 100000000;
+    int cut_pow = 100000;
     
-    double Lambda = 1000000.0;
-    bool FINITE_GRID = false;
+    double Lambda = 1000.0;
+    bool FINITE_GRID = true;
     
     double Tl = 1.0; // MeV
  
     // Potential   
-    double fac = std::pow((2*M_PI),3)*20;
-    double lambda_[4]   = {-fac*1e6,-fac*10.0,-fac*10.0,-fac*0.1}; // Row major 2x2 matrix
-    double lambda_t_[4] = {-fac*1e5,-fac*40,-fac*40.0,-fac*0.1}; // Row major 2x2 matrix
+    double f = 10.0;
+    double fac = std::pow((2*M_PI),3)*f;
+    double lambda_[4]   = {-fac*1e6,fac*10.0,fac*10.0,-fac*0.1}; // Row major 2x2 matrix
+    double lambda_t_[4] = {-fac*1e5,fac*40,fac*40.0,-fac*0.1}; // Row major 2x2 matrix
     //double lambda_t_[4] = {0,0,0,0}; // Row major 2x2 matrix
     double beta  = 20.0; // MeV
 
@@ -806,6 +807,21 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     
 }
 
+void print_from_T_matrix(gsl_matrix_complex* T,int number_of_p_points)
+{
+    gsl_complex onT_I = 
+        gsl_matrix_complex_get(T,number_of_p_points,number_of_p_points);
+    std::cout << "T_I[0,0]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+    
+    onT_I = 
+        gsl_matrix_complex_get(T,number_of_p_points,2*number_of_p_points+1);
+    std::cout << "T_I[0,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+    
+    onT_I = 
+        gsl_matrix_complex_get(T,2*number_of_p_points+1,2*number_of_p_points+1);
+    std::cout << "T_I[1,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+}
+
 
 void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     Pot_mwpc<gsl_matrix_complex>& pot1_complex_weights,
@@ -836,41 +852,6 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     // ---------------------------------
     // ---------------------------------
 
-    // Get the potential without the grid
-    // ---------------------------------
-    gsl_matrix* pot1_rw_matrix = pot1_real_noweights.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    // ---------------------------------
-    // ---------------------------------
-    
-    // Set different parameters and get a new matrix
-    // NOTE: If params_ array is updated the save routine needs to be re-run
-    // for the saving to work properly. This can be circumvented by using the 
-    // .get_matrix() method instead of the get_saved_matrix() one.
-    // ---------------------------------
-    gsl_matrix* tmp  = pot2_real_noweights.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    // ---------------------------------
-    // ---------------------------------
-    
-    // Add these potential matrices
-    // Now, V_Yam_nogrid contains the sum of the above potentials.
-    gsl_matrix_add(tmp,pot1_rw_matrix);
-
-    // Solving for the full T-matrix
-    // ---------------------------------
-    std::cout << "Solving exact 1S0" << std::endl;
-    std::cout << "-----------------" << std::endl;
-    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,tmp);
-    gsl_matrix_free(tmp);
-    std::cout << "T (exact) = ";
-    for (int i=0; i < 4; i++)
-    { 
-        std::cout << tt[i] << "," << std::endl;
-    }
-
-    std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt[3]),2) << std::endl;
-    std::cout << "-----------------" << std::endl;
-    // ------------------------------------------------------------------------
-    // ------------------------------------------------------------------------
     
     // Get the propagator matrix
     // ---------------------------------
@@ -896,7 +877,7 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     gsl_matrix_complex* V_1S0_II   = pot2_complex_weights.
         get_saved_matrix(q_on_shell, chn, REL_CORR);
     
-    std::cout << "Solving exact 1S0 complex potentials" << std::endl;
+    std::cout << "Solving exact for sum of complex potentials" << std::endl;
     std::cout << "-----------------" << std::endl;
     gsl_matrix_complex* sum_complex = gsl_matrix_complex_alloc(
             V_1S0_I->size1,V_1S0_II->size2);
@@ -906,15 +887,12 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
 
     gsl_matrix_complex* T_tmp = 
         solver.solve_in_chn_T_fullT_weights(Tl,chn,sum_complex,G0);
-    gsl_complex tel = gsl_matrix_complex_get(T_tmp,T_tmp->size1-1,
-            T_tmp->size2-1);
-    std::complex<double> tt2(GSL_REAL(tel),GSL_IMAG(tel));
+    
+    std::cout << "T_exact: " << std::endl;
+    print_from_T_matrix(T_tmp, number_of_p_points);
 
     gsl_matrix_complex_free(sum_complex); // Can't free?!?
     gsl_matrix_complex_free(T_tmp);
-    std::cout << "T (exact) = " << tt2 << std::endl;
-    std::cout << "|T|^2 (exact) = " << std::pow(std::abs(tt2),2) << std::endl;
-    std::cout << "-----------------" << std::endl;
     
     // Print the potentials to file
     // ph::print_m_complex_to_file(DATA_DIR+"VI.txt",V_1S0_I);
@@ -930,6 +908,7 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     myfile.open(filename);
     myfile << "Np =" << number_of_p_points << std::endl;
     myfile << "Order, |T|^2" << std::endl;
+
     for (int ord = 0; ord < 11; ord++)
     {
         // Solve for the full LO T matrix using the real form of the LOO potential
@@ -938,49 +917,33 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
         gsl_matrix_complex* T_I = 
             solver.solve_in_chn_T_fullT_weights(Tl,chn,V_1S0_I,G0);
         
-        //gsl_matrix_complex* T_I = solver.solve_in_chn_T_fullT(Tl,chn,pot1_rw_matrix);
-        //dress_in_weights(T_I,p_grid,w_grid,(int)number_of_p_points);
-        
-        //ph::print_m_complex_to_file(DATA_DIR+"TI.txt",T_I);
-        
-        // Get and print the on-shell T-matrix element
-        gsl_complex onT_I = 
-            gsl_matrix_complex_get(T_I,number_of_p_points,number_of_p_points);
-        std::cout << "T_I[0,0]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
-        
-        onT_I = 
-            gsl_matrix_complex_get(T_I,number_of_p_points,2*number_of_p_points+1);
-        std::cout << "T_I[0,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
-        
-        onT_I = 
-            gsl_matrix_complex_get(T_I,2*number_of_p_points+1,2*number_of_p_points+1);
-        std::cout << "T_I[1,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+
+        std::cout << "T_I: " << std::endl;
+        print_from_T_matrix(T_I, number_of_p_points);
     
         // Compute the T-matrix in DWBA to some order
         // ---------------------------------
         gsl_matrix_complex* T_DWBA = dwba::pw_T_DWBA(ord,T_I,V_1S0_I,V_1S0_II,G0);
-        gsl_complex onT = 
-            gsl_matrix_complex_get(T_DWBA,number_of_p_points,number_of_p_points);
         // ---------------------------------
         // ---------------------------------
 
-        gsl_matrix_complex_free(T_I);
-        gsl_matrix_complex_free(T_DWBA); // Maybe somethig worong with this mem
         
         // Print the result
         // ---------------------------------
         std::cout << "order=" << ord << ", in DWBA" << std::endl; 
-        std::cout << "T= " << GSL_REAL(onT) << "," << GSL_IMAG(onT) << std::endl;
-        double T2 = std::pow(GSL_REAL(onT),2)+ std::pow(GSL_IMAG(onT),2);
-        std::cout <<"|T|^2 = " <<  T2 << std::endl << std::endl;
+        print_from_T_matrix(T_DWBA, number_of_p_points);
+        std::cout << std::endl;
         // ---------------------------------
         // ---------------------------------
         
         // Write to file in format order, |T|^2
         // ---------------------------------
-        myfile << ord << "   " << T2 << std::endl;
+        // myfile << ord << "   " << T2 << std::endl;
         // ---------------------------------
         // ---------------------------------
+        
+        gsl_matrix_complex_free(T_I);
+        gsl_matrix_complex_free(T_DWBA);
     }
     myfile.close();
 
@@ -989,7 +952,6 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     gsl_matrix_complex_free(V_1S0_II);
     gsl_matrix_complex_free(G0);
     gsl_vector_complex_free(prop_vec);
-    gsl_matrix_free(pot1_rw_matrix);
 }
 
 
