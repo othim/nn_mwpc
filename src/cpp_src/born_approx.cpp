@@ -651,7 +651,7 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 200; // Number of momentum-grid points
+    unsigned int number_of_p_points = 100; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     bool REL_CORR = false;
     bool CUT_ON_SHELL = true;
@@ -662,19 +662,18 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     int Tz_max = 0;
     bool print = false;
     
-    int cut_pow = 100000;
+    int cut_pow = 1000000000;
     
-    double Lambda = 1000.0;
-    bool FINITE_GRID = true;
+    double Lambda = 100000.0;
+    bool FINITE_GRID = false;
     
     double Tl = 1.0; // MeV
  
     // Potential   
-    double f = 10.0;
+    double f   = 20.0;
     double fac = std::pow((2*M_PI),3)*f;
     double lambda_[4]   = {-fac*1e6,fac*10.0,fac*10.0,-fac*0.1}; // Row major 2x2 matrix
-    double lambda_t_[4] = {-fac*1e5,fac*40,fac*40.0,-fac*0.1}; // Row major 2x2 matrix
-    //double lambda_t_[4] = {0,0,0,0}; // Row major 2x2 matrix
+    double lambda_t_[4] = {-fac*1e5,fac*40.0,fac*40.0,-fac*0.1}; // Row major 2x2 matrix
     double beta  = 20.0; // MeV
 
     // Do precomputations
@@ -816,6 +815,9 @@ void print_from_T_matrix(gsl_matrix_complex* T,int number_of_p_points)
     onT_I = 
         gsl_matrix_complex_get(T,number_of_p_points,2*number_of_p_points+1);
     std::cout << "T_I[0,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+    onT_I = 
+        gsl_matrix_complex_get(T,2*number_of_p_points+1,number_of_p_points);
+    std::cout << "T_I[1,0]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
     
     onT_I = 
         gsl_matrix_complex_get(T,2*number_of_p_points+1,2*number_of_p_points+1);
@@ -852,7 +854,40 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     // ---------------------------------
     // ---------------------------------
 
+    gsl_matrix* pot1_rw_matrix = pot1_real_noweights.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    // ---------------------------------
+    // ---------------------------------
     
+    gsl_matrix* tmp  = pot2_real_noweights.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    //ph::print_m(tmp);
+    // ---------------------------------
+    // ---------------------------------
+    
+    // Add these potential matrices
+    // Now, V_Yam_nogrid contains the sum of the above potentials.
+    gsl_matrix_add(tmp,pot1_rw_matrix);
+    //ph::print_m(tmp);
+    // Solving for the full T-matrix
+    // ---------------------------------
+    std::cout << "Solving exact" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,tmp);
+    for (int i=0; i<4; i++)
+    {
+        std::cout << "T (exact)(i) = " << tt[i] << std::endl;
+    }
+    delete[] tt;
+    gsl_matrix_complex* Vz = gsl_matrix_complex_alloc(tmp->size1, tmp->size2);
+    ph::make_matrix_complex(Vz,tmp);
+    gsl_matrix_complex* Tt = solver.solve_in_chn_T_fullT(Tl,chn,Vz);
+    
+    print_from_T_matrix(Tt, number_of_p_points);
+    
+    //gsl_matrix_complex_free(Vz);
+    //gsl_matrix_complex_free(Tt);
+    gsl_matrix_free(tmp);
+    gsl_matrix_free(pot1_rw_matrix);
+
     // Get the propagator matrix
     // ---------------------------------
     std::cout << "Computing the propagator" << std::endl;
