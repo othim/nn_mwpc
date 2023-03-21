@@ -70,6 +70,10 @@ Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA
    LEC_names_.push_back("C3P2");
    LEC_names_.push_back("C3D2");
    LEC_names_.push_back("Yamaguchi_1S0");
+   LEC_names_.push_back("Yamaguchi_lambda_00");
+   LEC_names_.push_back("Yamaguchi_lambda_01");
+   LEC_names_.push_back("Yamaguchi_lambda_10");
+   LEC_names_.push_back("Yamaguchi_lambda_11");
    
    param_names_.push_back("Yamaguchi_beta");
 
@@ -531,8 +535,8 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,boo
 
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
-         /*std::cout << "Rel fac: " << rel_fac << std::endl;
-         for (int i= 0; i < 6; i++)
+         //std::cout << "Rel fac: " << rel_fac << std::endl;
+         /*for (int i= 0; i < 6; i++)
          {
             std::cout << V_arr[i] << " ";
          }*/
@@ -557,6 +561,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,boo
             }
          } else 
          {
+             //std::cout << "tot_fac=" << tot_fac << std::endl;
             // The matrix is constructed as [[mm,mp],[pm,pp]]
              ph::matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
@@ -567,10 +572,12 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,boo
              ph::matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*tot_fac); //mp
              ph::matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*tot_fac); //pm
              ph::matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*tot_fac); //pp
+
          }
       }
    }
-   
+   //std::cout << "Potential matrix from inside the potential:" << std::endl;
+   //ph::print_m(matrix_data);
    // Return the matrix
    return matrix_data;
 }

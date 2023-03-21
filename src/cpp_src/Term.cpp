@@ -316,8 +316,13 @@ double Term::mom_Yamaguchi_3S_D1(double qi, double qo,
 {
     double beta   = params["Yamaguchi_beta"];
     double lambda = LECs["Yamaguchi_lambda_01"];
+
+    double pot = lambda*g2(qo,beta)*g2(qi,beta)*qi*qi;
+
+    //std::cout << "beta=" << beta << ", lambda=" << lambda << std::endl;
+    //std::cout << "SD," << "qi=" << qi << ", qo=" << qo << ", pot=" << pot << std::endl;
     
-    return lambda*g2(qo,beta)*g2(qi,beta)*qi*qi;
+    return pot;
 }
 
 double Term::mom_Yamaguchi_3D_S1(double qi, double qo, 
@@ -326,8 +331,10 @@ double Term::mom_Yamaguchi_3D_S1(double qi, double qo,
 {
     double beta   = params["Yamaguchi_beta"];
     double lambda = LECs["Yamaguchi_lambda_10"];
-    
-    return lambda*g2(qo,beta)*g2(qi,beta)*qo*qo;
+    double pot = lambda*g2(qo,beta)*g2(qi,beta)*qo*qo;
+    //std::cout << "beta=" << beta << ", lambda=" << lambda << std::endl;
+    //std::cout << "DS," << "qi=" << qi << ", qo=" << qo << ", pot=" << pot << std::endl;
+    return pot;
 }
 
 double Term::mom_Yamaguchi_3D1(double qi, double qo, 

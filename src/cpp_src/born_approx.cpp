@@ -722,7 +722,10 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     }
     // ---------------------------------
     // ---------------------------------
-    
+    //for (int i=0; i<number_of_p_points; i++)
+    //{
+    //    std::cout << std::setprecision(16) << p_grid[i] << "   ";
+    //}
 
 
     // Get potentials
@@ -750,6 +753,8 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     Pot_mwpc<gsl_matrix_complex> pot2_complex_weights = 
             Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true, CUT_ON_SHELL);
+    
+    
     
     // ---------------------------------
     // ---------------------------------
@@ -858,8 +863,12 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     // ---------------------------------
     // ---------------------------------
     
+    //ph::print_m(pot1_rw_matrix);
+    //double a = 0;
+    //std::cin >> a;
+    
     gsl_matrix* tmp  = pot2_real_noweights.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    //ph::print_m(tmp);
+    //gsl_matrix* tmp  = pot2_real_noweights.get_matrix(q_on_shell, chn, REL_CORR);
     // ---------------------------------
     // ---------------------------------
     
@@ -874,7 +883,7 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,tmp);
     for (int i=0; i<4; i++)
     {
-        std::cout << "T (exact)(i) = " << tt[i] << std::endl;
+        std::cout << "T (exact)(i) = " << tt[i]*2.0/M_PI << std::endl;
     }
     delete[] tt;
     gsl_matrix_complex* Vz = gsl_matrix_complex_alloc(tmp->size1, tmp->size2);
@@ -944,7 +953,7 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     myfile << "Np =" << number_of_p_points << std::endl;
     myfile << "Order, |T|^2" << std::endl;
 
-    for (int ord = 0; ord < 11; ord++)
+    for (int ord = 0; ord < 4; ord++)
     {
         // Solve for the full LO T matrix using the real form of the LOO potential
         // ---------------------------------
