@@ -811,22 +811,34 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     
 }
 
-void print_from_T_matrix(gsl_matrix_complex* T,int number_of_p_points)
+void print_from_T_matrix(gsl_matrix_complex* T,int number_of_p_points,
+        std::ostream& stream)
 {
-    gsl_complex onT_I = 
-        gsl_matrix_complex_get(T,number_of_p_points,number_of_p_points);
-    std::cout << "T_I[0,0]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
-    
-    onT_I = 
-        gsl_matrix_complex_get(T,number_of_p_points,2*number_of_p_points+1);
-    std::cout << "T_I[0,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
-    onT_I = 
-        gsl_matrix_complex_get(T,2*number_of_p_points+1,number_of_p_points);
-    std::cout << "T_I[1,0]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
-    
-    onT_I = 
-        gsl_matrix_complex_get(T,2*number_of_p_points+1,2*number_of_p_points+1);
-    std::cout << "T_I[1,1]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+    if (T->size1 == 2*number_of_p_points+2)
+    {
+        stream << "# T[0,0], T[0,1], T[1,1]" << std::endl;
+        gsl_complex onT_I = 
+            gsl_matrix_complex_get(T,number_of_p_points,number_of_p_points);
+        stream << GSL_REAL(onT_I) << "+" << GSL_IMAG(onT_I) << "j, ";
+        
+        onT_I = 
+            gsl_matrix_complex_get(T,number_of_p_points,2*number_of_p_points+1);
+        stream << GSL_REAL(onT_I) << "+" << GSL_IMAG(onT_I) << "j, ";
+        //onT_I = 
+        //    gsl_matrix_complex_get(T,2*number_of_p_points+1,number_of_p_points);
+        //std::cout << "T_I[1,0]= " << GSL_REAL(onT_I) << "," << GSL_IMAG(onT_I) << std::endl;
+        
+        onT_I = 
+            gsl_matrix_complex_get(T,2*number_of_p_points+1,2*number_of_p_points+1);
+        stream << GSL_REAL(onT_I) << "+" << GSL_IMAG(onT_I) << "j" << std::endl;
+    } else
+    {
+        stream << "# T" << std::endl;
+        gsl_complex onT_I = 
+            gsl_matrix_complex_get(T,number_of_p_points,number_of_p_points);
+        stream << "T = " << GSL_REAL(onT_I) << "+1j*" << GSL_IMAG(onT_I) << std::endl;
+        
+    }
 }
 
 
@@ -878,7 +890,7 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     //ph::print_m(tmp);
     // Solving for the full T-matrix
     // ---------------------------------
-    std::cout << "Solving exact" << std::endl;
+    std::cout << "Solving exact to check that they are the same" << std::endl;
     std::cout << "-----------------" << std::endl;
     std::complex<double>* tt = solver.solve_in_chn_T_Telem(Tl,chn,tmp);
     for (int i=0; i<4; i++)
@@ -890,7 +902,7 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     ph::make_matrix_complex(Vz,tmp);
     gsl_matrix_complex* Tt = solver.solve_in_chn_T_fullT(Tl,chn,Vz);
     
-    print_from_T_matrix(Tt, number_of_p_points);
+    print_from_T_matrix(Tt, number_of_p_points,std::cout);
     
     //gsl_matrix_complex_free(Vz);
     //gsl_matrix_complex_free(Tt);
@@ -932,38 +944,40 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
     gsl_matrix_complex* T_tmp = 
         solver.solve_in_chn_T_fullT_weights(Tl,chn,sum_complex,G0);
     
+    std::ofstream myfile;
+    std::string filename = DATA_DIR +"DWBA"+std::to_string((int)number_of_p_points)+ ".txt"; 
+    myfile.open(filename);
+    
+    myfile << "# Np = " << number_of_p_points << std::endl;
+    myfile << "# -----------------" << std::endl;
+    myfile << "# -----------------" << std::endl;
+    
     std::cout << "T_exact: " << std::endl;
-    print_from_T_matrix(T_tmp, number_of_p_points);
+    myfile << "# T_exact: " << std::endl;
+    print_from_T_matrix(T_tmp, number_of_p_points,std::cout);
+    print_from_T_matrix(T_tmp, number_of_p_points,myfile);
 
     gsl_matrix_complex_free(sum_complex); // Can't free?!?
     gsl_matrix_complex_free(T_tmp);
     
-    // Print the potentials to file
-    // ph::print_m_complex_to_file(DATA_DIR+"VI.txt",V_1S0_I);
-    // ph::print_m_complex_to_file(DATA_DIR+"VII.txt",V_1S0_II);
-    // ---------------------------------
-    // ---------------------------------
-    
-    std::cout << "-----------------" << std::endl;
-    std::cout << "-----------------" << std::endl;
-    
-    std::ofstream myfile;
-    std::string filename = DATA_DIR +"DWBA"+std::to_string((int)number_of_p_points)+ ".txt"; 
-    myfile.open(filename);
-    myfile << "Np =" << number_of_p_points << std::endl;
-    myfile << "Order, |T|^2" << std::endl;
 
-    for (int ord = 0; ord < 4; ord++)
+    // Solve for the full LO T matrix using the real form of the LOO potential
+    // ---------------------------------
+    
+    gsl_matrix_complex* T_I = 
+        solver.solve_in_chn_T_fullT_weights(Tl,chn,V_1S0_I,G0);
+    
+
+    std::cout << "T_I: " << std::endl;
+    myfile << "# T_I: " << std::endl;
+    print_from_T_matrix(T_I, number_of_p_points,std::cout);
+    print_from_T_matrix(T_I, number_of_p_points,myfile);
+    myfile << std::endl;
+    std::cout << "-----------------" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    
+    for (int ord = 0; ord < 11; ord++)
     {
-        // Solve for the full LO T matrix using the real form of the LOO potential
-        // ---------------------------------
-        
-        gsl_matrix_complex* T_I = 
-            solver.solve_in_chn_T_fullT_weights(Tl,chn,V_1S0_I,G0);
-        
-
-        std::cout << "T_I: " << std::endl;
-        print_from_T_matrix(T_I, number_of_p_points);
     
         // Compute the T-matrix in DWBA to some order
         // ---------------------------------
@@ -975,8 +989,11 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
         // Print the result
         // ---------------------------------
         std::cout << "order=" << ord << ", in DWBA" << std::endl; 
-        print_from_T_matrix(T_DWBA, number_of_p_points);
+        print_from_T_matrix(T_DWBA, number_of_p_points,std::cout);
+        myfile << "# order=" << ord << ", in DWBA" << std::endl; 
+        print_from_T_matrix(T_DWBA, number_of_p_points,myfile);
         std::cout << std::endl;
+        myfile << std::endl;
         // ---------------------------------
         // ---------------------------------
         
@@ -986,12 +1003,12 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
         // ---------------------------------
         // ---------------------------------
         
-        gsl_matrix_complex_free(T_I);
         gsl_matrix_complex_free(T_DWBA);
     }
     myfile.close();
 
     // Deleta all data
+    gsl_matrix_complex_free(T_I);
     gsl_matrix_complex_free(V_1S0_I);
     gsl_matrix_complex_free(V_1S0_II);
     gsl_matrix_complex_free(G0);
