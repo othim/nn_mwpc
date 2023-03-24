@@ -48,17 +48,23 @@ def read_file_ang_M(filename):
     return data[:,0],np.array(data[:,1] +1j*data[:,2])
 
 def compare(obj,E,S,Mo,Mi,ax,ax2):
+
+    if (E==0.1):
+        E_str = '01'
+    else:
+        E_str = str(int(E))
+
     print(f'Comparing for, S={S}, Mo={Mo}, Mi={Mi}')   
     if (S==0):
-        filename = 'np_M_ss_' + str(int(E)) + '_nijm1.txt'
+        filename = 'np_M_ss_' + E_str + '_nijm1.txt'
     elif (Mo==0 and Mi==0):
-        filename = 'np_M_00_' + str(int(E)) + '_nijm1.txt'
+        filename = 'np_M_00_' + E_str + '_nijm1.txt'
     elif (Mo==1 and Mi==0):
-        filename = 'np_M_10_' + str(int(E)) + '_nijm1.txt'
+        filename = 'np_M_10_' + E_str + '_nijm1.txt'
     elif (Mo==0 and Mi==1):
-        filename = 'np_M_01_' + str(int(E)) + '_nijm1.txt'
+        filename = 'np_M_01_' + E_str + '_nijm1.txt'
     elif (Mo==1 and Mi==1):
-        filename = 'np_M_11_' + str(int(E)) + '_nijm1.txt'
+        filename = 'np_M_11_' + E_str + '_nijm1.txt'
     else:
         print('Error, in quantum numbers')
 
@@ -221,10 +227,10 @@ obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 
-DATA_DIR = '../data/'
+DATA_DIR = 'data/'
 test_PB(obj,50.0)
 
-energies = [10,50,200]
+energies = [0.1,10,50,200]
 
 
 with open('figures/out_M_test.txt', 'w') as f:
