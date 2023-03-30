@@ -9,7 +9,6 @@
 #endif
 
 
-
 nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name, 
         int J_max_chn, double cutoff, int cut_pow, 
         bool sharp_cutoff, bool pre_comp_pot, bool rel_corr,
@@ -81,22 +80,93 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
 
 nn_mwpc_dwb_interface::~nn_mwpc_dwb_interface()
 {
+    delete LS_Solver;
+
+    // TODO: also delete potentals and other stuff
+
+    delete[] p_grid;
+    delete[] w_grid;
 }
     
-void nn_mwpc_dwb_interface::solve_exact_full_T()
+gsl_matrix_complex* nn_mwpc_dwb_interface::solve_exact_pot_sum_full_T(
+        double T_lab, qs::quantum_channel chn)
 {
+    // Get G0 and potentials for the correct on-shell point
+    gsl_matrix_complex* G0, VI, VII;
+    get_G0_and_potentials(T_lab, chn, G0, VI, VII);
 
+    // Solve LS equation for SUM of potentials, NOTE: VII is now VI+VII!!!
+    gsl_matrix_complex_add(VII,VI);
+    
+    gsl_matrix_complex* T_tmp = 
+        solver.solve_in_chn_T_fullT_weights(Tl,chn,VII,G0);
+    
+    gsl_matrix_complex_free(VI);
+    gsl_matrix_complex_free(VII);
+    gsl_matrix_complex_free(G0);
+
+    return T_tmp;
 }
 
-void nn_mwpc_dwb_interface::solve_LO_full_T()
+gsl_matrix_complex* nn_mwpc_dwb_interface::solve_full_TI(double T_lab, 
+        qs::quantum_channel chn)
 {
 
+    return T_tmp;
 }
 
-void nn_mwpc_dwb_interface::solve_DWBA_full_T(int order)
+gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_full_TI(double T_lab, 
+        qs::quantum_channel chn, int order)
 {
+    // Get G0 and potentials for the correct on-shell point
+    gsl_matrix_complex* G0, VI, VII;
+    get_G0_and_potentials(T_lab, chn, G0, VI, VII);
 
+    // Solve for TI
+    gsl_matrix_complex* TI = 
+        solver.solve_in_chn_T_fullT_weights(Tl,chn,VI,G0);
+    
+    // Solve DWB series
+    gsl_matrix_complex* T_DWBA = dwba::pw_T_DWBA(order,TI,VI,VII,G0);
+    
+    // Delete and return
+    gsl_matrix_complex_free(VI);
+    gsl_matrix_complex_free(VII);
+    gsl_matrix_complex_free(G0);
+    gsl_matrix_complex_free(TI);
+    return T_tmp;
 }
+
+void get_G0_and_potentials(double T_lab, qs::quantum_channel chn,
+        gsl_matrix_complex** G0, gsl_matrix_complex** VI,
+        gsl_matrix_complex** VII)
+{
+    // Get on-shell momentum and reduced mass
+    double q_on_shell,mu;
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    
+    // Get G0 vector matrix
+    gsl_vector_complex* prop_vec = 
+        solver.setup_G0_vector_complex(q_on_shell,chn.coupled,mu);
+    // Make it to a diagonal matrix
+    gsl_matrix_complex* G0_loc = 
+        gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    matrix_from_vector(G0,prop_vec);
+    gsl_vector_complex_free(prop_vec);
+
+    // Get the sum of VI and VII with weights
+    gsl_matrix_complex* VI_loc = 
+        VI_complex_weights.get_saved_matrix(q_on_shell, chn, REL_CORR);
+
+    gsl_matrix_complex* VII_loc = 
+        VII_complex_weights.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    
+    // Set the value of the external pointers
+    *G0  = G0_loc;
+    *VI  = VI_loc;
+    *VII = VII_loc;
+}
+
 
 void nn_mwpc_dwb_interface::solve_DWBA_PC_full_T(int order)
 {

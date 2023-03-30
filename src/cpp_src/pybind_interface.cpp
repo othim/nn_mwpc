@@ -56,8 +56,6 @@ PYBIND11_MODULE(nn_mwpc, m)
     py::class_<nn_mwpc_dwb_interface>(m,"nn_mwpc_dwb_interface")
         .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,bool,bool,bool>())
         
-        
-        
         .def("print_LECs_in_use", &nn_mwpc_dwb_interface::print_LECs_in_use,
                 py::return_value_policy::copy)
         .def("print_LEC_values", &nn_mwpc_dwb_interface::print_LEC_values, 

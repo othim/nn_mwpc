@@ -47,10 +47,12 @@
  */
 class nn_mwpc_dwb_interface
 {
-private:
-/* Here variables that needs to be initialized are stored
+private: 
+/* 
+ * Here are private class variables that need to be given as arguments to the 
+ * constructor.
+ *
  */
-    // Constants
     double scale_;
     int ang_int_points_;
     int number_of_p_points_;
@@ -67,15 +69,12 @@ private:
 
     bool finite_grid_;
     double finite_grid_max_;
-    // Objects 
-    
-    Potential_mwpc* Pot_;
-    Potential_ext* Pot_ext_;
 
-    // This potential is taking over the Pot_ext_ in prtial waves with
-    // J >= J_pot_ext_cut_.
-    Potential_mwpc* Pot_ext_aux_;
-    int J_pot_ext_cut_;
+private:
+/*
+ * Other private variables that are set and used by memberfunctions
+ *
+ */        
 
     LS_Solver* LS_Solver_;
     
@@ -84,8 +83,6 @@ private:
     std::vector<Phase_shifts_chn> phase_shifts_; 
     double energy_saved_;
     
-    // Helper functions
-    std::vector<Phase_shifts_chn> compute_phase_shifts(double Tl);
 public:
 
     nn_mwpc_dwb_interface(const std::string& model_name, int J_max_chn, 
@@ -98,10 +95,49 @@ public:
     /*
      * This function solves for the full T-matrix for the 
      * the potential V_I + V_II
+     *
+     * Args:
+     * -----
+     *
+     * T_lab : laboratory kinetic energy of projectile in MeV
+     * chn   : object that stores the quantum channel that is to be solved for
+     *
+     * Returns:
+     * --------
+     *
+     * coupled and uncoupled channels:
+     *
+     * std::vector with four elements: [T[0,0],T[1,0],T[1,1],Tuncoup], where the 
+     * indices are over the 2x2 on-shell T-matrix. Tuncoup is the uncoupled 
+     * on-shell T-matrix element.
+     *
+     * Units of the T-matrix is MeV^{-2} and the normalization conventions 
+     * are that there is as given for the LS-Solver in the README.
      */
-    void solve_exact();
-    void solve_exact_full_T();
-    void solve_LO_full_T();
+    std::vector<complex<double>> 
+        solve_exact_pot_sum_T(double T_lab, qs::quantum_channel chn);
+    /*
+     * This function is the same as 'solve_exact_pot_sum_T(...)' with the 
+     * difference that the whole T-matrix is returned
+     *
+     * Args:
+     * -----
+     * T_lab : laboratory kinetic energy of projectile in MeV
+     * chn   : object that stores the quantum channel that is to be solved for
+     *
+     * Returns:
+     *
+     * T-matrix is row-major format with the same units and conventions as
+     * 'solve_exact_pot_sum_T()'.
+     */
+    std::vector<complex<double>> 
+        solve_exact_pot_sum_full_T(double T_lab, qs::quantum_channel chn);
+    
+    /*
+     *
+     * This function solves the DWB series and returns the on-shell T-matrix
+     *
+     */
     void solve_DWBA_full_T(int order);
     void solve_DWBA_PC_full_T(int order);
 

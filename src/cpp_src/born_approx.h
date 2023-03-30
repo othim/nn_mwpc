@@ -69,7 +69,7 @@ gsl_matrix_complex* pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* 
  * G0   : is the free Greens function
  *
  * T_I, V_I, V_II and G0 has to be in the same form as accepted into 
- * 'dwba::pw_compute_BA()' i.e. including the momentum space factors and 
+ * 'dwba::pw_T_BA()' i.e. including the momentum space factors and 
  * weights.
  *
  *
@@ -141,11 +141,5 @@ void pow_matrix_on_shell_mult(gsl_matrix_complex* M,int pow,gsl_matrix_complex* 
  */
 void F(gsl_matrix_complex* omega_p,gsl_matrix_complex* omega_m_dagger,
         gsl_matrix_complex* M,gsl_matrix_complex* res);
-
-/*
- * Function to make some tests
- *
- */
-
 
 #endif
