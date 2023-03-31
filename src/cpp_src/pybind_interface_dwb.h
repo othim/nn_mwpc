@@ -82,7 +82,28 @@ private:
     std::vector<qs::quantum_channel> chns_;
     std::vector<Phase_shifts_chn> phase_shifts_; 
     double energy_saved_;
-    
+
+
+private:
+    /*
+     * Private helper methods
+     */
+    void get_G0_and_potentials(double T_lab, qs::quantum_channel chn,
+            gsl_matrix_complex** G0, gsl_matrix_complex** VI,
+            gsl_matrix_complex** VII);
+
+    /*
+     *
+     * Method that takes out the on-shell values
+     *
+     * Returns:
+     * std::vector with four elements: [T[0,0],T[1,0],T[1,1],Tuncoup], where the 
+     * indices are over the 2x2 on-shell T-matrix. Tuncoup is the uncoupled 
+     * on-shell T-matrix element.
+     */
+    std::vector<std::complex<double>> nn_mwpc_dwb_interface::
+            get_on_shell_from_matrix(gsl_matrix_complex* M);
+
 public:
 
     nn_mwpc_dwb_interface(const std::string& model_name, int J_max_chn, 
@@ -114,7 +135,7 @@ public:
      * Units of the T-matrix is MeV^{-2} and the normalization conventions 
      * are that there is as given for the LS-Solver in the README.
      */
-    std::vector<complex<double>> 
+    std::vector<std::complex<double>>   
         solve_exact_pot_sum_T(double T_lab, qs::quantum_channel chn);
     /*
      * This function is the same as 'solve_exact_pot_sum_T(...)' with the 
@@ -130,7 +151,7 @@ public:
      * T-matrix is row-major format with the same units and conventions as
      * 'solve_exact_pot_sum_T()'.
      */
-    std::vector<complex<double>> 
+    gsl_matrix_complex* 
         solve_exact_pot_sum_full_T(double T_lab, qs::quantum_channel chn);
     
     /*

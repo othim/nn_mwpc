@@ -87,7 +87,50 @@ nn_mwpc_dwb_interface::~nn_mwpc_dwb_interface()
     delete[] p_grid;
     delete[] w_grid;
 }
+ 
+
+/*
+ * ****************************************************************************
+ * Public methods that are a part of the DWB-interface 
+ * ****************************************************************************
+ */
+std::vector<std::complex<double>>   
+    solve_DWBA_T(double T_lab, qs::quantum_channel chn, int order)
+{
+    // Solve for the full T-matrix
+    gsl_matrix_complex* T_DWBA = nn_mwpc_dwb_interface::solve_DWBA_full_T(
+            double T_lab, qs::quantum_channel chn, int order);
     
+    // Get the on-shell values
+    std::vector<std::complex<double>> T_arr = 
+            get_on_shell_from_matrix(T_DWBA);
+    
+    // Return the on-shell values
+    return T_arr;
+}
+
+std::vector<std::complex<double>>   
+    solve_exact_pot_sum_T(double T_lab, qs::quantum_channel chn, int order)
+{
+    // Solve for the full T-matrix
+    gsl_matrix_complex* T_sum = solve_exact_sum_full_T(double T_lab, 
+            qs::quantum_channel chn);
+    
+    // Get the on-shell values
+    std::vector<std::complex<double>> T_arr = 
+            get_on_shell_from_matrix(T_sum);
+    
+    // Return the on-shell values
+    return T_arr;
+}
+
+
+/*
+ * ****************************************************************************
+ * Public methods that are NOT a part of the DWB-interface 
+ * ****************************************************************************
+ */
+
 gsl_matrix_complex* nn_mwpc_dwb_interface::solve_exact_pot_sum_full_T(
         double T_lab, qs::quantum_channel chn)
 {
@@ -98,24 +141,18 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_exact_pot_sum_full_T(
     // Solve LS equation for SUM of potentials, NOTE: VII is now VI+VII!!!
     gsl_matrix_complex_add(VII,VI);
     
-    gsl_matrix_complex* T_tmp = 
+    // Solve for T
+    gsl_matrix_complex* T_full = 
         solver.solve_in_chn_T_fullT_weights(Tl,chn,VII,G0);
     
+    // Delete and return
     gsl_matrix_complex_free(VI);
     gsl_matrix_complex_free(VII);
     gsl_matrix_complex_free(G0);
-
-    return T_tmp;
+    return T_full;
 }
 
-gsl_matrix_complex* nn_mwpc_dwb_interface::solve_full_TI(double T_lab, 
-        qs::quantum_channel chn)
-{
-
-    return T_tmp;
-}
-
-gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_full_TI(double T_lab, 
+gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_full_T(double T_lab, 
         qs::quantum_channel chn, int order)
 {
     // Get G0 and potentials for the correct on-shell point
@@ -137,35 +174,6 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_full_TI(double T_lab,
     return T_tmp;
 }
 
-void get_G0_and_potentials(double T_lab, qs::quantum_channel chn,
-        gsl_matrix_complex** G0, gsl_matrix_complex** VI,
-        gsl_matrix_complex** VII)
-{
-    // Get on-shell momentum and reduced mass
-    double q_on_shell,mu;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
-    
-    // Get G0 vector matrix
-    gsl_vector_complex* prop_vec = 
-        solver.setup_G0_vector_complex(q_on_shell,chn.coupled,mu);
-    // Make it to a diagonal matrix
-    gsl_matrix_complex* G0_loc = 
-        gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
-    matrix_from_vector(G0,prop_vec);
-    gsl_vector_complex_free(prop_vec);
-
-    // Get the sum of VI and VII with weights
-    gsl_matrix_complex* VI_loc = 
-        VI_complex_weights.get_saved_matrix(q_on_shell, chn, REL_CORR);
-
-    gsl_matrix_complex* VII_loc = 
-        VII_complex_weights.get_saved_matrix(q_on_shell, chn, REL_CORR);
-    
-    // Set the value of the external pointers
-    *G0  = G0_loc;
-    *VI  = VI_loc;
-    *VII = VII_loc;
-}
 
 
 void nn_mwpc_dwb_interface::solve_DWBA_PC_full_T(int order)
@@ -173,11 +181,19 @@ void nn_mwpc_dwb_interface::solve_DWBA_PC_full_T(int order)
 
 }
 
-void nn_mwpc_dwb_interface::print_LECs_in_use()
+void nn_mwpc_dwb_interface::print_LECs_in_use(std::string& V_name)
 {
 }
 
-void nn_mwpc_dwb_interface::print_LEC_values()
+void nn_mwpc_dwb_interface::print_params_in_use(std::string& V_name)
+{
+}
+
+void nn_mwpc_dwb_interface::print_LEC_values(std::string& V_name)
+{
+}
+
+void nn_mwpc_dwb_interface::print_param_values(std::string& V_name)
 {
 }
 
@@ -225,3 +241,66 @@ double nn_mwpc_dwb_interface::get_Mn()
 {
 }
 
+/*
+ * ****************************************************************************
+ * Pivate helper methods
+ * ****************************************************************************
+ */
+
+void nn_mwpc_dwb_interface::get_G0_and_potentials(double T_lab, 
+        qs::quantum_channel chn, gsl_matrix_complex** G0, 
+        gsl_matrix_complex** VI, gsl_matrix_complex** VII)
+{
+    // Get on-shell momentum and reduced mass
+    double q_on_shell,mu;
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    
+    // Get G0 vector matrix
+    gsl_vector_complex* prop_vec = 
+        solver.setup_G0_vector_complex(q_on_shell,chn.coupled,mu);
+    // Make it to a diagonal matrix
+    gsl_matrix_complex* G0_loc = 
+        gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    matrix_from_vector(G0,prop_vec);
+    gsl_vector_complex_free(prop_vec);
+
+    // Get the sum of VI and VII with weights
+    gsl_matrix_complex* VI_loc = 
+        VI_complex_weights.get_saved_matrix(q_on_shell, chn, REL_CORR);
+
+    gsl_matrix_complex* VII_loc = 
+        VII_complex_weights.get_saved_matrix(q_on_shell, chn, REL_CORR);
+    
+    // Set the value of the external pointers
+    *G0  = G0_loc;
+    *VI  = VI_loc;
+    *VII = VII_loc;
+}
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::
+    get_on_shell_from_matrix(gsl_matrix_complex* M)
+{
+    gsl_complex T_mm,T_pm,T_pp,T_uncoup;
+    // If coupled channel
+    if (M->size1==2*mom_grid_size_+1)
+    {
+        T_mm = gsl_matrix_complex_get(M,mom_grid_size_,mom_grid_size_);
+        T_pm = gsl_matrix_complex_get(M,2*mom_grid_size_+1,mom_grid_size_);
+        T_pp = gsl_matrix_complex_get(M,2*mom_grid_size_+1,2*mom_grid_size_+1);
+        T_uncoup = gsl_complex_rect(0.0,0.0);
+
+    } else
+    {
+        T_uncoup = gsl_matrix_complex_get(M,mom_grid_size_,mom_grid_size_);
+        T_mm = gsl_complex_rect(0.0,0.0);
+        T_pm = gsl_complex_rect(0.0,0.0);
+        T_pp = gsl_complex_rect(0.0,0.0);
+    
+    }
+    std::vector<std::complex<double>> T_arr;
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_mm),GSL_IMAG(T_mm));
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_pm),GSL_IMAG(T_pm));
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_pp),GSL_IMAG(T_pp));
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_uncoup),GSL_IMAG(T_uncoup));
+    return T_arr;
+}
