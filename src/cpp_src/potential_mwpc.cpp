@@ -490,7 +490,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,boo
    // In the construction of the saved matrix the desired on-shell momentum 
    // that the matrix element will be evaluated on are unknown. These matrix elements needs
    // to be computed at runtime
-   gsl_m* matrix_data;
+   gsl_m* matrix_data = nullptr;
    if (chn.coupled) {
       matrix_data = ph::matrix_alloc((2*mom_grid_size_ + 2),(2*mom_grid_size_ + 2),
               matrix_data);
@@ -701,7 +701,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel 
 
    // Load the matrices and compute the necessary matrix elements on the diagonal
    
-   gsl_m* matrix_saved_sum;
+   gsl_m* matrix_saved_sum = nullptr;
    if (!coupled)
    {
       matrix_saved_sum  = ph::matrix_alloc((size_t)(mom_grid_size_ + 1),

@@ -147,6 +147,8 @@ public:
     /* 
       Constructor
     */
+    Pot_mwpc(){} // Dummy default constructor
+
     Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
