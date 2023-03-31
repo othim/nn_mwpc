@@ -17,6 +17,7 @@
 #include <omp.h>
 
 #include "pot_nn_mwpc.h"
+#include "potential_mwpc.h"
 #include "pot_ext.h"
 #include "quantum_states.h"
 #include "LS_Solver.h"
@@ -24,6 +25,7 @@
 #include "gsl_integration.h" 
 #include "scattering.h"
 #include "physics_helpers.h"
+#include "born_approx.h"
 
 /* This class will be acessed from python through the bindings in pybind11.
  * The pybind code will be written in sucha a way that C++ will always have
@@ -77,10 +79,16 @@ private:
  */        
 
     LS_Solver* LS_Solver_;
-    
+
+    // This map stores the constructed potentials
+    std::unordered_map<std::string, Pot_mwpc<gsl_matrix_complex>> potentials_;
+
+    // This vector contains all the namses of the defined potentials
+    std::vector<std::string> potential_names_;
+
+
     // Saved data
     std::vector<qs::quantum_channel> chns_;
-    std::vector<Phase_shifts_chn> phase_shifts_; 
     double energy_saved_;
 
 
@@ -90,7 +98,8 @@ private:
      */
     void get_G0_and_potentials(double T_lab, qs::quantum_channel chn,
             gsl_matrix_complex** G0, gsl_matrix_complex** VI,
-            gsl_matrix_complex** VII);
+            gsl_matrix_complex** VII, std::string VI_name,
+            std::string VII_name);
 
     /*
      *
@@ -101,8 +110,16 @@ private:
      * indices are over the 2x2 on-shell T-matrix. Tuncoup is the uncoupled 
      * on-shell T-matrix element.
      */
-    std::vector<std::complex<double>> nn_mwpc_dwb_interface::
+    std::vector<std::complex<double>> 
             get_on_shell_from_matrix(gsl_matrix_complex* M);
+
+
+    /*
+     * Function that defines potentials and populate potentials_ and
+     * potential_names_
+     *
+     */
+    void load_predefined_potentials();
 
 public:
 
@@ -112,7 +129,14 @@ public:
             bool inc_weights_in_pot_ = false, bool cut_on_shell = true);
     ~nn_mwpc_dwb_interface();
     
-
+    /*
+     *
+     * This function solves the DWB series and returns the on-shell T-matrix
+     *
+     */
+    std::vector<std::complex<double>>   
+            solve_DWBA_T(double T_lab, qs::quantum_channel chn, int order,
+            std::string VI_name, std::string VII_name);
     /*
      * This function solves for the full T-matrix for the 
      * the potential V_I + V_II
@@ -135,8 +159,10 @@ public:
      * Units of the T-matrix is MeV^{-2} and the normalization conventions 
      * are that there is as given for the LS-Solver in the README.
      */
-    std::vector<std::complex<double>>   
-        solve_exact_pot_sum_T(double T_lab, qs::quantum_channel chn);
+    std::vector<std::complex<double>> solve_exact_pot_sum_T(
+            double T_lab, qs::quantum_channel chn, int order, 
+            std::string VI_name, std::string VII_name);
+
     /*
      * This function is the same as 'solve_exact_pot_sum_T(...)' with the 
      * difference that the whole T-matrix is returned
@@ -151,20 +177,27 @@ public:
      * T-matrix is row-major format with the same units and conventions as
      * 'solve_exact_pot_sum_T()'.
      */
-    gsl_matrix_complex* 
-        solve_exact_pot_sum_full_T(double T_lab, qs::quantum_channel chn);
-    
+    gsl_matrix_complex* solve_exact_pot_sum_full_T(
+            double T_lab, qs::quantum_channel chn,
+            std::string VI_name, std::string VII_name);
+
     /*
-     *
-     * This function solves the DWB series and returns the on-shell T-matrix
-     *
+     * TODO
      */
-    void solve_DWBA_full_T(int order);
+    gsl_matrix_complex* solve_DWBA_full_T(double T_lab, 
+            qs::quantum_channel chn, int order,
+            std::string VI_name, std::string VII_name);
+
+    /*
+     * TODO
+     */
     void solve_DWBA_PC_full_T(int order);
 
+    void print_LEC_values(std::string potential_name);
+    void print_param_values(std::string potential_name);
 
-    void print_LEC_values();
-    void print_LECs_in_use();
+    void print_LECs_in_use(std::string potential_name);
+    void print_params_in_use(std::string potential_name);
 
     double get_on_shell_momentum(double T_lab);
     double get_scale();
@@ -178,6 +211,5 @@ public:
     double get_mpi();
     double get_Mp();
     double get_Mn();
-
 };
 #endif

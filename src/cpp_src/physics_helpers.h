@@ -178,6 +178,7 @@ void matrix_memcpy(gsl_matrix_complex* m1, gsl_matrix_complex* m2);
 void matrix_scale(gsl_matrix* m1, const double scale);
 void matrix_scale(gsl_matrix_complex* m1, const double scale);
 
+void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec);
 }
 #endif
 

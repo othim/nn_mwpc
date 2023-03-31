@@ -128,7 +128,7 @@ public:
 
       The params_ are more static variables of a potentials that is not intended
       to change after the potential is cunstructed. If some of these non-linear
-      paramters is changes the storage of the precomputed matrices need to be 
+      paramters are changed the storage of the precomputed matrices need to be 
       redone.
     */
     std::vector<std::string> LEC_names_; // List of ALL possible LEC names

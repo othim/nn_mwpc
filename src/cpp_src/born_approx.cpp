@@ -13,8 +13,6 @@
 void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
         int mom_grid_size);
 
-void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec);
-
 void pow_matrix_mult(gsl_matrix_complex* m,int pow,gsl_matrix_complex* res);
 
 gsl_matrix_complex* dwba::pw_T_BA(int start_order,int stop_order, gsl_matrix_complex* V, 
@@ -406,7 +404,7 @@ void dwba::make_tests(std::string chn_string)
     std::cout << "-----------------" << std::endl;
     std::cout << "-----------------" << std::endl;
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
-    matrix_from_vector(G0,prop_vec);
+    ph::matrix_from_vector(G0,prop_vec);
  
     
     std::ofstream myfile;
@@ -594,7 +592,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     std::cout << "-----------------" << std::endl;
     std::cout << "-----------------" << std::endl;
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
-    matrix_from_vector(G0,prop_vec);
+    ph::matrix_from_vector(G0,prop_vec);
  
     // Store some matrices to file
     ph::print_m_complex_to_file(DATA_DIR+"G0.txt",G0);
@@ -916,7 +914,7 @@ void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
             chn.coupled,mu);
     // Make it to a diagonal matrix
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
-    matrix_from_vector(G0,prop_vec);
+    ph::matrix_from_vector(G0,prop_vec);
  
     // Store some matrices to file
     //ph::print_m_complex_to_file(DATA_DIR+"G0.txt",G0);
@@ -1212,7 +1210,7 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
             chn.coupled,mu);
     // Make it to a diagonal matrix
     gsl_matrix_complex* G0 = gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
-    matrix_from_vector(G0,prop_vec);
+    ph::matrix_from_vector(G0,prop_vec);
  
     // Store some matrices to file
     //ph::print_m_complex_to_file(DATA_DIR+"G0.txt",G0);
@@ -1369,17 +1367,6 @@ void dress_in_weights(gsl_matrix_complex* M,double* p,double* w,
                 gsl_matrix_complex_set(M,i+mom_grid_size+1,j+mom_grid_size+1,gsl_complex_mul(el_11,fac));
             }
         }
-    }
-}
-
-
-void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
-{
-    gsl_matrix_complex_set_zero(M);
-    // Set the diagonal values to the vecotr values
-    for (int i = 0; i < (int)M->size1; i++)
-    {
-        gsl_matrix_complex_set(M,i,i,gsl_vector_complex_get(vec,i));
     }
 }
 
