@@ -47,20 +47,24 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
     // Make GL grid
     if (!finite_grid)
     {
-        ph::gauss_legendre_inf_mesh(number_of_p_points_,scale_,&p_grid_,&w_grid_);
+        ph::gauss_legendre_inf_mesh(
+                number_of_p_points_,scale_,&p_grid_,&w_grid_);
     } else 
     {
-        // Make GL-grid that is finite. Since we use a sharp cutoff this grid is fine
+        // Make GL-grid that is finite. Since we use a sharp cutoff this grid 
+        // is fine
         double sharp_cut_add = 300.0;
         finite_grid_max_ = cutoff_+sharp_cut_add;
-        ph::gauss_legendre_finite_mesh(number_of_p_points_,0,finite_grid_max_,&p_grid_,&w_grid_);
+        ph::gauss_legendre_finite_mesh(number_of_p_points_,0,
+                finite_grid_max_,&p_grid_,&w_grid_);
     }
     
     // Construct the quantum states
     if (print) {
         std::cout << "Constructing quantum states..." << std::endl;
     }
-    std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
+    std::vector<qs::quantum_NN_state> states = 
+        get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
      
     // Construct the quantum scattering channels from the states
     if (print) {
@@ -69,12 +73,11 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
     std::vector<qs::quantum_channel> chns = get_channels(states, print);   
     
 
-
     // Construct a LS_Solver
     
     
     // Constructing the potentials 
-    
+    load_predefined_potentials();
 
 }
 
@@ -83,7 +86,12 @@ nn_mwpc_dwb_interface::~nn_mwpc_dwb_interface()
 {
     delete LS_Solver_;
 
-    // TODO: also delete potentals and other stuff
+    for (auto name : potential_names_)
+    {
+        delete potentials_[name];
+    }
+    
+    // TODO: also delete other stuff
 
     delete[] p_grid_;
     delete[] w_grid_;
@@ -127,6 +135,18 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_exact_pot_sum_T(
     return T_arr;
 }
 
+void nn_mwpc_dwb_interface::create_new_potential(std::string potential_name, 
+        std::string pre_def_name)
+{
+    // Make a new potential of this type
+    Pot_mwpc<gsl_matrix_complex>* pot = load_pre_def_pot(pre_def_name);
+    
+    // Insert the potential in the list of potentials
+    potentials_.insert( std::make_pair (potential_name,pot) );
+
+    // Add the potential name to the list of potential names
+    potential_names_.push_back(potential_name);
+}
 
 /*
  * ****************************************************************************
@@ -331,7 +351,59 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::
     return T_arr;
 }
 
-void nn_mwpc_dwb_interface::load_predefined_potentials()
+Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
+        load_predefined_potential(std::string pre_def_name)
 {
+    if (pre_def_name == "Yamaguchi_1S0")
+    {
+        /*
+         * Yamaguchi_1S0
+         *
+         * This is a potential in the 1S0 channel
+         */
+        std::vector<std::string> terms;
+        terms.push_back("Yamaguchi_1S0");
+        
+        bool inc_weights_on_pot = true; // This is always true
+        
+        // Make the potential complex
+        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cut_on_shell_);
+
+        return pot_complex_weights;
     
+    } else if (pre_def_name == "Yamaguchi_3S-D1")
+    {
+        /*
+         * Yamaguchi_3S-D1
+         *
+         * This is a potential in the 3S-D1 channel
+         */
+        std::vector<std::string> terms;
+        terms.push_back("Yamaguchi_3S1");
+        terms.push_back("Yamaguchi_3S-D1");
+        terms.push_back("Yamaguchi_3D-S1");
+        terms.push_back("Yamaguchi_3D1");
+        
+        bool inc_weights_on_pot = true; // This is always true
+
+        // Make the potential complex
+        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cut_on_shell_);
+
+        return pot_complex_weights;
+    } else 
+    {
+        std::cout << "Error, undefined potential name: " << pre_def_name 
+            << std::endl;
+        return nullptr;
+    }
 }
+
+

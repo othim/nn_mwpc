@@ -119,7 +119,8 @@ private:
      * potential_names_
      *
      */
-    void load_predefined_potentials();
+    Pot_mwpc<gsl_matrix_complex>* load_predefined_potential(
+            std::string pre_def_name);
 
 public:
 
@@ -187,17 +188,28 @@ public:
     gsl_matrix_complex* solve_DWBA_full_T(double T_lab, 
             qs::quantum_channel chn, int order,
             std::string VI_name, std::string VII_name);
-
+    
     /*
-     * TODO
+     * Functions to manipulate potentials
      */
-    void solve_DWBA_PC_full_T(int order);
-
+    
     void print_LEC_values(std::string potential_name);
     void print_param_values(std::string potential_name);
 
     void print_LECs_in_use(std::string potential_name);
     void print_params_in_use(std::string potential_name);
+
+    void set_LECs_in_potential(std::string potential_name, 
+            std::vector<double> LECs);
+    void set_params_in_potential(std::string potential_name, 
+            std::vector<double> params);
+
+    void save_potential_decomposition(std::string potential_name);
+
+    /*
+     * TODO
+     */
+    void solve_DWBA_PC_full_T(int order);
 
     double get_on_shell_momentum(double T_lab);
     double get_scale();
