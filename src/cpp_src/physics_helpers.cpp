@@ -483,7 +483,7 @@ void ph::matrix_scale(gsl_matrix_complex* m1, const double scale)
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, m1, m1, beta, m1); 
 }
 
-void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
+void ph::matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
 {
     gsl_matrix_complex_set_zero(M);
     // Set the diagonal values to the vecotr values

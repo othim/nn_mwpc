@@ -308,7 +308,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::
 {
     gsl_complex T_mm,T_pm,T_pp,T_uncoup;
     // If coupled channel
-    if (M->size1==2*number_of_p_points_+1)
+    if ((int)M->size1==(int)(2*number_of_p_points_+1))
     {
         T_mm = gsl_matrix_complex_get(M,number_of_p_points_,number_of_p_points_);
         T_pm = gsl_matrix_complex_get(M,2*number_of_p_points_+1,number_of_p_points_);

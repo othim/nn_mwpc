@@ -812,7 +812,7 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
 void print_from_T_matrix(gsl_matrix_complex* T,int number_of_p_points,
         std::ostream& stream)
 {
-    if (T->size1 == 2*number_of_p_points+2)
+    if ((int)T->size1 == (int)(2*number_of_p_points+2))
     {
         stream << "# T[0,0], T[0,1], T[1,1]" << std::endl;
         gsl_complex onT_I = 

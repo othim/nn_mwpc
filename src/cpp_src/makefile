@@ -5,21 +5,21 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = SUBATOM
+#SYSTEM = MAC
+SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
-#BLAS_LIB = MKL
-BLAS_LIB = GSL
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
 # -------------------
 
 # Compiler
 # --------
-CC = g++
-#CC = icpc
+#CC = g++
+CC = icpc
 # --------
 
 # Optimization
@@ -167,4 +167,4 @@ potential_mwpc.o: potential_mwpc.h
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
-	   	pot_ext.o born_approx.o potential_mwpc.o
+	   	pot_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o
