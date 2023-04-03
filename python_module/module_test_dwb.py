@@ -11,22 +11,23 @@ import time
 import matplotlib.pyplot as plt
 
 
-def Yam_test(obj):
-    print('Testing Yam 1S0')
+def add_pot(obj,name,pre_def_name,beta,lam):
+    print('\nAddig potential\n-----------------------')
+    obj.create_new_potential(name,pre_def_name)
+    obj.print_LECs_in_use(name)
+    obj.print_params_in_use(name)
     
-    obj.create_new_potential('my_yam_1','Yamaguchi_1S0')
-    obj.print_LECs_in_use('my_yam_1')
-    obj.print_params_in_use('my_yam_1')
+    # Parameters need to be set prior to saving!
+    obj.set_params_in_potential(name,[beta])
+    obj.print_param_values(name)
 
-    beta = 1.0
-    lam  = 3.0
-    obj.set_params_in_potential('my_yam_1',[beta])
-    obj.print_param_values('my_yam_1')
+    obj.save_potential_decomposition(name)
 
-    obj.save_potential_decomposition('my_yam_1')
+    # LECs need to be set after saving!
+    obj.set_LECs_in_potential(name,[lam])
+    obj.print_LEC_values(name)
 
-    obj.set_LECs_in_potential('my_yam_1',[lam])
-    obj.print_LEC_values('my_yam_1')
+    
 # ------------------------------
 # --------- MAIN CODE ----------
 print("Constructing object and saving potential")
@@ -34,15 +35,15 @@ print("Constructing object and saving potential")
 # ------------------------------
 potential          = "Yamaguchi_1S0"
 Jmax               = 2
-cutoff             = 10000.0     # MeV
-cut_pow            = 4          # This is the power, n,  in the e^(-p/Lambda)^n regularization
-sharp_cutoff       = True      # If true the potential is zer to zero for p>Lambda + 300
+cutoff             = 1000000.0     # MeV
+cut_pow            = 10000000          # This is the power, n,  in the e^(-p/Lambda)^n regularization
+sharp_cutoff       = False      # If true the potential is zer to zero for p>Lambda + 300
 precompute_pot     = False      # Precompute and store potential
 rel_correction     = False      # If relativistic corrections are implemented
-num_grid_points    = 60       # Number of momentum grid points
+num_grid_points    = 100       # Number of momentum grid points
 finite_grid        = False      # If finte momentum grid 
 inc_weights_in_pot = True      # Include w and p in potential matrix
-cut_on_shell       = True       # Implement the cutoff also on on-shell elements
+cut_on_shell       = False      # Implement the cutoff also on on-shell elements
 # -----------------------------
 
 obj = nn_mwpc.nn_mwpc_dwb_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
@@ -51,4 +52,20 @@ obj = nn_mwpc.nn_mwpc_dwb_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 
-Yam_test(obj)
+add_pot(obj,'1S0_1','Yamaguchi_1S0',40.0,-10000.0)
+add_pot(obj,'1S0_2','Yamaguchi_1S0',40.0,5000.0)
+
+
+print('\nPotential names\n--------------------')
+obj.print_potential_names()
+
+print('\nSolving for the T-matrix\n---------------------')
+T = obj.solve_exact_pot_sum_T(1.0,0,'1S0_1','1S0_2')
+T = np.array(T)
+print(T.shape)
+print(f'\n\n{T[-1]}, {(np.abs(T[-1]))**2}\n\n')
+
+
+for i in range(15):
+    T = obj.solve_DWBA_T(1.0,0,i,'1S0_1','1S0_2')
+    print(f'i={i}:   {T[-1]}, {(np.abs(T[-1]))**2}')

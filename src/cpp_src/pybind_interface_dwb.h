@@ -136,8 +136,11 @@ public:
      *
      */
     std::vector<std::complex<double>>   
-            solve_DWBA_T(double T_lab, qs::quantum_channel chn, int order,
-            std::string VI_name, std::string VII_name);
+            solve_DWBA_T_chn(double T_lab, qs::quantum_channel chn, int order,
+            const std::string& VI_name, const std::string& VII_name);
+    std::vector<std::complex<double>>   
+            solve_DWBA_T(double T_lab, int chn_index, int order,
+            const std::string& VI_name, const std::string& VII_name);
     /*
      * This function solves for the full T-matrix for the 
      * the potential V_I + V_II
@@ -160,9 +163,12 @@ public:
      * Units of the T-matrix is MeV^{-2} and the normalization conventions 
      * are that there is as given for the LS-Solver in the README.
      */
+    std::vector<std::complex<double>> solve_exact_pot_sum_T_chn(
+            double T_lab, qs::quantum_channel chn,
+            const std::string& VI_name, const std::string& VII_name);
     std::vector<std::complex<double>> solve_exact_pot_sum_T(
-            double T_lab, qs::quantum_channel chn, int order, 
-            std::string VI_name, std::string VII_name);
+            double T_lab, int chn_index, 
+            const std::string& VI_name, const std::string& VII_name);
 
     /*
      * This function is the same as 'solve_exact_pot_sum_T(...)' with the 
@@ -209,6 +215,8 @@ public:
             const std::vector<double>& params);
 
     void save_potential_decomposition(const std::string& potential_name);
+
+    void print_potential_names();
 
     /*
      * **********************************

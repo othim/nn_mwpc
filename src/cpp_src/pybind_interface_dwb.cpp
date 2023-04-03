@@ -15,30 +15,29 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
         int number_of_p_points,bool finite_grid,bool inc_weights_in_pot,
         bool cut_on_shell)
 {
-    std::cout << "Hi from DWB module constructor" << std::endl;
     // ************************************************************************
     // ****** CONSTANTS TO CHANGE *********************************************
     // ************************************************************************
-    scale_ = 100.0; // Scale of momenutm grid MeV (100)
+    scale_              = 100.0; // Scale of momenutm grid MeV (100)
     number_of_p_points_ = number_of_p_points; // Number of momentum-grid points (60)
-    ang_int_points_ = 76; // Number of points in angular integration
-    J_max_in_pot_ = 50; // Maximum J that is stored for L-polynomials
-    cutoff_ = cutoff; // Cutoff in LS-equation
-    cut_pow_ = cut_pow;
-    sharp_cutoff_ = sharp_cutoff;
-    pre_comp_pot_ = pre_comp_pot; // If pre-computations should be made
-    rel_corr_ = rel_corr;
-    finite_grid_ = finite_grid;
-    finite_grid_max_ = 0.0;
+    ang_int_points_     = 76; // Number of points in angular integration
+    J_max_in_pot_       = 50; // Maximum J that is stored for L-polynomials
+    cutoff_             = cutoff; // Cutoff in LS-equation
+    cut_pow_            = cut_pow;
+    sharp_cutoff_       = sharp_cutoff;
+    pre_comp_pot_       = pre_comp_pot; // If pre-computations should be made
+    rel_corr_           = rel_corr;
+    finite_grid_        = finite_grid;
+    finite_grid_max_    = 0.0;
     inc_weights_in_pot_ = inc_weights_in_pot;
-    cut_on_shell_ = cut_on_shell;
+    cut_on_shell_       = cut_on_shell;
     
     // For the quantum states
-    int J_max = J_max_chn;
-    int J_min = 0;
-    int Tz_min = 0;
-    int Tz_max = 0;
-    bool print = false;
+    int J_max           = J_max_chn;
+    int J_min           = 0;
+    int Tz_min          = 0;
+    int Tz_max          = 0;
+    bool print          = false;
     // ************************************************************************
     // ************************************************************************
     
@@ -71,11 +70,11 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
     if (print) {
         std::cout << "Contruction scattering channels..." << std::endl;
     }
-    std::vector<qs::quantum_channel> chns = get_channels(states, print);   
+    chns_ = get_channels(states, print);   
     
 
     // Construct a LS_Solver
-    
+    LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
 }
 
 
@@ -101,9 +100,9 @@ nn_mwpc_dwb_interface::~nn_mwpc_dwb_interface()
  * Public methods that are a part of the DWB-interface 
  * ****************************************************************************
  */
-std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T(
-        double T_lab, qs::quantum_channel chn, int order, std::string VI_name,
-        std::string VII_name)
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_chn(
+        double T_lab, qs::quantum_channel chn, int order, 
+        const std::string& VI_name, const std::string& VII_name)
 {
     // Solve for the full T-matrix
     gsl_matrix_complex* T_DWBA = solve_DWBA_full_T(T_lab, chn, order, VI_name,
@@ -117,11 +116,31 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T(
     return T_arr;
 }
 
-std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_exact_pot_sum_T(
-        double T_lab, qs::quantum_channel chn, int order, std::string VI_name,
-        std::string VII_name)
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T(
+        double T_lab, int chn_index, int order, 
+        const std::string& VI_name, const std::string& VII_name)
+{
+    qs::quantum_channel chn = chns_[0];
+    if (chn_index>chns_.size()-1)
+    {
+        std::cout << "Error, too large channel index, returning 0." << std::endl;
+        std::vector<std::complex<double>> T_arr;
+        T_arr.push_back(std::complex<double>(0,0));
+        return T_arr;
+    } else
+    {
+        chn = chns_[chn_index];
+        return solve_DWBA_T_chn(T_lab, chn, order, VI_name, VII_name);
+    }
+}
+
+std::vector<std::complex<double>> 
+        nn_mwpc_dwb_interface::solve_exact_pot_sum_T_chn(
+        double T_lab, qs::quantum_channel chn, const std::string& VI_name,
+        const std::string& VII_name)
 {
     // Solve for the full T-matrix
+    //std::cout << "solving T-sum\n";
     gsl_matrix_complex* T_sum = solve_exact_pot_sum_full_T(T_lab, chn, VI_name,
             VII_name);
     
@@ -131,6 +150,24 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_exact_pot_sum_T(
     
     // Return the on-shell values
     return T_arr;
+}
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_exact_pot_sum_T(
+        double T_lab, int chn_index, const std::string& VI_name,
+        const std::string& VII_name)
+{
+    qs::quantum_channel chn = chns_[0];
+    if (chn_index>chns_.size()-1)
+    {
+        std::cout << "Error, too large channel index, returning 0." << std::endl;
+        std::vector<std::complex<double>> T_arr;
+        T_arr.push_back(std::complex<double>(0,0));
+        return T_arr;
+    } else
+    {
+        chn = chns_[chn_index];
+        return solve_exact_pot_sum_T_chn(T_lab, chn, VI_name, VII_name);
+    }
 }
 
 
@@ -174,7 +211,7 @@ void nn_mwpc_dwb_interface::print_LECs_in_use(const std::string& potential_name)
 {
     // Print the LECs in the same order as they are set in the compute functions.
     std::cout << "The LECs in the same order as they must be set in the"
-            << "compute functions." << std::endl;
+            << " set functions:" << std::endl;
     for (auto s : potentials_[potential_name]->LECs_in_use_)
     {
         std::cout << s << ", ";
@@ -185,7 +222,7 @@ void nn_mwpc_dwb_interface::print_LECs_in_use(const std::string& potential_name)
 void nn_mwpc_dwb_interface::print_params_in_use(const std::string& potential_name)
 {
     std::cout << "The LECs in the same order as they must be set in the"
-            << "compute functions." << std::endl;
+            << " set functions:" << std::endl;
     for (auto s : potentials_[potential_name]->params_in_use_)
     {
         std::cout << s << ", ";
@@ -223,6 +260,20 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
     {
         potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
     }
+}
+
+void nn_mwpc_dwb_interface::print_potential_names()
+{
+    std::cout << "Constructed potentials:" << std::endl;
+    // Save potential in all channels
+    for (auto name : potential_names_)
+    {
+        std::cout << "Potential name: " << name << "\n\n";
+        print_LECs_in_use(name);
+        print_params_in_use(name);
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 /*
@@ -306,12 +357,14 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_exact_pot_sum_full_T(
 {
     // Get G0 and potentials for the correct on-shell point
     gsl_matrix_complex* G0, *VI, *VII;
+    //std::cout << "Get G0 and potentials\n";
     get_G0_and_potentials(T_lab, chn, &G0, &VI, &VII, VI_name, VII_name);
 
     // Solve LS equation for SUM of potentials, NOTE: VII is now VI+VII!!!
     ph::matrix_add(VII,VI);
     
     // Solve for T
+    //std::cout << "Solve LS_equation\n";
     gsl_matrix_complex* T_full = 
         LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,VII,G0);
     

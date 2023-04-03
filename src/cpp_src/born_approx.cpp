@@ -463,7 +463,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
     double Tl = 1.0; // MeV
     
-    double lam   = 100.0;
+    double lam   = 5000.0;
     double lam_t = -10000.0;
     double beta  = 40.0;
     double gamma = 30.0;

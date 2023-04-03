@@ -63,6 +63,13 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,
                 bool,bool,bool>())
         
+        .def("solve_DWBA_T", 
+                &nn_mwpc_dwb_interface::solve_DWBA_T,
+                py::return_value_policy::copy)
+        .def("solve_exact_pot_sum_T", 
+                &nn_mwpc_dwb_interface::solve_exact_pot_sum_T,
+                py::return_value_policy::copy)
+
         .def("create_new_potential", 
                 &nn_mwpc_dwb_interface::create_new_potential,
                 py::return_value_policy::copy)
@@ -82,6 +89,9 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("save_potential_decomposition", 
                 &nn_mwpc_dwb_interface::save_potential_decomposition,
+                py::return_value_policy::copy)
+        .def("print_potential_names", 
+                &nn_mwpc_dwb_interface::print_potential_names,
                 py::return_value_policy::copy)
 
         
