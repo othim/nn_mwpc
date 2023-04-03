@@ -15,6 +15,7 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
         int number_of_p_points,bool finite_grid,bool inc_weights_in_pot,
         bool cut_on_shell)
 {
+    std::cout << "Hi from DWB module constructor" << std::endl;
     // ************************************************************************
     // ****** CONSTANTS TO CHANGE *********************************************
     // ************************************************************************
@@ -75,10 +76,6 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
 
     // Construct a LS_Solver
     
-    
-    // Constructing the potentials 
-    load_predefined_potentials();
-
 }
 
 
@@ -88,6 +85,7 @@ nn_mwpc_dwb_interface::~nn_mwpc_dwb_interface()
 
     for (auto name : potential_names_)
     {
+        // TODO
         delete potentials_[name];
     }
     
@@ -135,93 +133,103 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_exact_pot_sum_T(
     return T_arr;
 }
 
-void nn_mwpc_dwb_interface::create_new_potential(std::string potential_name, 
+
+/*
+ * *********************************************
+ * Functions to create and manipulate potentials
+ * *********************************************
+ */
+void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_name, 
         std::string pre_def_name)
 {
     // Make a new potential of this type
     Pot_mwpc<gsl_matrix_complex>* pot = load_pre_def_pot(pre_def_name);
     
     // Insert the potential in the list of potentials
-    potentials_.insert( std::make_pair (potential_name,pot) );
+    potentials_.insert( std::make_pair(potential_name,pot) );
 
     // Add the potential name to the list of potential names
     potential_names_.push_back(potential_name);
 }
 
+void nn_mwpc_dwb_interface::print_LEC_values(const std::string& potential_name)
+{
+    std::cout << "Printing the LECs and their current values." << std::endl;
+    for (auto& it: potentials_[potential_name]->LECs_)
+    {
+        std::cout << it.first << " = " << it.second << std::endl;
+    }
+}
+
+void nn_mwpc_dwb_interface::print_param_values(const std::string& potential_name)
+{
+    std::cout << "Printing the params and their current values." << std::endl;
+    for (auto& it: potentials_[potential_name]->params_)
+    {
+        std::cout << it.first << " = " << it.second << std::endl;
+    }
+}
+
+void nn_mwpc_dwb_interface::print_LECs_in_use(const std::string& potential_name)
+{
+    // Print the LECs in the same order as they are set in the compute functions.
+    std::cout << "The LECs in the same order as they must be set in the"
+            << "compute functions." << std::endl;
+    for (auto s : potentials_[potential_name]->LECs_in_use_)
+    {
+        std::cout << s << ", ";
+    }
+    std::cout << std::endl;
+}
+
+void nn_mwpc_dwb_interface::print_params_in_use(const std::string& potential_name)
+{
+    std::cout << "The LECs in the same order as they must be set in the"
+            << "compute functions." << std::endl;
+    for (auto s : potentials_[potential_name]->params_in_use_)
+    {
+        std::cout << s << ", ";
+    }
+    std::cout << std::endl;
+}
+
+void nn_mwpc_dwb_interface::set_LECs_in_potential(const std::string& potential_name, 
+            const std::vector<double>& LECs)
+{
+    // Set the LECs 
+    int i=0;
+    for (auto& it: potentials_[potential_name]->LECs_in_use_)
+    {
+         potentials_[potential_name]->LECs_[it] = LECs[i++];
+    }
+}
+
+void nn_mwpc_dwb_interface::set_params_in_potential(const std::string& potential_name, 
+            const std::vector<double>& params)
+{
+    // Set the params 
+    int i=0;
+    for (auto& it: potentials_[potential_name]->params_in_use_)
+    {
+         potentials_[potential_name]->params_[it] = params[i++];
+    }
+}
+
+void nn_mwpc_dwb_interface::save_potential_decomposition(
+        const std::string& potential_name)
+{
+    // Save potential in all channels
+    for (auto chn : chns_)
+    {
+        potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
+    }
+}
+
 /*
- * ****************************************************************************
- * Public methods that are NOT a part of the DWB-interface 
- * ****************************************************************************
+ * **********************************
+ * Functions to get various constants
+ * **********************************
  */
-
-gsl_matrix_complex* nn_mwpc_dwb_interface::solve_exact_pot_sum_full_T(
-        double T_lab, qs::quantum_channel chn, std::string VI_name,
-        std::string VII_name)
-{
-    // Get G0 and potentials for the correct on-shell point
-    gsl_matrix_complex* G0, *VI, *VII;
-    get_G0_and_potentials(T_lab, chn, &G0, &VI, &VII, VI_name, VII_name);
-
-    // Solve LS equation for SUM of potentials, NOTE: VII is now VI+VII!!!
-    ph::matrix_add(VII,VI);
-    
-    // Solve for T
-    gsl_matrix_complex* T_full = 
-        LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,VII,G0);
-    
-    // Delete and return
-    gsl_matrix_complex_free(VI);
-    gsl_matrix_complex_free(VII);
-    gsl_matrix_complex_free(G0);
-    return T_full;
-}
-
-gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_full_T(double T_lab, 
-        qs::quantum_channel chn, int order, std::string VI_name,
-        std::string VII_name)
-{
-    // Get G0 and potentials for the correct on-shell point
-    gsl_matrix_complex* G0, *VI, *VII;
-    get_G0_and_potentials(T_lab, chn, &G0, &VI, &VII, VI_name,VII_name);
-
-    // Solve for TI
-    gsl_matrix_complex* TI = 
-        LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,VI,G0);
-    
-    // Solve DWB series
-    gsl_matrix_complex* T_DWBA = dwba::pw_T_DWBA(order,TI,VI,VII,G0);
-    
-    // Delete and return
-    gsl_matrix_complex_free(VI);
-    gsl_matrix_complex_free(VII);
-    gsl_matrix_complex_free(G0);
-    gsl_matrix_complex_free(TI);
-    return T_DWBA;
-}
-
-
-
-void nn_mwpc_dwb_interface::solve_DWBA_PC_full_T(int order)
-{
-
-}
-
-void nn_mwpc_dwb_interface::print_LECs_in_use(std::string potential_name)
-{
-}
-
-void nn_mwpc_dwb_interface::print_params_in_use(std::string potential_name)
-{
-}
-
-void nn_mwpc_dwb_interface::print_LEC_values(std::string potential_name)
-{
-}
-
-void nn_mwpc_dwb_interface::print_param_values(std::string potential_name)
-{
-}
-
 
 double nn_mwpc_dwb_interface::get_on_shell_momentum(double T_lab)
 {    
@@ -288,6 +296,65 @@ double nn_mwpc_dwb_interface::get_Mn()
 
 /*
  * ****************************************************************************
+ * Public methods that are NOT a part of the DWB-interface 
+ * ****************************************************************************
+ */
+
+gsl_matrix_complex* nn_mwpc_dwb_interface::solve_exact_pot_sum_full_T(
+        double T_lab, qs::quantum_channel chn, std::string VI_name,
+        std::string VII_name)
+{
+    // Get G0 and potentials for the correct on-shell point
+    gsl_matrix_complex* G0, *VI, *VII;
+    get_G0_and_potentials(T_lab, chn, &G0, &VI, &VII, VI_name, VII_name);
+
+    // Solve LS equation for SUM of potentials, NOTE: VII is now VI+VII!!!
+    ph::matrix_add(VII,VI);
+    
+    // Solve for T
+    gsl_matrix_complex* T_full = 
+        LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,VII,G0);
+    
+    // Delete and return
+    gsl_matrix_complex_free(VI);
+    gsl_matrix_complex_free(VII);
+    gsl_matrix_complex_free(G0);
+    return T_full;
+}
+
+gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_full_T(double T_lab, 
+        qs::quantum_channel chn, int order, std::string VI_name,
+        std::string VII_name)
+{
+    // Get G0 and potentials for the correct on-shell point
+    gsl_matrix_complex* G0, *VI, *VII;
+    get_G0_and_potentials(T_lab, chn, &G0, &VI, &VII, VI_name,VII_name);
+
+    // Solve for TI
+    gsl_matrix_complex* TI = 
+        LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,VI,G0);
+    
+    // Solve DWB series
+    gsl_matrix_complex* T_DWBA = dwba::pw_T_DWBA(order,TI,VI,VII,G0);
+    
+    // Delete and return
+    gsl_matrix_complex_free(VI);
+    gsl_matrix_complex_free(VII);
+    gsl_matrix_complex_free(G0);
+    gsl_matrix_complex_free(TI);
+    return T_DWBA;
+}
+
+
+
+/*void nn_mwpc_dwb_interface::solve_DWBA_PC_full_T(int order)
+{
+
+}
+*/
+
+/*
+ * ****************************************************************************
  * Pivate helper methods
  * ****************************************************************************
  */
@@ -312,10 +379,10 @@ void nn_mwpc_dwb_interface::get_G0_and_potentials(double T_lab,
 
     // Get the sum of VI and VII with weights
     gsl_matrix_complex* VI_loc = 
-        potentials_[VI_name].get_saved_matrix(q_on_shell, chn, rel_corr_);
+        potentials_[VI_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
 
     gsl_matrix_complex* VII_loc = 
-        potentials_[VII_name].get_saved_matrix(q_on_shell, chn, rel_corr_);
+        potentials_[VII_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
     
     // Set the value of the external pointers
     *G0  = G0_loc;
@@ -352,7 +419,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::
 }
 
 Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
-        load_predefined_potential(std::string pre_def_name)
+        load_pre_def_pot(std::string pre_def_name)
 {
     if (pre_def_name == "Yamaguchi_1S0")
     {
@@ -364,7 +431,7 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         std::vector<std::string> terms;
         terms.push_back("Yamaguchi_1S0");
         
-        bool inc_weights_on_pot = true; // This is always true
+        bool inc_weights_in_pot = true; // This is always true
         
         // Make the potential complex
         Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -388,7 +455,7 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         terms.push_back("Yamaguchi_3D-S1");
         terms.push_back("Yamaguchi_3D1");
         
-        bool inc_weights_on_pot = true; // This is always true
+        bool inc_weights_in_pot = true; // This is always true
 
         // Make the potential complex
         Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -405,5 +472,3 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         return nullptr;
     }
 }
-
-

@@ -12,7 +12,8 @@ namespace py = pybind11;
 PYBIND11_MODULE(nn_mwpc, m) 
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
-        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,bool,bool,bool>())
+        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,
+                bool,bool,bool>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
         .def("solve_LS_ext_pot", &nn_mwpc_interface::solve_LS_ext_pot,
@@ -53,13 +54,38 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("get_Mp", &nn_mwpc_interface::get_Mp, py::return_value_policy::copy)
         .def("get_Mn", &nn_mwpc_interface::get_Mn, py::return_value_policy::copy);
     
+    /*
+     * ****************
+     * DWB module
+     * ****************
+     */
     py::class_<nn_mwpc_dwb_interface>(m,"nn_mwpc_dwb_interface")
-        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,bool,bool,bool>())
+        .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,
+                bool,bool,bool>())
         
+        .def("create_new_potential", 
+                &nn_mwpc_dwb_interface::create_new_potential,
+                py::return_value_policy::copy)
+        .def("print_LEC_values", &nn_mwpc_dwb_interface::print_LEC_values,
+                py::return_value_policy::copy)
+        .def("print_param_values", &nn_mwpc_dwb_interface::print_param_values,
+                py::return_value_policy::copy)
         .def("print_LECs_in_use", &nn_mwpc_dwb_interface::print_LECs_in_use,
                 py::return_value_policy::copy)
-        .def("print_LEC_values", &nn_mwpc_dwb_interface::print_LEC_values, 
+        .def("print_params_in_use", &nn_mwpc_dwb_interface::print_params_in_use,
                 py::return_value_policy::copy)
+        .def("set_LECs_in_potential", 
+                &nn_mwpc_dwb_interface::set_LECs_in_potential,
+                py::return_value_policy::copy)
+        .def("set_params_in_potential", 
+                &nn_mwpc_dwb_interface::set_params_in_potential,
+                py::return_value_policy::copy)
+        .def("save_potential_decomposition", 
+                &nn_mwpc_dwb_interface::save_potential_decomposition,
+                py::return_value_policy::copy)
+
+        
+
         .def("get_on_shell_momentum",&nn_mwpc_dwb_interface::get_on_shell_momentum, 
                 py::return_value_policy::copy)
         .def("get_scale", &nn_mwpc_dwb_interface::get_scale, 

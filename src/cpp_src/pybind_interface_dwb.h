@@ -81,7 +81,7 @@ private:
     LS_Solver* LS_Solver_;
 
     // This map stores the constructed potentials
-    std::unordered_map<std::string, Pot_mwpc<gsl_matrix_complex>> potentials_;
+    std::unordered_map<std::string, Pot_mwpc<gsl_matrix_complex>*> potentials_;
 
     // This vector contains all the namses of the defined potentials
     std::vector<std::string> potential_names_;
@@ -119,7 +119,7 @@ private:
      * potential_names_
      *
      */
-    Pot_mwpc<gsl_matrix_complex>* load_predefined_potential(
+    Pot_mwpc<gsl_matrix_complex>* load_pre_def_pot(
             std::string pre_def_name);
 
 public:
@@ -190,27 +190,31 @@ public:
             std::string VI_name, std::string VII_name);
     
     /*
-     * Functions to manipulate potentials
+     * *********************************************
+     * Functions to create and manipulate potentials
+     * *********************************************
      */
+    void create_new_potential(const std::string& potential_name, 
+            std::string pre_def_name);
     
-    void print_LEC_values(std::string potential_name);
-    void print_param_values(std::string potential_name);
+    void print_LEC_values(const std::string& potential_name);
+    void print_param_values(const std::string& potential_name);
 
-    void print_LECs_in_use(std::string potential_name);
-    void print_params_in_use(std::string potential_name);
+    void print_LECs_in_use(const std::string& potential_name);
+    void print_params_in_use(const std::string& potential_name);
 
-    void set_LECs_in_potential(std::string potential_name, 
-            std::vector<double> LECs);
-    void set_params_in_potential(std::string potential_name, 
-            std::vector<double> params);
+    void set_LECs_in_potential(const std::string& potential_name, 
+            const std::vector<double>& LECs);
+    void set_params_in_potential(const std::string& potential_name, 
+            const std::vector<double>& params);
 
-    void save_potential_decomposition(std::string potential_name);
+    void save_potential_decomposition(const std::string& potential_name);
 
     /*
-     * TODO
+     * **********************************
+     * Functions to get various constants
+     * **********************************
      */
-    void solve_DWBA_PC_full_T(int order);
-
     double get_on_shell_momentum(double T_lab);
     double get_scale();
     int    get_ang_int_points();
