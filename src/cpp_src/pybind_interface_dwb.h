@@ -63,8 +63,6 @@ private:
     double cutoff_;
     int cut_pow_;
     bool sharp_cutoff_;
-    bool pre_comp_pot_;
-    bool inc_weights_in_pot_;
     bool cut_on_shell_;
     double* p_grid_;
     double* w_grid_;
@@ -124,10 +122,11 @@ private:
 
 public:
 
-    nn_mwpc_dwb_interface(const std::string& model_name, int J_max_chn, 
-            double cutoff, int cut_pow, bool sharp_cutoff, bool pre_comp_pot, 
-            bool rel_corr, int number_of_p_points, bool finite_grid,
-            bool inc_weights_in_pot_ = false, bool cut_on_shell = true);
+    nn_mwpc_dwb_interface(double scale,
+            int J_max_chn, double cutoff, int cut_pow, 
+            bool sharp_cutoff, bool rel_corr,
+            int number_of_p_points, bool finite_grid, bool cut_on_shell,
+            bool print);
     ~nn_mwpc_dwb_interface();
     
     /*

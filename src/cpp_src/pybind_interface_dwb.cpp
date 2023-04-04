@@ -9,27 +9,24 @@
 #endif
 
 
-nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name, 
+nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
         int J_max_chn, double cutoff, int cut_pow, 
-        bool sharp_cutoff, bool pre_comp_pot, bool rel_corr,
-        int number_of_p_points,bool finite_grid,bool inc_weights_in_pot,
-        bool cut_on_shell)
+        bool sharp_cutoff, bool rel_corr,
+        int number_of_p_points, bool finite_grid, bool cut_on_shell, bool print)
 {
     // ************************************************************************
     // ****** CONSTANTS TO CHANGE *********************************************
     // ************************************************************************
-    scale_              = 100.0; // Scale of momenutm grid MeV (100)
+    scale_              = scale; // Scale of momenutm grid MeV (100)
     number_of_p_points_ = number_of_p_points; // Number of momentum-grid points (60)
     ang_int_points_     = 76; // Number of points in angular integration
     J_max_in_pot_       = 50; // Maximum J that is stored for L-polynomials
     cutoff_             = cutoff; // Cutoff in LS-equation
     cut_pow_            = cut_pow;
     sharp_cutoff_       = sharp_cutoff;
-    pre_comp_pot_       = pre_comp_pot; // If pre-computations should be made
     rel_corr_           = rel_corr;
     finite_grid_        = finite_grid;
-    finite_grid_max_    = 0.0;
-    inc_weights_in_pot_ = inc_weights_in_pot;
+    finite_grid_max_    = 0.0; // Just default value
     cut_on_shell_       = cut_on_shell;
     
     // For the quantum states
@@ -37,7 +34,6 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(const std::string& model_name,
     int J_min           = 0;
     int Tz_min          = 0;
     int Tz_max          = 0;
-    bool print          = false;
     // ************************************************************************
     // ************************************************************************
     
@@ -147,7 +143,7 @@ std::vector<std::complex<double>>
     // Get the on-shell values
     std::vector<std::complex<double>> T_arr = 
             get_on_shell_from_matrix(T_sum);
-    
+
     // Return the on-shell values
     return T_arr;
 }
@@ -458,7 +454,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::
 {
     gsl_complex T_mm,T_pm,T_pp,T_uncoup;
     // If coupled channel
-    if ((int)M->size1==(int)(2*number_of_p_points_+1))
+    if ((int)M->size1==(int)(2*number_of_p_points_+2))
     {
         T_mm = gsl_matrix_complex_get(M,number_of_p_points_,number_of_p_points_);
         T_pm = gsl_matrix_complex_get(M,2*number_of_p_points_+1,number_of_p_points_);
