@@ -62,10 +62,10 @@ obj.print_potential_names()
 print('\nSolving for the T-matrix\n---------------------')
 T = obj.solve_exact_pot_sum_T(1.0,0,'1S0_1','1S0_2')
 T = np.array(T)
-print(T.shape)
-print(f'\n\n{T[-1]}, {(np.abs(T[-1]))**2}\n\n')
+print('Exact:')
+print(f'{T[-1]}, {(np.abs(T[-1]))**2}\n\n')
 
-
+print('In DWBA:')
 for i in range(15):
     T = obj.solve_DWBA_T(1.0,0,i,'1S0_1','1S0_2')
     print(f'i={i}:   {T[-1]}, {(np.abs(T[-1]))**2}')
