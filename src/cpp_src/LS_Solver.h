@@ -116,15 +116,16 @@ public:
      *
      * In out conventions rho = pi*q_on_shell*mu
      */
-    static Phase_shifts_chn BB_phases_from_R_coup(double Rmm, double R_pp, 
-            double Rmp, double rho);
+    static Phase_shifts_chn BB_phases_from_R_coup(double R_mm, double R_pp, 
+            double R_mp, double rho);
     
-    static Phase_shifts_chn BB_phases_from_R_uncoup(double R_on);
+    static Phase_shifts_chn BB_phases_from_R_uncoup(double R, double rho);
     
-    static Phase_shifts_chn BB_phases_from_R_coup(double Rmm, double R_pp, 
-            double Rmp, double rho);
+    static std::complex<double>* BB_phases_from_T_coup(std::complex<double> T_mm, 
+            std::complex<double> T_pp, std::complex<double> T_mp, double rho);
     
-    static Phase_shifts_chn BB_phases_from_R_uncoup(double R_on);
+    static std::complex<double>* BB_phases_from_R_uncoup(
+            std::complex<double> T);
 };
 
 #endif

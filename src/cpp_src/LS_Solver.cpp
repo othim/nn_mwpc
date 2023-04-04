@@ -762,75 +762,59 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
 
     double rho = M_PI*q_on_shell*mu; 
     // Depends on convention conncted to the factor 'fac' in D.
-    // The transformation of T-matrix elements becomes correct when
-    // a factor of 2.0/M_PI is added...
 
     Phase_shifts_chn phase_shifts;
     if (chn.coupled) 
     {
         gsl_complex T_pp,T_mm,T_mp;
-        //T_mm = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
-        //T_mp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
-        //T_pp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
+        T_mm = gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_);
+        T_mp = gsl_matrix_complex_get(
+                T_result,2*mom_grid_size_+1,mom_grid_size_);
+        T_pp = gsl_matrix_complex_get(
+                T_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
         
-        T_mm = gsl_complex_mul(gsl_complex_rect(1.0,0),gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
-        T_mp = gsl_complex_mul(gsl_complex_rect(1.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
-        T_pp = gsl_complex_mul(gsl_complex_rect(1.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
-        
-        // Correct values, just to test the calculation of phase shifts from T-elements
-        /*
-        T_mm = gsl_complex_rect(3.806699169483742e-06,-1.4527989826039648e-05);
-        T_mp = gsl_complex_rect(-1.0676319790660848e-07,4.312313423841913e-07);
-        T_pp = gsl_complex_rect(2.1377153170276125e-07,-1.565749889370409e-08);
-        */
-        /*
-        std::cout << "T-matrix elements" << std::endl;
-        std::cout << GSL_REAL(T_mm) << "," << GSL_IMAG(T_mm) << std::endl;
-        std::cout << GSL_REAL(T_mp) << "," << GSL_IMAG(T_mp) << std::endl;
-        std::cout << GSL_REAL(T_pp) << "," << GSL_IMAG(T_pp) << std::endl;
-        */
-        // Know that this is correct
-        // ----
         // Compute phase shifts in BB convention in radians
-        gsl_complex epsilon = gsl_complex_mul(gsl_complex_rect(0.5,0.0),gsl_complex_arctan(gsl_complex_div(
-            gsl_complex_mul(gsl_complex_rect(2.0,0.0),T_mp),gsl_complex_sub(T_mm,T_pp))));
+        gsl_complex epsilon = gsl_complex_mul(gsl_complex_rect(0.5,0.0),
+                gsl_complex_arctan(gsl_complex_div(
+                gsl_complex_mul(gsl_complex_rect(2.0,0.0),T_mp),
+                gsl_complex_sub(T_mm,T_pp))));
         
         // Some helper variables
-        gsl_complex tmp1 = gsl_complex_sub(gsl_complex_rect(1.0,0.0),gsl_complex_mul(gsl_complex_mul(gsl_complex_rect(0.0,1.0),gsl_complex_rect(rho,0.0)),
-            gsl_complex_add(T_mm,T_pp)));
-        gsl_complex tmp2 = gsl_complex_mul(gsl_complex_rect(0.0,2.0),gsl_complex_mul(gsl_complex_rect(rho,0.0),
-            gsl_complex_div(T_mp,gsl_complex_sin(gsl_complex_mul(gsl_complex_rect(2.0,0.0),epsilon)))));
-        
-        gsl_complex delta_p = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(gsl_complex_add(tmp1,tmp2)));
-        gsl_complex delta_m = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(gsl_complex_sub(tmp1,tmp2)));
-        // ----
+        gsl_complex tmp1 = gsl_complex_sub(gsl_complex_rect(1.0,0.0),
+                gsl_complex_mul(gsl_complex_mul(gsl_complex_rect(0.0,1.0),
+                gsl_complex_rect(rho,0.0)), gsl_complex_add(T_mm,T_pp)));
 
-        /*
-        std::cout << "Printing phase shifts in BB from T:" << std::endl;
-        std::cout << "(" << GSL_REAL(delta_m) << "," << GSL_IMAG(delta_m) << ")\n";
-        std::cout << "(" << GSL_REAL(delta_p) << "," << GSL_IMAG(delta_p) << ")\n";
-        std::cout << "(" << GSL_REAL(epsilon) << "," << GSL_IMAG(epsilon) << ")\n";
-        */
+        gsl_complex tmp2 = gsl_complex_mul(gsl_complex_rect(0.0,2.0),
+                gsl_complex_mul(gsl_complex_rect(rho,0.0),
+                gsl_complex_div(T_mp,gsl_complex_sin(
+                gsl_complex_mul(gsl_complex_rect(2.0,0.0),epsilon)))));
+        
+        gsl_complex delta_p = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),
+                gsl_complex_log(gsl_complex_add(tmp1,tmp2)));
+        gsl_complex delta_m = gsl_complex_mul(gsl_complex_rect(0.0,-0.5),
+                gsl_complex_log(gsl_complex_sub(tmp1,tmp2)));
+        // ----
 
         phase_shifts.epsilon = GSL_REAL(epsilon);
         phase_shifts.delta_p = GSL_REAL(delta_p);
         phase_shifts.delta_m = GSL_REAL(delta_m);
-        //std::cout << "Phase shifts in BB" << std::endl;
-        //std::cout << phase_shifts.delta_m << " " << phase_shifts.delta_p << " " << phase_shifts.epsilon << " " << std::endl;
-
         phase_shifts.delta_uncoupled = 0;
+
         phase_shifts = BB_to_Stapp(phase_shifts);
 
     } else 
     {
-        gsl_complex T = gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_);
-        //std::cout << GSL_REAL(T) << std::endl;
+        gsl_complex T = gsl_matrix_complex_get(
+                T_result,mom_grid_size_,mom_grid_size_);
+        
+        gsl_complex tmp_c = gsl_complex_sub(gsl_complex_rect(1.0,0.0),
+                gsl_complex_mul(gsl_complex_rect(0.0,2.0*rho),T));
+        
         phase_shifts.epsilon = 0;
         phase_shifts.delta_p = 0;
         phase_shifts.delta_m = 0;
-
-        gsl_complex tmp_c = gsl_complex_sub(gsl_complex_rect(1.0,0.0),gsl_complex_mul(gsl_complex_rect(0.0,2.0*rho),T));
-        phase_shifts.delta_uncoupled = GSL_REAL(gsl_complex_mul(gsl_complex_rect(0.0,-0.5),gsl_complex_log(tmp_c)));
+        phase_shifts.delta_uncoupled = GSL_REAL(gsl_complex_mul(
+                    gsl_complex_rect(0.0,-0.5),gsl_complex_log(tmp_c)));
     }
 
     gsl_matrix_complex_free(T_result);
@@ -957,9 +941,12 @@ std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab,
     if (chn.coupled) 
     {
         gsl_complex T_pp,T_mm,T_mp;
-        T_mm = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
-        T_mp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
-        T_pp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
+        T_mm = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),
+                gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_));
+        T_mp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),
+                gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,mom_grid_size_));
+        T_pp = gsl_complex_mul(gsl_complex_rect(M_PI/2.0,0),
+                gsl_matrix_complex_get(T_result,2*mom_grid_size_+1,2*mom_grid_size_+1));
           
         T[0].real(GSL_REAL(T_mm));
         T[0].imag(GSL_IMAG(T_mm));
@@ -972,7 +959,8 @@ std::complex<double>* LS_Solver::solve_in_chn_T_Telem(double T_lab,
 
     } else 
     {
-        gsl_complex Tt = gsl_matrix_complex_get(T_result,mom_grid_size_,mom_grid_size_);
+        gsl_complex Tt = gsl_matrix_complex_get(T_result,
+                mom_grid_size_,mom_grid_size_);
         //std::cout << GSL_REAL(T) << std::endl;
         T[3].real(GSL_REAL(Tt));
         T[3].imag(GSL_IMAG(Tt));
@@ -1108,4 +1096,43 @@ Phase_shifts_chn LS_Solver::BB_phases_from_R_uncoup(double R, double rho)
     phase_shifts.delta_uncoupled = atan(-rho*R);
 
     return phase_shifts;
+}
+    
+std::complex<double>* LS_Solver::BB_phases_from_T_coup(
+        std::complex<double> T_mm, std::complex<double> T_pp, 
+        std::complex<double> T_mp, double rho)
+{
+    std::complex<double> fac = 2*rho*std::complex<double>(0.0,1.0);
+
+    std::complex<double> epsilon = 0.5*std::atan(2.0*T_mp/(T_mm-T_pp));
+    std::complex<double> delta_p = -0.5*std::log(1.0 -
+            fac*(T_mm + T_pp)/2.0 + fac*T_mp/std::sin(2.0*epsilon));
+
+    std::complex<double> delta_m = -0.5*std::log(1.0 -
+            fac*(T_mm + T_pp)/2.0 - fac*T_mp/std::sin(2.0*epsilon));
+
+    std::complex<double>* phases = new std::complex<double>[4];
+
+    phases[0] = delta_p;
+    phases[1] = delta_m;
+    phases[2] = epsilon;
+    phases[3] = std::complex<double>(0.0,0.0);
+
+    return phases;
+}
+std::complex<double>* BB_phases_from_R_uncoup(
+        std::complex<double> T, double rho)
+{
+    std::complex<double>* phases = new std::complex<double>[4];
+
+    phases[0] = (std::complex<double>)0.0;
+    phases[1] = (std::complex<double>)0.0;
+    phases[2] = (std::complex<double>)0.0;
+    
+    std::complex<double> fac = 2.0*rho*std::complex<double>(0.0,1.0);
+    phases[3] = -0.5*std::log(1.0-fac*T);
+
+    return phases;
+
+
 }
