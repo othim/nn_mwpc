@@ -342,6 +342,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         std::cout << "Time invert: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << std::endl;
         start = std::clock();
     #endif
+
     Phase_shifts_chn phase_shifts;
     if (chn.coupled) 
     {
@@ -350,11 +351,9 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         R_mm = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
         R_mp = gsl_matrix_get(R_result,2*mom_grid_size_+1,mom_grid_size_);
         R_pp = gsl_matrix_get(R_result,2*mom_grid_size_+1,2*mom_grid_size_+1);
-        //std::cout << "R-matrix elements" << std::endl;
-        //std::cout << R_mm << " " << R_mp << " " << R_pp << " " << std::endl;
 
         // Compute phase shifts in BB convention in radians
-        
+        /*
         double tm = (R_mm-R_pp);
         double tp = (R_mm+R_pp);
         double x = 2.0*R_mp/tm;
@@ -367,61 +366,29 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_p = atan((-rho/2.0)*(tp - rr));
 
         phase_shifts.delta_uncoupled = 0;
-        phase_shifts = BB_to_Stapp(phase_shifts);
-      
-    
-        //std::cout << "T:" << T_lab << "   " << R_mp << "   " << tm << std::endl; 
-        //std::cout << x << "   " << atan(x) << std::endl;
-        //std::cout << phase_shifts.delta_m << "   " << phase_shifts.delta_p << "   " << phase_shifts.epsilon << std::endl;
-        /*
-        std::complex<double>* S_BB = sc::S_from_BB(phase_shifts.delta_m, phase_shifts.delta_p,
-                phase_shifts.epsilon);
-        std::cout << "Tl: " << T_lab << std::endl;
-        std::cout << "BB" << std::endl;
-        for (int i = 0; i < 3; i++)
-        {
-            std::cout << std::real(S_BB[i]) << "," << std::imag(S_BB[i]) << std::endl;
-        }
-        
-        Phase_shifts_chn c = phase_shifts; 
-
-        std::complex<double>* S_Stapp = sc::S_from_BB(phase_shifts.delta_m, phase_shifts.delta_p,
-                phase_shifts.epsilon);
-        std::cout << "Stapp" << std::endl;
-        for (int i = 0; i < 3; i++)
-        {
-            std::cout << std::real(S_Stapp[i]) << "," << std::imag(S_Stapp[i]) << std::endl;
-        }
-
-        delete[] S_BB;
-        delete[] S_Stapp;
         */
-        // Check the equations
-        //std::cout << phase_shifts.delta_m + phase_shifts.delta_p - c.delta_m - c.delta_p << std::endl;
-        //std::cout << sin(phase_shifts.delta_m - phase_shifts.delta_p) - tan(2.0*phase_shifts.epsilon)/tan(2.0*c.epsilon) << std::endl;
-        //std::cout << sin(c.delta_m - c.delta_p) - sin(2.0*phase_shifts.epsilon)/sin(2.0*c.epsilon) << std::endl;
-        //std::cout << phase_shifts.delta_m << "   " << phase_shifts.delta_p << "   " << phase_shifts.epsilon << std::endl;
-    
-        //std::cout << "TEST" << std::endl;
-        //Phase_shifts_chn c = {.delta_m = 1.5, .delta_p = -0.04, .epsilon = 1.5};
-        //Phase_shifts_chn p = BB_to_Stapp(c);
+
+        // Compute phase shifts
+        phase_shifts = BB_phases_from_R_coup(R_mm,R_pp,R_mp,rho);
         
-        //std::cout << 0.5*asin((double)sin((double)2.0*c.epsilon)* sin((double)(c.delta_m - c.delta_p))) << std::endl;
-        //std::cout << p.delta_m << "   " << p.delta_p << "   " << p.epsilon << std::endl;
+        // Convert to Stapp convention
+        phase_shifts = BB_to_Stapp(phase_shifts);
         
     } else 
     {
         // on-shell R-matrix is 1x1
         double R = gsl_matrix_get(R_result,mom_grid_size_,mom_grid_size_);
-        //std::cout << "R= " << R << std::endl;
-        //std::cout << "-rho*R= " << -rho*R << std::endl;
         
+        /*
         // Compute phase shift in radians BB and Stapp is the same for uncoupled channels
         phase_shifts.epsilon = 0;
         phase_shifts.delta_p = 0;
         phase_shifts.delta_m = 0;
 
         phase_shifts.delta_uncoupled = atan(-rho*R);
+        */
+
+        phase_shifts = BB_phases_from_R_uncoup(R,rho);
     }
 
     #ifdef TIME
@@ -1106,4 +1073,39 @@ std::complex<double>* LS_Solver::T_matrix_from_R_matrix(double Rmm, double Rmp,
     gsl_permutation_free(perm);
 
     return T;
+}
+
+Phase_shifts_chn LS_Solver::BB_phases_from_R_coup(double R_mm, double R_pp, 
+        double R_mp, double rho)
+{
+    Phase_shifts_chn phase_shifts;
+
+    double tm = (R_mm-R_pp);
+    double tp = (R_mm+R_pp);
+    double x = 2.0*R_mp/tm;
+    //phase_shifts.epsilon = atan2(2.0*R_mp,tm)/2.0;
+    phase_shifts.epsilon = atan(2.0*R_mp/tm)/2.0;
+
+    double rr = tm*(sqrt(1+x*x));
+
+    phase_shifts.delta_m = atan((-rho/2.0)*(tp + rr));
+    phase_shifts.delta_p = atan((-rho/2.0)*(tp - rr));
+
+    phase_shifts.delta_uncoupled = 0;
+
+    return phase_shifts;
+}
+    
+Phase_shifts_chn LS_Solver::BB_phases_from_R_uncoup(double R, double rho)
+{
+    Phase_shifts_chn phase_shifts;
+
+    // Compute phase shift in radians BB and Stapp is the same for uncoupled channels
+    phase_shifts.epsilon = 0;
+    phase_shifts.delta_p = 0;
+    phase_shifts.delta_m = 0;
+
+    phase_shifts.delta_uncoupled = atan(-rho*R);
+
+    return phase_shifts;
 }

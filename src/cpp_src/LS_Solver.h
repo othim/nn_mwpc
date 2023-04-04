@@ -110,6 +110,21 @@ public:
 
     static void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, 
             double* mu, double* q_on_shell);
+    
+    /*
+     * Computes phase shifts in BB convention in radians from R-matrix elements
+     *
+     * In out conventions rho = pi*q_on_shell*mu
+     */
+    static Phase_shifts_chn BB_phases_from_R_coup(double Rmm, double R_pp, 
+            double Rmp, double rho);
+    
+    static Phase_shifts_chn BB_phases_from_R_uncoup(double R_on);
+    
+    static Phase_shifts_chn BB_phases_from_R_coup(double Rmm, double R_pp, 
+            double Rmp, double rho);
+    
+    static Phase_shifts_chn BB_phases_from_R_uncoup(double R_on);
 };
 
 #endif

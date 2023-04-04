@@ -1,8 +1,8 @@
 #include "quantum_states.h"
 
 
-std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, int Tz_min,
-    int Tz_max, bool print)
+std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, 
+        int Tz_min, int Tz_max, bool print)
 {
     std::vector<qs::quantum_NN_state> states;
 
@@ -27,8 +27,10 @@ std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, int Tz_min
                             .pi = (int)std::pow(-1,L),
                             };
                             if (print) {
-                                std::cout << "State: " << "J=" << J << " L=" << L << " S=" << S << " T="
-                                    << T << " Tz=" << Tz << " pi=" << qs.pi << std::endl;
+                                std::cout << "State: " << "J=" << J 
+                                    << " L=" << L << " S=" << S << " T="
+                                    << T << " Tz=" << Tz << " pi=" << qs.pi 
+                                    << std::endl;
                             }
                             states.push_back(qs);
                         }
@@ -40,12 +42,12 @@ std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, int Tz_min
     return states;
 }
 
-std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> states, bool print)
+std::vector<qs::quantum_channel> get_channels(
+        std::vector<qs::quantum_NN_state> states, bool print)
 {
     // Conserved quantum numbers are J,S,T,Tz,pi. 
- 
-    std::map<q_chn,std::vector<in_out_state>,comp_chn> channels; // To not have duplicates
-
+    // To not have duplicates
+    std::map<q_chn,std::vector<in_out_state>,comp_chn> channels; 
     for (std::size_t i = 0; i < states.size(); i++)
     {
         qs::quantum_NN_state bra = states[i];
@@ -54,10 +56,11 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
         {
             qs::quantum_NN_state ket = states[j];
 
-            if (bra.J == ket.J && bra.S == ket.S && bra.T == ket.T && bra.Tz == ket.Tz &&
-                bra.pi == ket.pi)
+            if (bra.J == ket.J && bra.S == ket.S && bra.T == ket.T 
+                    && bra.Tz == ket.Tz && bra.pi == ket.pi)
             {
-                // Insert this state in the correct channel that is only created once
+                // Insert this state in the correct channel 
+                // that is only created once
                 in_out_state ios= 
                 {
                     .J = bra.J,
@@ -83,7 +86,7 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
                     std::vector<in_out_state> state;
                     state.push_back(ios);
                     channels.insert(std::make_pair (chn,state));
-                } else // If key is present, add this state to the coupled channel
+                } else // If key is present, add this state
                 {
                     channels[chn].push_back(ios);
                 }
@@ -96,7 +99,8 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
     std::vector<qs::quantum_channel> chns;
     
     if (print) {
-        std::cout << std::endl << "Conserved quantum numbers: J,S,T,Tz,pi" << std::endl;
+        std::cout << std::endl << "Conserved quantum numbers: J,S,T,Tz,pi" 
+            << std::endl;
     }
     int j = 0;
     for (auto it = channels.begin(); it != channels.end();++it)
@@ -108,19 +112,21 @@ std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> 
         }
         
         // Chreate a channel and append it to the list of channels
-        qs::quantum_channel chn = {.J = key.J, .S = key.S, .T = key.T, .Tz = key.Tz, .coupled = coup};
+        qs::quantum_channel chn = {.J = key.J, .S = key.S, .T = key.T, 
+            .Tz = key.Tz, .coupled = coup};
         chns.push_back(chn);
         if (print) {
 
-            std::cout << "Channel " << j << ": J=" << key.J << " S=" << key.S << " T=" << key.T << 
-                " Tz=" << key.Tz << " pi=" << key.pi << " coup=" << coup << std::endl;
+            std::cout << "Channel " << j << ": J=" << key.J << " S=" << key.S 
+                << " T=" << key.T << " Tz=" << key.Tz << " pi=" << key.pi << 
+                " coup=" << coup << std::endl;
         }
         for (int i=0; i < (int)(*it).second.size(); i++)
         {
             in_out_state sm = (*it).second[i];
             if (print) {
             std::cout << "   (J=" << sm.J << " Li=" << sm.Li << " Lo=" << sm.Lo 
-                << " S=" << sm.S << " T=" << sm.T << 
+                    << " S=" << sm.S << " T=" << sm.T << 
                     " Tz=" << sm.Tz << " pi=" << sm.pi << ")" << std::endl;
             }
         }

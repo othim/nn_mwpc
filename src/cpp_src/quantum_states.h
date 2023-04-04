@@ -29,7 +29,8 @@ namespace qs
     {
         bool operator() (quantum_channel a, quantum_channel b) const 
         {
-            return std::make_tuple(a.J,a.S,a.Tz,a.coupled) < std::make_tuple(b.J,b.S,b.Tz,b.coupled);
+            return std::make_tuple(a.J,a.S,a.Tz,a.coupled) < 
+                std::make_tuple(b.J,b.S,b.Tz,b.coupled);
         }
     };
 
@@ -41,7 +42,8 @@ namespace qs
 
 };
 
-struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; double delta_uncoupled;};
+struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; 
+    double delta_uncoupled;};
 
 struct lo_li {int lo; int li;};
 
@@ -52,13 +54,13 @@ struct comp_chn
 {
     bool operator() (q_chn a, q_chn b) const 
     {
-        return std::make_tuple(a.J,a.S, a.T,a.Tz,a.pi) < std::make_tuple(b.J,b.S, b.T,b.Tz,b.pi);
+        return std::make_tuple(a.J,a.S, a.T,a.Tz,a.pi) < 
+            std::make_tuple(b.J,b.S, b.T,b.Tz,b.pi);
     }
 };
 
 // Possible bra ket state
-struct in_out_state 
-{ int J; int Li; int Lo; int S; int T; int Tz; int pi; };
+struct in_out_state { int J; int Li; int Lo; int S; int T; int Tz; int pi; };
 
 /*
 *   ---------------------------------------------------------------
@@ -72,13 +74,14 @@ struct in_out_state
     |p> x |j,l,s,mj,t,tz>, where the last part of the state is the discrete part.
     The Puli principle gives that (-1)^{s+l+t} = -1
 */
-std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, int Tz_min,
-    int Tz_max, bool print);
+std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, 
+        int Tz_min, int Tz_max, bool print);
 
 /*
 *   This function groups the states into quantum channels 
 */
-std::vector<qs::quantum_channel> get_channels(std::vector<qs::quantum_NN_state> states,bool print);
+std::vector<qs::quantum_channel> get_channels(
+        std::vector<qs::quantum_NN_state> states,bool print);
 
 std::string quantum_channel_to_string(qs::quantum_channel chn); 
 
