@@ -6,6 +6,31 @@
 #include <unordered_map>
 
 
+/*
+ * Momenta:
+ * q = p'-p, k = (1/2)(p'+p)
+ * p' = qo, p  = qi, is a naming convention in the code.
+ 
+ *
+ * The spin structures of the potential are:
+ *
+ * (as eq. 4.7 in M&E Phys. Rep. 503 (2011))
+ * (the last spin structure 'sigmak' is added from eq. B.1 in Ebelbaum et al.
+ * Nuclear Physics A 747 (2005))
+ * (Note that the definitions of the other spin structure agree between the two
+ * equations.)
+ * ----------------------------------------------------------------------------
+ * 'C' <-> no spin structure
+ * 'S' <-> \sigma_1 \cdot \sigma_2
+ * 'LS' <-> (i/2)(\sigma_1 + \sigma_2) (k \times q)
+ * 'T' <-> (q \cdot \sigma_1) (q \cdot \sigma_2)
+ * 'sigmaL' <-> (\sigma_1 \cdot (q \times k))(\sigma_2 \cdot (q \times k))
+ * 'sigmak' <-> (k \cdot \sigma_1) (k \cdot \sigma_2)
+ * ----------------------------------------------------------------------------
+ */
+
+
+
 
 struct LS_term {int J; int Li; int Lo; int S;};
 
@@ -105,6 +130,74 @@ public:
             std::unordered_map<std::string,double>& params);
     
     static double mom_Yamaguchi_3D1(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    /*
+     * nu=2 (N2LO) Chiral two-pion exchange contributions in dimensional
+     * regularization. As eq. 4.9-4.12 in M&E Phys. Rep. 503 (2011)
+     *
+     * This is also the same expressions as in eg.
+     * E. Epelbaum et al. Nuc. Phys. A 671 (2000) which is also in DR.
+     *
+     * These potential expressions are using the naming conventions as defined
+     * in the top of this file, and in addition 'W' means isovector and 'V' 
+     * isoscalar. See the definitions of the spin structures in the top of this
+     * file for more information about the naming conventions.
+     *
+     */
+    
+    static double w_f(double q, double mpi);   
+
+    static double L_DR(double q, double mpi);
+
+    static double V_T_2pi_nu_2(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double W_C_2pi_nu_2(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+
+    
+    /*
+     * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
+     * regularization. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
+     */
+
+    static double w_tilde_f(double q, double mpi);
+
+    static double A_DR(double q, double mpi);
+    
+    static double V_C_2pi_nu_3(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double W_C_2pi_nu_3(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double V_T_2pi_nu_3(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+
+    static double V_S_2pi_nu_3(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double W_T_2pi_nu_3(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double W_S_2pi_nu_3(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double V_LS_2pi_nu_3(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double W_LS_2pi_nu_3(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
 };
