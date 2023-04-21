@@ -8,25 +8,51 @@
 
 /*
  * Momenta:
+ * ----------------------------------------------------------------------------
  * q = p'-p, k = (1/2)(p'+p)
  * p' = qo, p  = qi, is a naming convention in the code.
  
  *
  * The spin structures of the potential are:
- *
+ * ----------------------------------------------------------------------------
  * (as eq. 4.7 in M&E Phys. Rep. 503 (2011))
  * (the last spin structure 'sigmak' is added from eq. B.1 in Ebelbaum et al.
  * Nuclear Physics A 747 (2005))
  * (Note that the definitions of the other spin structure agree between the two
  * equations.)
- * ----------------------------------------------------------------------------
+ * 
  * 'C' <-> no spin structure
  * 'S' <-> \sigma_1 \cdot \sigma_2
  * 'LS' <-> (i/2)(\sigma_1 + \sigma_2) (k \times q)
  * 'T' <-> (q \cdot \sigma_1) (q \cdot \sigma_2)
  * 'sigmaL' <-> (\sigma_1 \cdot (q \times k))(\sigma_2 \cdot (q \times k))
  * 'sigmak' <-> (k \cdot \sigma_1) (k \cdot \sigma_2)
+ * 
+ * Contanct potential and LEC naming conventions
  * ----------------------------------------------------------------------------
+ * 'C' -> no momentum dependence
+ * 'D' -> quadratic momentum dependence
+ * 'E' -> fourth order momentum dependence
+ * 'F' -> sixth order momentum dependence 
+ * 
+ * LEC name | Term in the potential 
+ * --------------------------------
+ * C1S0     | C1S0
+ * C3S1     | C3S1
+ * D1S0     | D1S0 (p'^2 + p^2)
+ * D3S1     | D3S1 (p'^2 + p^2)
+ * D1P1     | D1P1 p'p
+ * D3P0     | D3P0 p'p
+ * D3P2     | D3P2 p'p
+ * D_SD     | D_SD p^2
+ * D_DS     | D_SD p'^2 - NOTE, same LEC in both channels
+ * E1S0     | E1S0 p'^2p^2
+ * E3P0     | E3P0 p'p(p'^2 + p^2)
+ * E3P2     | E3P2 p'p(p'^2 + p^2)
+ * E_PF     | E_PF p'p(p^2)
+ * E_FP     | E_PF p'p (p'^2) - NOTE, same LEC in both channels
+ *
+ *
  */
 
 

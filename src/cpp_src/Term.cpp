@@ -37,7 +37,47 @@ Term::Term(std::string name)
         isovector_ = false;
         my_v_alpha_well_def_pw= &Term::mom_C3S1;
         lecs_in_term_.push_back("C3S1");
-    } else if (name == "C3P0")
+        
+    } else if (name == "D1S0")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 0; 
+        LS_well_def_pw_.S = 0;
+        isovector_ = false;
+        my_v_alpha_well_def_pw= &Term::mom_D1S0;
+        lecs_in_term_.push_back("D1S0");
+        
+    } else if (name == "D3S1")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 0; 
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw= &Term::mom_D3S1;
+        lecs_in_term_.push_back("D3S1");
+        
+    } else if (name == "D1P1")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 1;
+        LS_well_def_pw_.Li = 1;
+        LS_well_def_pw_.Lo = 1; 
+        LS_well_def_pw_.S = 0;
+        isovector_ = false;
+        my_v_alpha_well_def_pw= &Term::mom_D1P1;
+        lecs_in_term_.push_back("D1P1");
+        
+    } else if (name == "D3P0")
     {
         term_name_ = name;
         spin_structure_ = "none";
@@ -47,9 +87,9 @@ Term::Term(std::string name)
         LS_well_def_pw_.Lo = 1;
         LS_well_def_pw_.S = 1;
         isovector_ = false;
-        my_v_alpha_well_def_pw = &Term::mom_C3P0;
-        lecs_in_term_.push_back("C3P0");
-    } else if (name == "C3P2")
+        my_v_alpha_well_def_pw = &Term::mom_D3P0;
+        lecs_in_term_.push_back("D3P0");
+    } else if (name == "D3P2")
     {
         term_name_ = name;
         spin_structure_ = "none";
@@ -59,20 +99,92 @@ Term::Term(std::string name)
         LS_well_def_pw_.Lo = 1;
         LS_well_def_pw_.S = 1;
         isovector_ = false;
-        my_v_alpha_well_def_pw = &Term::mom_C3P2;
-        lecs_in_term_.push_back("C3P2");
-    } else if (name == "C3D2")
+        my_v_alpha_well_def_pw = &Term::mom_D3P2;
+        lecs_in_term_.push_back("D3P2");
+    } else if (name == "D_SD")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 1;
+        LS_well_def_pw_.Li = 2;
+        LS_well_def_pw_.Lo = 0;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_D_SD;
+        lecs_in_term_.push_back("D_SD");
+    } else if (name == "D_DS")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 1;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 2;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_D_DS;
+        lecs_in_term_.push_back("D_SD"); // NOTE D_SD! 
+    } else if (name == "E1S0")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 0;
+        LS_well_def_pw_.S = 0;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_E1S0;
+        lecs_in_term_.push_back("E1S0");
+    } else if (name == "E3P0")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 1;
+        LS_well_def_pw_.Lo = 1;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_E3P0;
+        lecs_in_term_.push_back("E3P0");
+    } else if (name == "E3P2")
     {
         term_name_ = name;
         spin_structure_ = "none";
         well_def_pw_ = true;
         LS_well_def_pw_.J = 2;
-        LS_well_def_pw_.Li = 2;
-        LS_well_def_pw_.Lo = 2;
+        LS_well_def_pw_.Li = 1;
+        LS_well_def_pw_.Lo = 1;
         LS_well_def_pw_.S = 1;
         isovector_ = false;
-        my_v_alpha_well_def_pw = &Term::mom_C3D2;
-        lecs_in_term_.push_back("C3D2");
+        my_v_alpha_well_def_pw = &Term::mom_E3P2;
+        lecs_in_term_.push_back("E3P2");
+    } else if (name == "E_PF")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 2;
+        LS_well_def_pw_.Li = 3;
+        LS_well_def_pw_.Lo = 1;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_E_PF;
+        lecs_in_term_.push_back("E_PF");
+    } else if (name == "E_FP")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 2;
+        LS_well_def_pw_.Li = 1;
+        LS_well_def_pw_.Lo = 3;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_E_FP;
+        lecs_in_term_.push_back("E_PF");
     } else if (name == "Yamaguchi_1S0")
     {
         term_name_ = name;
@@ -250,26 +362,108 @@ double Term::mom_C3S1(double qi, double qo,
     return LECs["C3S1"]; // If momentum dependent, multiply here
 }
 
-double Term::mom_C3P0(double qi, double qo, 
+
+double Term::mom_D1S0(double qi, double qo, 
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params)
+
 {
-    return LECs["C3P0"]*qi*qo; 
+    return LECs["D1S0"]*(qi*qi+qo*qo); 
 }
 
-double Term::mom_C3P2(double qi, double qo, 
+double Term::mom_D3S1(double qi, double qo, 
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params)
 
 {
-    return LECs["C3P2"]*qi*qo; 
+    return LECs["D3S1"]*(qi*qi+qo*qo); 
 }
 
-double Term::mom_C3D2(double qi, double qo, 
+double Term::mom_D1P1(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["D1P1"]*qi*qo; 
+}
+
+double Term::mom_D1P1(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["D1P1"]*qi*qo; 
+}
+
+double Term::mom_D3P0(double qi, double qo, 
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params)
 {
-    return LECs["C3D2"]*qi*qi*qo*qo; // If momentum dependent, multiply here
+    return LECs["D3P0"]*qi*qo; 
+}
+
+double Term::mom_D3P2(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["D3P2"]*qi*qo; 
+}
+
+double Term::mom_D_SD(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["D_SD"]*qi*qi; 
+}
+
+double Term::mom_D_DS(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["D_SD"]*qo*qo; 
+}
+
+double Term::mom_E1S0(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["E1S0"]*qo*qo*qi*qi; 
+}
+
+double Term::mom_E3P0(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["E3P0"]*qo*qi*(qi*qi+qo*qo); 
+}
+
+double Term::mom_E3P2(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["E3P2"]*qo*qi*(qi*qi+qo*qo); 
+}
+
+double Term::mom_E_PF(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["E_PF"]*qo*qi*(qi*qi); 
+}
+
+double Term::mom_E_FP(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+
+{
+    return LECs["E_PF"]*qo*qi*(qo*qo); 
 }
 
 /*
