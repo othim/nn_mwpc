@@ -128,16 +128,58 @@ public:
     static double mom_C3S1(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
+    
+    static double mom_D1S0(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
-    static double mom_C3P0(double qi, double qo, 
+    static double mom_D3S1(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
-    static double mom_C3P2(double qi, double qo, 
+    
+    static double mom_D1P1(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
-    static double mom_C3D2(double qi, double qo, 
+    
+    static double mom_D3P0(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
+
+    static double mom_D3P2(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_D_SD(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_D_DS(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_E1S0(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_E3P0(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_E3P2(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_E_PF(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_E_FP(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+
+
+
+
 
     static double mom_Yamaguchi_1S0(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,

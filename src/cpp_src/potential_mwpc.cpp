@@ -254,43 +254,13 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, bool coupled, int 
          std::vector<double> v_alpha_arr = 
              terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_,params_);
 
-         #ifdef ENABLE_DEBUG
-            end = std::clock();
-            std::cout << "Time taken to call get_v_alpha is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 
-            std::cout << " mu sec " << std::endl;
-         #endif
-         // Calculate the A_x integrals (don't calculate all)
-         #ifdef ENABLE_DEBUG
-            start = std::clock();
-         #endif
-
-         double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
-         double A_1 = 0;
-         double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
-         double A_M = 0;
-
-         if (J!=0) {
-            A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
-         }
-         if (!coupled) {
-            A_1 = compute_A_integral(qi,qo,J,1,v_alpha_arr);
-         }
-
-         #ifdef ENABLE_DEBUG
-            end = std::clock();
-            std::cout << "Time taken to compute A integrals is : " << 1000000.0*(double)(end-start)/(double)CLOCKS_PER_SEC; 
-            std::cout << " mu sec " << std::endl;
-         #endif
          // Call pwa with the correct spin structure from this term
          // This will fill up the array V_arr with the correct potential elements
          
-         #ifdef ENABLE_DEBUG
-            start = std::clock();
-         #endif
          double tmp_arr[6];
          //std::cout << terms_in_pot_[i].get_spin_structure() << " " << terms_in_pot_[i].get_isovector() << std::endl;
-         pwa(qi,qo,coupled,J,A_M,A_P,A_0,A_1,terms_in_pot_[i].get_spin_structure(),
-                 terms_in_pot_[i].get_isovector(),&tmp_arr[0]);
+         pwa(qi,qo,coupled,J,terms_in_pot_[i].get_spin_structure(),
+                 terms_in_pot_[i].get_isovector(),v_alpha_arr,&tmp_arr[0]);
          
          V_uncoupled_S0 += tmp_arr[0];
          V_uncoupled_S1 += tmp_arr[1];
@@ -386,8 +356,8 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, bool coupled, int 
    respective term in the potential.
 */
 template <class gsl_m>
-void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, double A_M,
-        double A_P, double A_0, double A_1, std::string spin_struct,
+void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, 
+        std::string spin_struct,
         bool isovector, std::vector<double>& v_alpha_arr,double* V_arr)
 {
 
@@ -437,7 +407,7 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, double A
     double V_coupled_pp   = 0;
 
 
-    if (spin_sctruct == "C")
+    if (spin_struct == "C")
     {
         if (!coupled)
         {
@@ -498,12 +468,12 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, double A
             double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
             double A_P2 = compute_A_integral(qi,qo,J+2,0,v_alpha_arr);
             
-            V_coupled_pp = 2.0*qo*qi*((J+2)/(2J+3))*(A_P2 - A_0);
+            V_coupled_pp = 2.0*qo*qi*((J+2)/(2*J+3))*(A_P2 - A_0);
             if (J!= 0)
             {
                 double A_M2 = compute_A_integral(qi,qo,J-2,0,v_alpha_arr);
                 
-                V_coupled_mm = 2.0*qo*qi*((J-1)/(2J-1))*(A_M2 - A_0);
+                V_coupled_mm = 2.0*qo*qi*((J-1)/(2*J-1))*(A_M2 - A_0);
                 V_coupled_mp = 0.0;
                 V_coupled_pm = 0.0;
             }
@@ -578,7 +548,7 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, double A
                 V_coupled_mm = 2.0*qo*qo*qi*qi*( ((2.0*J-1)/(2.0*J+1))*A_M +
                         ((2.0)/(2.0*J+1))*A_1 - A_M_2);
                 V_coupled_mp = 4.0*qo*qo*qi*qi*(std::sqrt(J*(J+1.0))/
-                        ((2.0*J+1.0)*(2.0*J+1.0))*(A_P - A_M);
+                        ((2.0*J+1.0)*(2.0*J+1.0)))*(A_P - A_M);
                 V_coupled_pm = V_coupled_mp;
             }
         }

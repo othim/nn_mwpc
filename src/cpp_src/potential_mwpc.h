@@ -106,8 +106,8 @@ private:
       following the formulas in Erkelenz for a given spin structure. (NOTE some formulas are wrong
       is is pointed out in an appendix in one of Machleidts papers)
    */
-   void pwa(double qi,double qo, bool coupled, int J,double A_m,double A_p,
-           double A_0,double A_1,std::string spin_struct,bool isovector,double* V_arr);
+   void pwa(double qi,double qo, bool coupled, int J_int, std::string spin_struct,
+           bool isovector,std::vector<double>& v_alpha_arr, double* V_arr);
    
    
    double pot_OPEP_mom(double qo,double qi, double z);

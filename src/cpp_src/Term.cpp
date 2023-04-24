@@ -387,14 +387,6 @@ double Term::mom_D1P1(double qi, double qo,
     return LECs["D1P1"]*qi*qo; 
 }
 
-double Term::mom_D1P1(double qi, double qo, 
-        std::unordered_map<std::string,double>& LECs,
-        std::unordered_map<std::string,double>& params)
-
-{
-    return LECs["D1P1"]*qi*qo; 
-}
-
 double Term::mom_D3P0(double qi, double qo, 
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params)
