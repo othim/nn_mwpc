@@ -51,7 +51,7 @@
  * E3P2     | E3P2 p'p(p'^2 + p^2)
  * E_PF     | E_PF p'p(p^2)
  * E_FP     | E_PF p'p (p'^2) - NOTE, same LEC in both channels
- *
+ * --------------------------------
  *
  */
 

@@ -289,7 +289,8 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, bool coupled, int 
          #endif
          double tmp_arr[6];
          //std::cout << terms_in_pot_[i].get_spin_structure() << " " << terms_in_pot_[i].get_isovector() << std::endl;
-         pwa(qi,qo,coupled,J,A_M,A_P,A_0,A_1,terms_in_pot_[i].get_spin_structure(),terms_in_pot_[i].get_isovector(),&tmp_arr[0]);
+         pwa(qi,qo,coupled,J,A_M,A_P,A_0,A_1,terms_in_pot_[i].get_spin_structure(),
+                 terms_in_pot_[i].get_isovector(),&tmp_arr[0]);
          
          V_uncoupled_S0 += tmp_arr[0];
          V_uncoupled_S1 += tmp_arr[1];
@@ -385,63 +386,231 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, bool coupled, int 
    respective term in the potential.
 */
 template <class gsl_m>
-void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J,double A_M,double A_P,double A_0,double A_1,std::string spin_struct,bool isovector,double* V_arr)
+void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, double A_M,
+        double A_P, double A_0, double A_1, std::string spin_struct,
+        bool isovector, std::vector<double>& v_alpha_arr,double* V_arr)
 {
-   // Define some variables
-   double V_uncoupled_S0 = 0;
-   double V_uncoupled_S1 = 0;
-   double V_coupled_mm   = 0;
-   double V_coupled_pm   = 0;
-   double V_coupled_mp   = 0;
-   double V_coupled_pp   = 0;
-   //std::cout << "A_0=" << A_0 << " A_P=" << A_P << " A_M=" << A_M << " A_1=" << A_1 << std::endl;
-   if (spin_struct == "tensor")
-   {
-      // Check which elements that are non-zero by checking if the Channel is
-      // coupled or not
-      if (!coupled)
-      {
-         // OPEP uncoupled interactions
-         V_uncoupled_S0 = 2.0 * (-(qo*qo+qi*qi)*A_0 + 2.0*qo*qi*A_1);
-         V_uncoupled_S1 = 2.0 * ((qo*qo+qi*qi)*A_0 - 2.0*qo*qi*(1.0/(2.0*J+1.0))*((double)J*A_P + (double)(J+1.0)*A_M));
-         
-      } if (coupled || J == 0)
-      {
-         V_coupled_pp = (2.0/(2.0*J+1.0)) * (-(qo*qo+qi*qi)*A_P + 2.0*qo*qi*A_0);
-         if (J!= 0)
-         {
-            V_coupled_mm = (2.0/(2*J+1)) * ((qo*qo+qi*qi)*A_M - 2*qo*qi*A_0);
-            V_coupled_mp = (4.0*sqrt(J*(J+1))/(2.0*J+1.0)) * (qi*qi*A_P + qo*qo*A_M - 2*qo*qi*A_0);
-            V_coupled_pm = (4.0*sqrt(J*(J+1))/(2.0*J+1.0)) * (qi*qi*A_M + qo*qo*A_P - 2*qo*qi*A_0);
-         }
-      }
 
-      // Add isospin factor if the term is an isovector
-      if (isovector)
-      {
-         V_uncoupled_S0 *= isoFac(J,0);
-         V_uncoupled_S1 *= isoFac(J,1);
-         V_coupled_mm   *= isoFac(J-1,1);
-         V_coupled_pm   *= isoFac(J+1,1);
-         V_coupled_mp   *= isoFac(J-1,1);
-         V_coupled_pp   *= isoFac(J+1,1);
-      }     
-      V_arr[0] = V_uncoupled_S0;
-      V_arr[1] = V_uncoupled_S1;
-      V_arr[2] = V_coupled_pp;
-      V_arr[3] = V_coupled_mm;
-      V_arr[4] = V_coupled_pm;
-      V_arr[5] = V_coupled_mp;
-   } else
-   {
-      std::cerr << "Unknown <spin_struct> passed to function <pwa> in Pot_mwpc object." << std::endl;
-      V_arr[0] = 0;
-      V_arr[1] = 0;
-      V_arr[2] = 0;
-      V_arr[3] = 0;
-      V_arr[4] = 0;
-      V_arr[5] = 0;
-   }
+    /*
+     * Integral names:
+     * ---------------
+     * A_0 -> A^(J),(0)
+     * A_1 -> A^(J),(1)
+     * A_2 -> A^(J),(2)
+     * A_M -> A^(J-1),(0)
+     * A_P -> A^(J+1),(0)
+     * A_M2 -> A^(J-2),(0)
+     * A_P2 -> A^(J+2),(0)
+     * A_M_1 -> A^(J-1),(1)
+     * A_P_1 -> A^(J+1),(1)
+     * A_M_2 -> A^(J-1),(2)
+     * A_P_2 -> A^(J+1),(2)
+     */
+
+    /*
+    double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+    double A_1 = compute_A_integral(qi,qo,J,1,v_alpha_arr);
+    double A_2 = compute_A_integral(qi,qo,J,2,v_alpha_arr);
+    
+    double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+    double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+    
+    double A_M2 = compute_A_integral(qi,qo,J-2,0,v_alpha_arr);
+    double A_P2 = compute_A_integral(qi,qo,J+2,0,v_alpha_arr);
+    
+    double A_M_1 = compute_A_integral(qi,qo,J-1,1,v_alpha_arr);
+    double A_P_1 = compute_A_integral(qi,qo,J+1,1,v_alpha_arr);
+    
+    double A_M_2 = compute_A_integral(qi,qo,J-1,2,v_alpha_arr);
+    double A_P_2 = compute_A_integral(qi,qo,J+1,2,v_alpha_arr);
+    */
+
+    // Case J to a double to avoid integrer errors
+    double J = J_int;
+
+    // Define some variables
+    double V_uncoupled_S0 = 0;
+    double V_uncoupled_S1 = 0;
+    double V_coupled_mm   = 0;
+    double V_coupled_pm   = 0;
+    double V_coupled_mp   = 0;
+    double V_coupled_pp   = 0;
+
+
+    if (spin_sctruct == "C")
+    {
+        if (!coupled)
+        {
+            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+
+            V_uncoupled_S0 = 2.0*A_0;
+            V_uncoupled_S1 = 2.0*A_0;
+        } 
+        
+        if (coupled || J_int == 0)
+        {
+            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            V_coupled_pp = 2.0*A_P;
+            if (J!= 0)
+            {
+                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                V_coupled_mm = 2.0*A_M;
+                V_coupled_mp = 0.0;
+                V_coupled_pm = 0.0;
+            }
+        }
+    } 
+    else if (spin_struct == "S")
+    {
+        if (!coupled)
+        {
+            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            V_uncoupled_S0 = -6.0*A_0;
+            V_uncoupled_S1 = 2.0*A_0;
+        } 
+        
+        if (coupled || J_int == 0)
+        {
+            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            V_coupled_pp = 2.0*A_P;
+            if (J!= 0)
+            {
+                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                V_coupled_mm = 2.0*A_M;
+                V_coupled_mp = 0.0;
+                V_coupled_pm = 0.0;
+            }
+        }
+    }
+    else if (spin_struct == "LS")
+    {
+        if (!coupled)
+        {
+            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+
+            V_uncoupled_S0 = 0;
+            V_uncoupled_S1 = 2.0*qo*qi*(1.0/(2*J+1))*(A_P - A_M);
+        } 
+        
+        if (coupled || J_int == 0)
+        {
+            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            double A_P2 = compute_A_integral(qi,qo,J+2,0,v_alpha_arr);
+            
+            V_coupled_pp = 2.0*qo*qi*((J+2)/(2J+3))*(A_P2 - A_0);
+            if (J!= 0)
+            {
+                double A_M2 = compute_A_integral(qi,qo,J-2,0,v_alpha_arr);
+                
+                V_coupled_mm = 2.0*qo*qi*((J-1)/(2J-1))*(A_M2 - A_0);
+                V_coupled_mp = 0.0;
+                V_coupled_pm = 0.0;
+            }
+        }
+    } 
+    else if (spin_struct == "T")
+    {
+        // These potential elements are computed only if it in an uncoupled
+        // channel
+        if (!coupled)
+        {
+            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            double A_1 = compute_A_integral(qi,qo,J,1,v_alpha_arr);
+            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+
+            V_uncoupled_S0 = 2.0 * (-(qo*qo+qi*qi)*A_0 + 2.0*qo*qi*A_1);
+            V_uncoupled_S1 = 2.0 * ((qo*qo+qi*qi)*A_0 - 2.0*qo*qi*(1.0/(2.0*J+1.0))
+                    *((double)J*A_P + (double)(J+1.0)*A_M));
+        }
+        
+        // These matrix elements are computed if the channel is uncoupled OR
+        // J=0, since for J=0 the 3P0 channel is uncoupled and come from the 
+        // V_coupled_mm matrix element.
+        if (coupled || J_int == 0)
+        {
+            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            
+            V_coupled_pp = (2.0/(2.0*J+1.0)) * (-(qo*qo+qi*qi)*A_P + 2.0*qo*qi*A_0);
+            if (J!= 0)
+            {
+                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+
+                V_coupled_mm = (2.0/(2.0*J+1.0)) * ((qo*qo+qi*qi)*A_M - 2*qo*qi*A_0);
+                V_coupled_mp = (4.0*sqrt(J*(J+1.0))/(2.0*J+1.0)) * 
+                    (qi*qi*A_P + qo*qo*A_M - 2*qo*qi*A_0);
+                V_coupled_pm = (4.0*sqrt(J*(J+1))/(2.0*J+1.0)) * 
+                    (qi*qi*A_M + qo*qo*A_P - 2*qo*qi*A_0);
+            }
+        }
+
+    }
+    else if (spin_struct == "sigmaL")
+    {
+        if (!coupled)
+        {
+            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            double A_2 = compute_A_integral(qi,qo,J,2,v_alpha_arr);
+            
+            double A_M_1 = compute_A_integral(qi,qo,J-1,1,v_alpha_arr);
+            double A_P_1 = compute_A_integral(qi,qo,J+1,1,v_alpha_arr);
+            
+            V_uncoupled_S0 = 2.0*qo*qo*qi*qi*(A_2-A_0);
+            V_uncoupled_S1 = 2.0*qo*qo*qi*qi*(-A_0 + ((J-1.0)/(2.0*J+1.0))*
+                    A_P_1 + ((J+2.0)/(2.0*J+1.0))*A_M_1);
+        } 
+        
+        if (coupled || J_int == 0)
+        {
+            double A_1 = compute_A_integral(qi,qo,J,1,v_alpha_arr);
+            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_P_2 = compute_A_integral(qi,qo,J+1,2,v_alpha_arr);
+
+            V_coupled_pp = 2.0*qo*qo*qi*qi*( ((2.0*J+3)/(2.0*J+1))*A_P +
+                        ((2.0)/(2.0*J+1))*A_1 - A_P_2);
+            if (J!= 0)
+            {
+                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                double A_M_2 = compute_A_integral(qi,qo,J-1,2,v_alpha_arr);
+                
+                V_coupled_mm = 2.0*qo*qo*qi*qi*( ((2.0*J-1)/(2.0*J+1))*A_M +
+                        ((2.0)/(2.0*J+1))*A_1 - A_M_2);
+                V_coupled_mp = 4.0*qo*qo*qi*qi*(std::sqrt(J*(J+1.0))/
+                        ((2.0*J+1.0)*(2.0*J+1.0))*(A_P - A_M);
+                V_coupled_pm = V_coupled_mp;
+            }
+        }
+    }
+    else if (spin_struct == "sigmak")
+    {
+        // TODO
+    } 
+    else
+    {
+        std::cout << "Unknown <spin_struct> passed to function <pwa> in Pot_mwpc object." 
+            << std::endl;
+    }
+    
+    // Add isospin factor if the term is an isovector
+    if (isovector)
+    {
+        V_uncoupled_S0 *= isoFac(J,0);
+        V_uncoupled_S1 *= isoFac(J,1);
+        V_coupled_mm   *= isoFac(J-1,1);
+        V_coupled_pm   *= isoFac(J+1,1);
+        V_coupled_mp   *= isoFac(J-1,1);
+        V_coupled_pp   *= isoFac(J+1,1);
+    }
+
+    // Populate the array
+    V_arr[0] = V_uncoupled_S0;
+    V_arr[1] = V_uncoupled_S1;
+    V_arr[2] = V_coupled_pp;
+    V_arr[3] = V_coupled_mm;
+    V_arr[4] = V_coupled_pm;
+    V_arr[5] = V_coupled_mp;
 }
 
 /*
