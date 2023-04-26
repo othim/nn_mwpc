@@ -255,28 +255,24 @@ Phase_shifts_chn BB_to_Stapp_2(Phase_shifts_chn ps,double tan_p, double tan_m, d
 
 void LS_Solver::get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell)
 {
+    // get q_on_shell
     if (chn.Tz == -1)
     {
-        *mu = constants::Mn/2.0; // nn
         *q_on_shell = sqrt(*mu*T_lab);
     } else if (chn.Tz == 0)
     {
-        
-        *mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-        
         *q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
             ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
 
     } else if (chn.Tz == 1)
     {
-        *mu = constants::Mp/2.0; // pp
         *q_on_shell = sqrt(*mu*T_lab);
     } else 
     {
-        #ifdef ENABLE_DEBUG
-            std::cerr << "Error in get_mu_q_on_shell(): Unknown isospin" << std::endl;
-        #endif
+        std::cout << "Error in get_mu_q_on_shell(): Unknown isospin" << std::endl;
     }
+    // get mu as half the nucleon mass
+    *mu = ph::get_mN(chn.Tz)/2.0;
 }
 
 /*
