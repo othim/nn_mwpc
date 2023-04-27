@@ -167,4 +167,4 @@ potential_mwpc.o: potential_mwpc.h
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
-	   	pot_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o
+	   	pot_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o *.tmp

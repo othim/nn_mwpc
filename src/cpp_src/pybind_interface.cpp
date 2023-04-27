@@ -176,7 +176,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Choose terms in potential
         std::vector<std::string> terms;
-        terms.push_back("OPEP");
+        terms.push_back("W_T_1pi_nu_0");
         terms.push_back("C1S0");
         terms.push_back("C3S1");
 
@@ -208,11 +208,11 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         
         // Choose terms in potential
         std::vector<std::string> terms;
-        terms.push_back("OPEP");
+        terms.push_back("W_T_1pi_nu_0");
         terms.push_back("C1S0");
         terms.push_back("C3S1");
-        terms.push_back("C3P0");
-        terms.push_back("C3P2");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
 
         // Construct potential
         Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
@@ -262,11 +262,11 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Choose terms in potential
         std::vector<std::string> terms;
-        terms.push_back("OPEP");
+        terms.push_back("W_T_1pi_nu_0");
         terms.push_back("C1S0");
         terms.push_back("C3S1");
-        terms.push_back("C3P0");
-        terms.push_back("C3P2");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
 
         // Construct potential
         Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
@@ -299,7 +299,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
                 &nijm_correct_arg);
         
         std::vector<std::string> terms;
-        terms.push_back("OPEP");
+        terms.push_back("W_T_1pi_nu_0");
 
         // Construct potential
         J_pot_ext_cut_ = 10;

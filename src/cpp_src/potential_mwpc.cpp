@@ -63,18 +63,29 @@ Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA
    
    // Make list of all LECs and params and then fetch the ones in use
    // -------------------------------------------------------------------------
-   LEC_names_.push_back("gA2");
    LEC_names_.push_back("C1S0");
    LEC_names_.push_back("C3S1");
-   LEC_names_.push_back("C3P0");
-   LEC_names_.push_back("C3P2");
-   LEC_names_.push_back("C3D2");
+   LEC_names_.push_back("D1S0");
+   LEC_names_.push_back("D3S1");
+   LEC_names_.push_back("D1P1");
+   LEC_names_.push_back("D3P0");
+   LEC_names_.push_back("D3P2");
+   LEC_names_.push_back("D_SD");
+   LEC_names_.push_back("D_DS");
+   LEC_names_.push_back("E1S0");
+   LEC_names_.push_back("E3P0");
+   LEC_names_.push_back("E3P2");
+   LEC_names_.push_back("E_PF");
+   LEC_names_.push_back("E_FP");
+
+
    LEC_names_.push_back("Yamaguchi_1S0");
    LEC_names_.push_back("Yamaguchi_lambda_00");
    LEC_names_.push_back("Yamaguchi_lambda_01");
    LEC_names_.push_back("Yamaguchi_lambda_10");
    LEC_names_.push_back("Yamaguchi_lambda_11");
    
+   param_names_.push_back("gA");
    param_names_.push_back("Yamaguchi_beta");
 
    // Initialize all LECs to zero

@@ -5,13 +5,105 @@
 
 Term::Term(std::string name)
 {
-    if (name == "OPEP")
+    if (name == "W_T_1pi_nu_0")
     {
         term_name_ = name;
-        spin_structure_ = "tensor";
+        spin_structure_ = "T";
         well_def_pw_ = false;
         my_v_alpha = &Term::v_alpha_OPEP; // Make my_v_alpha point to the correct function for OPEP
-        lecs_in_term_.push_back("gA2");
+        params_in_term_.push_back("gA");
+        isovector_ = true;
+    } else if (name == "V_T_2pi_nu_2")
+    {
+        term_name_ = name;
+        spin_structure_ = "T";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::V_T_2pi_nu_2; 
+        params_in_term_.push_back("gA");
+        isovector_ = false;
+    } else if (name == "V_S_2pi_nu_2")
+    {
+        term_name_ = name;
+        spin_structure_ = "S";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::V_S_2pi_nu_2; 
+        params_in_term_.push_back("gA");
+        isovector_ = false;
+    } else if (name == "W_C_2pi_nu_2")
+    {
+        term_name_ = name;
+        spin_structure_ = "C";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_C_2pi_nu_2; 
+        params_in_term_.push_back("gA");
+        isovector_ = true;
+    } else if (name == "V_C_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "C";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::V_C_2pi_nu_3; 
+        params_in_term_.push_back("gA");
+        lecs_in_term_.push_bask("c1");
+        lecs_in_term_.push_bask("c3");
+        isovector_ = false;
+    } else if (name == "W_C_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "C";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_C_2pi_nu_3; 
+        params_in_term_.push_back("gA");
+        isovector_ = true;
+    } else if (name == "V_T_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "T";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::V_T_2pi_nu_3; 
+        params_in_term_.push_back("gA");
+        isovector_ = false;
+    } else if (name == "V_S_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "S";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::V_S_2pi_nu_3; 
+        params_in_term_.push_back("gA");
+        isovector_ = false;
+    } else if (name == "W_T_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "T";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_T_2pi_nu_3; 
+        params_in_term_.push_back("gA");
+        lecs_in_term_.push_back("c4");
+        isovector_ = true;
+    } else if (name == "W_S_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "S";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_S_2pi_nu_3; 
+        params_in_term_.push_back("gA");
+        lecs_in_term_.push_back("c4");
+        isovector_ = true;
+    } else if (name == "V_LS_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "LS";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::V_LS_2pi_nu_3; 
+        params_in_term_.push_back("gA");
+        isovector_ = false;
+    } else if (name == "W_LS_2pi_nu_3")
+    {
+        term_name_ = name;
+        spin_structure_ = "LS";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_LS_2pi_nu_3; 
+        params_in_term_.push_back("gA");
         isovector_ = true;
     } else if (name == "C1S0")
     {
