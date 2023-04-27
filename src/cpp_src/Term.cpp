@@ -303,15 +303,16 @@ std::vector<std::string> Term::get_params_in_term()
 }
 
 std::vector<double> Term::get_v_alpha(double qi, double qo, double* z, int z_len,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params)
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn)
 {
-    return my_v_alpha(qi,qo,z,z_len,LECs,params);
+    return my_v_alpha(qi,qo,z,z_len,LECs,params,chn);
 }
 
 double Term::get_v_alpha_well_def_pw(double qi, double qo,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params)
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
 {
     return my_v_alpha_well_def_pw(qi,qo,LECs,params);
 }
@@ -329,8 +330,8 @@ double Term::get_v_alpha_well_def_pw(double qi, double qo,
 
 // OPEP
 std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z, int z_len, 
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
 {
     double lec = params["gA"];
@@ -560,9 +561,9 @@ double L_DR(double q, double mpi)
 //*****************************************************************************
 
 static std::vector<double> V_T_2pi_nu_2(double qi, double qo, 
-        double* z, int len_z,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params,
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
 {
     double gA  = params["gA"];
@@ -575,7 +576,7 @@ static std::vector<double> V_T_2pi_nu_2(double qi, double qo,
     for (int i = 0; i < (int)z_len; i++)
     {
         q      = get_q(qi,qo,z[i]);
-        tmp[i] = V_T_2pi_nu_2(q, gA, mpi, fpi);
+        tmp[i] = Term::V_T_2pi_nu_2(q, gA, mpi, fpi);
     }
 	return tmp;
 
@@ -589,9 +590,9 @@ static double V_T_2pi_nu_2(double q, double gA, double mpi, double fpi)
 //*****************************************************************************
 
 static std::vector<double> V_S_2pi_nu_2(double qi, double qo, 
-        double* z, int len_z,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params,
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
 {
     double gA  = params["gA"];
@@ -604,17 +605,17 @@ static std::vector<double> V_S_2pi_nu_2(double qi, double qo,
     for (int i = 0; i < (int)z_len; i++)
     {
         q      = get_q(qi,qo,z[i]);
-        tmp[i] = -q*q*V_T_2pi_nu_2(q, gA, mpi, fpi);
+        tmp[i] = -q*q*Term::V_T_2pi_nu_2(q, gA, mpi, fpi);
     }
 	return tmp;
 }
 
 //*****************************************************************************
 
-static double W_C_2pi_nu_2(double qi, double qo, 
-        double* z, int len_z,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params,
+static std::vector<double> W_C_2pi_nu_2(double qi, double qo, 
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
 {
     double gA  = params["gA"];
@@ -628,7 +629,7 @@ static double W_C_2pi_nu_2(double qi, double qo,
     {
         q      = get_q(qi,qo,z[i]);
         w      = w_f(q,mpi);
-        tmp[i] = W_C_2pi_nu_2(q, gA, mpi, fpi, w);
+        tmp[i] = Term::W_C_2pi_nu_2(q, gA, mpi, fpi, w);
     }
 	return tmp;
 }
@@ -665,10 +666,10 @@ static double A_DR(double q, double mpi)
 //*****************************************************************************
 
 static std::vector<double> V_C_2pi_nu_3(double qi, double qo, 
-        double z*, int len_z,
+        double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn);
+        qs::quantum_channel chn)
 {
     // Get the constants
     double gA  = params["gA"];
@@ -678,8 +679,6 @@ static std::vector<double> V_C_2pi_nu_3(double qi, double qo,
     double mpi = constants::mpi;
     double fpi = constants::fpi;
     double mN  = ph::get_mN(chn.Tz);
-    double q   = get_q(qi,qo,z[i]);
-    
     
     // Compute the function for all angles z = cos <qi,qo>
     std::vector<double> tmp(z_len);
@@ -689,7 +688,7 @@ static std::vector<double> V_C_2pi_nu_3(double qi, double qo,
         q      = get_q(qi,qo,z[i]);
         w      = w_f(q,mpi);
         w_t    = w_tilde_f(q,mpi);
-        tmp[i] = V_C_2pi_nu_3(q, gA, c1, c3, mpi, fpi, mN, w, w_t);
+        tmp[i] = Term::V_C_2pi_nu_3(q, gA, c1, c3, mpi, fpi, mN, w, w_t);
     }
 	return tmp;
 }  
@@ -712,7 +711,7 @@ static double V_C_2pi_nu_3(double q, double gA, double c1, double c3,
 //*****************************************************************************
 
 static std::vector<double> W_C_2pi_nu_3(double qi, double qo, 
-        double z*, int len_z,
+        double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
@@ -721,6 +720,7 @@ static std::vector<double> W_C_2pi_nu_3(double qi, double qo,
     
     double mpi = constants::mpi;
     double fpi = constants::fpi;
+    double mN  = ph::get_mN(chn.Tz);
 
     std::vector<double> tmp(z_len);
     double q,w,w_t;
@@ -729,7 +729,7 @@ static std::vector<double> W_C_2pi_nu_3(double qi, double qo,
         q      = get_q(qi,qo,z[i]);
         w      = w_f(q,mpi);
         w_t    = w_tilde_f(q,mpi);
-        tmp[i] = W_C_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
+        tmp[i] = Term::W_C_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
     }
 	return tmp;
 }
@@ -751,41 +751,7 @@ static double W_C_2pi_nu_3(double q, double gA, double mpi, double fpi,
 //*****************************************************************************
         
 static std::vector<double> V_T_2pi_nu_3(double qi, double qo, 
-        double* z, int len_z,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
-{
-    double gA  = params["gA"];
-
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
-
-    
-    std::vector<double> tmp(z_len);
-    double q,w,w_t;
-    for (int i = 0; i < (int)z_len; i++)
-    {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
-        w_t    = w_tilde_f(q,mpi);
-        tmp[i] = V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
-    }
-	return tmp;
-}
-
-static double V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
-        double mN, double w, double w_t)
-{
-    double gA4 = std::pow(gA,4);
-    return (9.0*gA4*w_t*w_t*A_DR(q,mpi))/(512.0*M_PI*mN*std::pow(fpi,4));
-}
-
-//*****************************************************************************
-
-static std::vector<double> V_S_2pi_nu_3(double qi, double qo, 
-        double* z, int len_z,
+        double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
@@ -804,15 +770,49 @@ static std::vector<double> V_S_2pi_nu_3(double qi, double qo,
         q      = get_q(qi,qo,z[i]);
         w      = w_f(q,mpi);
         w_t    = w_tilde_f(q,mpi);
-        tmp[i] = -q*q*V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
+        tmp[i] = Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
+    }
+	return tmp;
+}
+
+static double V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
+        double mN, double w, double w_t)
+{
+    double gA4 = std::pow(gA,4);
+    return (9.0*gA4*w_t*w_t*A_DR(q,mpi))/(512.0*M_PI*mN*std::pow(fpi,4));
+}
+
+//*****************************************************************************
+
+static std::vector<double> V_S_2pi_nu_3(double qi, double qo, 
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn)
+{
+    double gA  = params["gA"];
+
+    double mpi = constants::mpi;
+    double fpi = constants::fpi;
+    double mN  = ph::get_mN(chn.Tz);
+
+    
+    std::vector<double> tmp(z_len);
+    double q,w,w_t;
+    for (int i = 0; i < (int)z_len; i++)
+    {
+        q      = get_q(qi,qo,z[i]);
+        w      = w_f(q,mpi);
+        w_t    = w_tilde_f(q,mpi);
+        tmp[i] = -q*q*Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
     }
 	return tmp;
 }
 
 //*****************************************************************************
 
-static std::vecrtor<double> W_T_2pi_nu_3(double qi, double qo, 
-        double* z, int len_z,
+static std::vector<double> W_T_2pi_nu_3(double qi, double qo, 
+        double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
@@ -831,7 +831,7 @@ static std::vecrtor<double> W_T_2pi_nu_3(double qi, double qo,
     {
         q      = get_q(qi,qo,z[i]);
         w      = w_f(q,mpi);
-        tmp[i] = W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
+        tmp[i] = Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
     }
 	return tmp;
 }
@@ -852,7 +852,7 @@ static double W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fp
 //*****************************************************************************
 
 static std::vector<double> W_S_2pi_nu_3(double qi, double qo, 
-        double* z, int len_z,
+        double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
@@ -871,7 +871,7 @@ static std::vector<double> W_S_2pi_nu_3(double qi, double qo,
     {
         q      = get_q(qi,qo,z[i]);
         w      = w_f(q,mpi);
-        tmp[i] = -q*q*W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
+        tmp[i] = -q*q*Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
     }
 	return tmp;
 }
@@ -879,9 +879,9 @@ static std::vector<double> W_S_2pi_nu_3(double qi, double qo,
 //*****************************************************************************
 
 static std::vector<double> V_LS_2pi_nu_3(double qi, double qo, 
-        double* z, int len_z,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params,
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
 {
     double gA  = params["gA"];
@@ -897,7 +897,7 @@ static std::vector<double> V_LS_2pi_nu_3(double qi, double qo,
     {
         q      = get_q(qi,qo,z[i]);
         w_t    = w_tilde_f(q,mpi);
-        tmp[i] = V_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w_t);
+        tmp[i] = Term::V_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w_t);
     }
 	return tmp;
 }
@@ -914,8 +914,8 @@ static double V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
 
 static std::vector<double> W_LS_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
-        const std::unordered_map<std::string,double>& LECs,
-        const std::unordered_map<std::string,double>& params,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn)
 {
     double gA  = params["gA"];
@@ -930,7 +930,7 @@ static std::vector<double> W_LS_2pi_nu_3(double qi, double qo,
     {
         q      = get_q(qi,qo,z[i]);
         w      = w_f(q,mpi);
-        tmp[i] = W_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w);
+        tmp[i] = Term::W_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w);
     }
 	return tmp;
 }

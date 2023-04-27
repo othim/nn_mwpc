@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-
+#include "physics_helpers.h"
+#include "quantum_states.h"
 
 /*
  * Momenta:
@@ -93,8 +94,8 @@ private:
 
 public:
     std::vector<double> (*my_v_alpha)(double qi, double qo, double* z, int z_len,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
 
     // Constructor
@@ -111,95 +112,97 @@ public:
     std::vector<std::string> get_params_in_term();
     
     std::vector<double> get_v_alpha(double qi, double qo, double* z, int z_len,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn);
 
     double get_v_alpha_well_def_pw(double qi, double qo,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
     static std::vector<double> v_alpha_OPEP(double qi, double qo, double* z, int z_len, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn);
 
     static double mom_C1S0(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
     static double mom_C3S1(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_D1S0(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
     static double mom_D3S1(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_D1P1(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_D3P0(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
     static double mom_D3P2(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_D_SD(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_D_DS(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_E1S0(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_E3P0(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_E3P2(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_E_PF(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_E_FP(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
 
 
 
     static double mom_Yamaguchi_1S0(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
     static double mom_Yamaguchi_3S1(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_Yamaguchi_3S_D1(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_Yamaguchi_3D_S1(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     static double mom_Yamaguchi_3D1(double qi, double qo, 
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params);
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
     
     /*
      * nu=2 (N2LO) Chiral two-pion exchange contributions in dimensional
@@ -223,9 +226,9 @@ public:
     static double L_DR(double q, double mpi);
 
     static std::vector<double> V_T_2pi_nu_2(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
     
     static double V_T_2pi_nu_2(double q, double gA, double mpi, double fpi);
@@ -233,17 +236,17 @@ public:
     
 
     static std::vector<double> V_S_2pi_nu_2(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
 
 
     
     static std::vector<double> W_C_2pi_nu_2(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
 
     static double W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
@@ -258,19 +261,19 @@ public:
     static double A_DR(double q, double mpi);
     
     static std::vector<double> V_C_2pi_nu_3(double qi, double qo, 
-            double z*, int len_z,
+            double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
 
     // q is the absolute value of the 3-momentum transfer
     static double V_C_2pi_nu_3(double q, double gA, double c1, double c3, 
-        double mpi, double fpi, double mN, double w, double w_t)
+        double mpi, double fpi, double mN, double w, double w_t);
     
 
 
     static std::vector<double> W_C_2pi_nu_3(double qi, double qo, 
-            double z*, int len_z,
+            double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
@@ -281,9 +284,9 @@ public:
 
 
     static std::vector<double> V_T_2pi_nu_3(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
 
     static double V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
@@ -292,17 +295,17 @@ public:
 
 
     static std::vector<double> V_S_2pi_nu_3(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
 
 
     
-    static std::vecrtor<double> W_T_2pi_nu_3(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+    static std::vector<double> W_T_2pi_nu_3(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
     
    
@@ -312,17 +315,17 @@ public:
 
     
     static std::vector<double> W_S_2pi_nu_3(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
  
 
 
     static std::vector<double> V_LS_2pi_nu_3(double qi, double qo, 
-            double* z, int len_z,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
     
     static double V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
@@ -332,8 +335,8 @@ public:
 
     static std::vector<double> W_LS_2pi_nu_3(double qi, double qo, 
             double* z, int z_len,
-            const std::unordered_map<std::string,double>& LECs,
-            const std::unordered_map<std::string,double>& params,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn);
 
     static double W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi, 

@@ -495,14 +495,14 @@ void ph::matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
 
 double ph::get_mN(int Tz)
 {
-    if (chn.Tz == -1)
+    if (Tz == -1)
     {
         return constants::Mn; // nn
-    } else if (chn.Tz == 0)
+    } else if (Tz == 0)
     {
         return 2.0*constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
 
-    } else if (chn.Tz == 1)
+    } else if (Tz == 1)
     {
         return constants::Mp; // pp
     } else 

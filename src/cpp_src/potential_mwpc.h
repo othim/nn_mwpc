@@ -169,7 +169,8 @@ public:
       where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
       NOTE: There is no minus sign on the off-diagonal elements as in some conventions!
     */
-    void calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr);
+    void calc_element_V_arr(double qi,double qo, qs::quantum_channel chn, 
+            double* V_arr);
 
     // TODO: implement
     double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);

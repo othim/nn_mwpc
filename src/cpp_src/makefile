@@ -115,14 +115,14 @@ endif
 
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 CDBONN_FILES = cdbonn_interface.o cdbonn.o # Compiled separately from Fortran code
-NN_MWPC_FILES = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
+NN_MWPC_FILES = pybind_interface.o compute_obs.o Term.o \
 				quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
 				born_approx.o pybind_interface_dwb.o potential_mwpc.o
 
 obs: $(NN_MWPC_FILES)
 	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
-FILES_SO = pybind_interface.o compute_obs.o pot_nn_mwpc.o Term.o \
+FILES_SO = pybind_interface.o compute_obs.o Term.o \
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
 		   born_approx.o pybind_interface_dwb.o potential_mwpc.o
 
@@ -135,8 +135,8 @@ pybind_interface.o: pybind_interface.cpp
 compute_obs.o: compute_obs.cpp
 	$(CC) $(CFLAGS) $(FLAGS) -c compute_obs.cpp
 
-pot_nn_mwpc.o: pot_nn_mwpc.h
-	$(CC) $(CFLAGS) $(FLAGS) -c pot_nn_mwpc.cpp
+#pot_nn_mwpc.o: pot_nn_mwpc.h
+#	$(CC) $(CFLAGS) $(FLAGS) -c pot_nn_mwpc.cpp
 
 Term.o: Term.h
 	$(CC) $(CFLAGS) $(FLAGS) -c Term.cpp
