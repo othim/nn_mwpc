@@ -800,22 +800,8 @@ gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel 
    unsigned int S = chn.S;
    bool coupled = chn.coupled;
 
-   double mu =0.0;
-   if (chn.Tz == -1)
-   {
-      mu = constants::Mn/2.0; // nn
-   } else if (chn.Tz == 0)
-   {
-      mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-   } else if (chn.Tz == 1)
-   {
-      mu = constants::Mp/2.0; // pp
-   } else 
-   {
-      #ifdef ENABLE_DEBUG
-         std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
-      #endif
-   }
+   double mu = ph::get_mN(chn.Tz)/2.0;
+   
    // Note that the matrix is computed for the current LECs_!!
    // Note also that the LECs_ are screwed up by the act of saving the matrices!
    // This means that the 
@@ -989,22 +975,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn, bool rel_
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
-   double mu = 0.0;
-   if (chn.Tz == -1)
-   {
-      mu = constants::Mn/2.0; // nn
-   } else if (chn.Tz == 0)
-   {
-      mu = constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
-   } else if (chn.Tz == 1)
-   {
-      mu = constants::Mp/2.0; // pp
-   } else 
-   {
-      #ifdef ENABLE_DEBUG
-         std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
-      #endif
-   }
+   double mu = ph::get_mN(chn.Tz)/2.0;
 
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
