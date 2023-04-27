@@ -44,8 +44,8 @@ Term::Term(std::string name)
         well_def_pw_ = false;
         my_v_alpha = &Term::V_C_2pi_nu_3; 
         params_in_term_.push_back("gA");
-        lecs_in_term_.push_bask("c1");
-        lecs_in_term_.push_bask("c3");
+        lecs_in_term_.push_back("c1");
+        lecs_in_term_.push_back("c3");
         isovector_ = false;
     } else if (name == "W_C_2pi_nu_3")
     {

@@ -565,9 +565,9 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
     {
         // Choose terms in potential
         std::vector<std::string> terms;
-        terms.puch_back("V_T_2pi_nu_2");
-        terms.puch_back("V_S_2pi_nu_2");
-        terms.puch_back("W_C_2pi_nu_2");
+        terms.push_back("V_T_2pi_nu_2");
+        terms.push_back("V_S_2pi_nu_2");
+        terms.push_back("W_C_2pi_nu_2");
         
         // TODO: Maybe add 1pi correction here
 
