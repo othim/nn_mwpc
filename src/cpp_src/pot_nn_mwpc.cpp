@@ -193,8 +193,11 @@ double Potential_mwpc::compute_A_integral(double qi, double qo, int J,int l, std
    needs to be added. The  (2\pi)^{-3} factor ARE included.
 */
 
-void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J, double* V_arr)
+void Potential_mwpc::calc_element_V_arr(double qi,double qo, 
+        qs::quantum_channel chn, double* V_arr)
 {
+    bool coupled = chn.coupled;
+    int J        = chn.J;
    // Define some variables and initialize V_arr to all zeros.
    double V_uncoupled_S0 = 0;
    double V_uncoupled_S1 = 0;
@@ -213,7 +216,8 @@ void Potential_mwpc::calc_element_V_arr(double qi,double qo, bool coupled, int J
          #endif
          // Compute v_alpha array. Just make this function call ONCE!
          std::vector<double> v_alpha_arr = 
-             terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_,params_);
+             terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_,params_,
+                     chn);
 
          #ifdef ENABLE_DEBUG
             end = std::clock();
@@ -490,7 +494,7 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
          double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i,mu,rel_correction);
 
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
-         calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
+         calc_element_V_arr(p_in,p_out,chn,&V_arr[0]);
          /*std::cout << "Rel fac: " << rel_fac << std::endl;
          for (int i= 0; i < 6; i++)
          {
@@ -703,7 +707,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
             p_in = q_on_shell;
          }
          double p_out = q_on_shell; // row is fixed
-         calc_element_V_arr(p_in,p_out, coupled, J,&tmp_arr[0]);
+         calc_element_V_arr(p_in,p_out, chn,&tmp_arr[0]);
 
 
          // Get the factor from the relativistic corrections
@@ -771,7 +775,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          }
          // column index
          double p_out = q_on_shell; // row is fixed
-         calc_element_V_arr(p_in,p_out, coupled, J,&tmp_arr[0]);
+         calc_element_V_arr(p_in,p_out, chn,&tmp_arr[0]);
 
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
@@ -869,7 +873,7 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
          // the cutoff and the grid
          double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i,mu,rel_correction);
          
-         calc_element_V_arr(p_in,p_out,chn.coupled,chn.J,&V_arr[0]);
+         calc_element_V_arr(p_in,p_out,chn,&V_arr[0]);
      
          if (!chn.coupled)
          {

@@ -632,18 +632,18 @@ double Term::mom_Yamaguchi_3D1(double qi, double qo,
  * nu=2 (N2LO) Chiral two-pion exchange contributions in dimensional
  * regularization. As eq. 4.9-4.12 in M&E Phys. Rept 503 (2011)
  */
-static double get_q(double qi, double qo, double z)
+double Term::get_q(double qi, double qo, double z)
 {
     return std::sqrt(qi*qi + qo*qo - 2*qi*qo*z);
 }
 
-double w_f(double q, double mpi)
+double Term::w_f(double q, double mpi)
 {
     return std::sqrt(4*mpi*mpi+q*q);
 }
 
 
-double L_DR(double q, double mpi)
+double Term::L_DR(double q, double mpi)
 {
     double w = w_f(q,mpi);
 
@@ -652,7 +652,7 @@ double L_DR(double q, double mpi)
 
 //*****************************************************************************
 
-static std::vector<double> V_T_2pi_nu_2(double qi, double qo, 
+std::vector<double> Term::V_T_2pi_nu_2(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -667,21 +667,21 @@ static std::vector<double> V_T_2pi_nu_2(double qi, double qo,
     double q;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
+        q      = Term::get_q(qi,qo,z[i]);
         tmp[i] = Term::V_T_2pi_nu_2(q, gA, mpi, fpi);
     }
 	return tmp;
 
 }
 
-static double V_T_2pi_nu_2(double q, double gA, double mpi, double fpi)
+double Term::V_T_2pi_nu_2(double q, double gA, double mpi, double fpi)
 {
-    return (-3.0*std::pow(gA,4)*L_DR(q,mpi))/(64.0*M_PI*M_PI*std::pow(fpi,4));
+    return (-3.0*std::pow(gA,4)*Term::L_DR(q,mpi))/(64.0*M_PI*M_PI*std::pow(fpi,4));
 }
 
 //*****************************************************************************
 
-static std::vector<double> V_S_2pi_nu_2(double qi, double qo, 
+std::vector<double> Term::V_S_2pi_nu_2(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -696,7 +696,7 @@ static std::vector<double> V_S_2pi_nu_2(double qi, double qo,
     double q;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
+        q      = Term::get_q(qi,qo,z[i]);
         tmp[i] = -q*q*Term::V_T_2pi_nu_2(q, gA, mpi, fpi);
     }
 	return tmp;
@@ -704,7 +704,7 @@ static std::vector<double> V_S_2pi_nu_2(double qi, double qo,
 
 //*****************************************************************************
 
-static std::vector<double> W_C_2pi_nu_2(double qi, double qo, 
+std::vector<double> Term::W_C_2pi_nu_2(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -719,14 +719,14 @@ static std::vector<double> W_C_2pi_nu_2(double qi, double qo,
     double q,w;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
         tmp[i] = Term::W_C_2pi_nu_2(q, gA, mpi, fpi, w);
     }
 	return tmp;
 }
 
-static double W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
+double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
         double w)
 {
     double gA2 = gA*gA;
@@ -735,7 +735,7 @@ static double W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
     double fac = 4.0*mpi*mpi*(5.0*gA4-4.0*gA2-1)+q*q*(23.0*gA4-10*gA2-1)+
         (48.0*gA4*std::pow(mpi,4))/(w*w);
 
-    return ((-L_DR(q,mpi))/(384.0*M_PI*M_PI*std::pow(fpi,4)))*fac;
+    return ((-Term::L_DR(q,mpi))/(384.0*M_PI*M_PI*std::pow(fpi,4)))*fac;
 }
 
 //*****************************************************************************
@@ -745,19 +745,19 @@ static double W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
  * regularization. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
  */
 
-static double w_tilde_f(double q, double mpi)
+double Term::w_tilde_f(double q, double mpi)
 {
     return std::sqrt(2.0*mpi*mpi+q*q);
 }
 
-static double A_DR(double q, double mpi)
+double Term::A_DR(double q, double mpi)
 {
     return (1.0/(2.0*q))*std::atan(q/(2.0*mpi));
 }
 
 //*****************************************************************************
 
-static std::vector<double> V_C_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::V_C_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -777,15 +777,15 @@ static std::vector<double> V_C_2pi_nu_3(double qi, double qo,
     double q,w,w_t;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
-        w_t    = w_tilde_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
+        w_t    = Term::w_tilde_f(q,mpi);
         tmp[i] = Term::V_C_2pi_nu_3(q, gA, c1, c3, mpi, fpi, mN, w, w_t);
     }
 	return tmp;
 }  
 
-static double V_C_2pi_nu_3(double q, double gA, double c1, double c3, 
+double Term::V_C_2pi_nu_3(double q, double gA, double c1, double c3, 
         double mpi, double fpi, double mN, double w, double w_t)
 {
     double gA2 = gA*gA;
@@ -796,13 +796,13 @@ static double V_C_2pi_nu_3(double q, double gA, double c1, double c3,
     
     double tmp3 = (3.0*gA2)/(16.0*M_PI*std::pow(fpi,4));
 
-    return tmp3*(tmp1-tmp2*w_t*w_t*A_DR(q,mpi));
+    return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_DR(q,mpi));
 
 }
 
 //*****************************************************************************
 
-static std::vector<double> W_C_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::W_C_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -818,15 +818,15 @@ static std::vector<double> W_C_2pi_nu_3(double qi, double qo,
     double q,w,w_t;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
-        w_t    = w_tilde_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
+        w_t    = Term::w_tilde_f(q,mpi);
         tmp[i] = Term::W_C_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
     }
 	return tmp;
 }
 
-static double W_C_2pi_nu_3(double q, double gA, double mpi, double fpi, 
+double Term::W_C_2pi_nu_3(double q, double gA, double mpi, double fpi, 
         double mN, double w, double w_t)
 {
     double gA2 = gA*gA;
@@ -837,12 +837,12 @@ static double W_C_2pi_nu_3(double q, double gA, double mpi, double fpi,
 
     double tmp3 = (gA2)/(128.0*M_PI*mN*std::pow(fpi,4));
 
-    return tmp3*(tmp1-tmp2*w_t*w_t*A_DR(q,mpi));
+    return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_DR(q,mpi));
 }
 
 //*****************************************************************************
         
-static std::vector<double> V_T_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::V_T_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -859,24 +859,24 @@ static std::vector<double> V_T_2pi_nu_3(double qi, double qo,
     double q,w,w_t;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
-        w_t    = w_tilde_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
+        w_t    = Term::w_tilde_f(q,mpi);
         tmp[i] = Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
     }
 	return tmp;
 }
 
-static double V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
+double Term::V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
         double mN, double w, double w_t)
 {
     double gA4 = std::pow(gA,4);
-    return (9.0*gA4*w_t*w_t*A_DR(q,mpi))/(512.0*M_PI*mN*std::pow(fpi,4));
+    return (9.0*gA4*w_t*w_t*Term::A_DR(q,mpi))/(512.0*M_PI*mN*std::pow(fpi,4));
 }
 
 //*****************************************************************************
 
-static std::vector<double> V_S_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::V_S_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -893,9 +893,9 @@ static std::vector<double> V_S_2pi_nu_3(double qi, double qo,
     double q,w,w_t;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
-        w_t    = w_tilde_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
+        w_t    = Term::w_tilde_f(q,mpi);
         tmp[i] = -q*q*Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
     }
 	return tmp;
@@ -903,7 +903,7 @@ static std::vector<double> V_S_2pi_nu_3(double qi, double qo,
 
 //*****************************************************************************
 
-static std::vector<double> W_T_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::W_T_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -921,21 +921,21 @@ static std::vector<double> W_T_2pi_nu_3(double qi, double qo,
     double q,w;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
         tmp[i] = Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
     }
 	return tmp;
 }
 
-static double W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fpi,
+double Term::W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fpi,
         double mN, double w)
 {
     double gA2 = std::pow(gA,2);
     
     double tmp1 = (c4+1.0/(4.0*mN))*w*w - (gA2/(8.0*mN))*(10.0*mpi*mpi+3.0*q*q);
 
-    double tmp2 = (-gA2*A_DR(q,mpi))/(32.0*M_PI*std::pow(fpi,4));
+    double tmp2 = (-gA2*Term::A_DR(q,mpi))/(32.0*M_PI*std::pow(fpi,4));
     
     return tmp2*tmp1;
 
@@ -943,7 +943,7 @@ static double W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fp
 
 //*****************************************************************************
 
-static std::vector<double> W_S_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -961,8 +961,8 @@ static std::vector<double> W_S_2pi_nu_3(double qi, double qo,
     double q,w;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
         tmp[i] = -q*q*Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
     }
 	return tmp;
@@ -970,7 +970,7 @@ static std::vector<double> W_S_2pi_nu_3(double qi, double qo,
 
 //*****************************************************************************
 
-static std::vector<double> V_LS_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::V_LS_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -987,24 +987,24 @@ static std::vector<double> V_LS_2pi_nu_3(double qi, double qo,
     double q,w_t;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w_t    = w_tilde_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w_t    = Term::w_tilde_f(q,mpi);
         tmp[i] = Term::V_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w_t);
     }
 	return tmp;
 }
 
-static double V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
+double Term::V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
         double mN, double w_t)
 {
     double gA4 = std::pow(gA,4);
     
-    return (3.0*gA4*w_t*w_t*A_DR(q,mpi))/(32.0*M_PI*mN*std::pow(fpi,4));
+    return (3.0*gA4*w_t*w_t*Term::A_DR(q,mpi))/(32.0*M_PI*mN*std::pow(fpi,4));
 }
 
 //*****************************************************************************
 
-static std::vector<double> W_LS_2pi_nu_3(double qi, double qo, 
+std::vector<double> Term::W_LS_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -1020,17 +1020,17 @@ static std::vector<double> W_LS_2pi_nu_3(double qi, double qo,
     double q,w;
     for (int i = 0; i < (int)z_len; i++)
     {
-        q      = get_q(qi,qo,z[i]);
-        w      = w_f(q,mpi);
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
         tmp[i] = Term::W_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w);
     }
 	return tmp;
 }
 
-static double W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi, 
+double Term::W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi, 
         double mN, double w)
 {
     double gA2 = std::pow(gA,2);
     
-    return (gA2*(1-gA2)*w*w*A_DR(q,mpi))/(32.0*M_PI*mN*std::pow(fpi,4));
+    return (gA2*(1-gA2)*w*w*Term::A_DR(q,mpi))/(32.0*M_PI*mN*std::pow(fpi,4));
 }
