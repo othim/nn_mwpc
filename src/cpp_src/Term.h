@@ -44,6 +44,7 @@
  * D3S1     | D3S1 (p'^2 + p^2)
  * D1P1     | D1P1 p'p
  * D3P0     | D3P0 p'p
+ * D3P1     | D3P0 p'p
  * D3P2     | D3P2 p'p
  * D_SD     | D_SD p^2
  * D_DS     | D_SD p'^2 - NOTE, same LEC in both channels
@@ -146,6 +147,10 @@ public:
             std::unordered_map<std::string,double>& params);
     
     static double mom_D3P0(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
+    
+    static double mom_D3P1(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
 

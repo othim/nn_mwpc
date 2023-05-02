@@ -77,6 +77,9 @@ Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA
    LEC_names_.push_back("E3P2");
    LEC_names_.push_back("E_PF");
    LEC_names_.push_back("E_FP");
+   LEC_names_.push_back("c1");
+   LEC_names_.push_back("c3");
+   LEC_names_.push_back("c4");
 
 
    LEC_names_.push_back("Yamaguchi_1S0");

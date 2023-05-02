@@ -181,6 +181,18 @@ Term::Term(std::string name)
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_D3P0;
         lecs_in_term_.push_back("D3P0");
+    } else if (name == "D3P1")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 1;
+        LS_well_def_pw_.Li = 1;
+        LS_well_def_pw_.Lo = 1;
+        LS_well_def_pw_.S = 1;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_D3P1;
+        lecs_in_term_.push_back("D3P1");
     } else if (name == "D3P2")
     {
         term_name_ = name;
@@ -348,7 +360,8 @@ Term::Term(std::string name)
         params_in_term_.push_back("Yamaguchi_beta");
     } else 
     {
-        std::cerr << "Invalid input to Term constructor: term_name does not match any known term" << std::endl;
+        std::cerr << "Invalid input to Term constructor: term_name=" << name << 
+            ", does not match any known term" << std::endl;
     }
 }
 
@@ -487,6 +500,13 @@ double Term::mom_D3P0(double qi, double qo,
         std::unordered_map<std::string,double>& params)
 {
     return LECs["D3P0"]*qi*qo; 
+}
+
+double Term::mom_D3P1(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+{
+    return LECs["D3P1"]*qi*qo; 
 }
 
 double Term::mom_D3P2(double qi, double qo, 
