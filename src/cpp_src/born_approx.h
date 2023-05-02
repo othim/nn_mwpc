@@ -86,24 +86,67 @@ gsl_matrix_complex* pw_T_DWBA(int order, gsl_matrix_complex* T_I,
         gsl_matrix_complex* V_I, gsl_matrix_complex* V_II, 
         gsl_matrix_complex* G0);
 
-
-gsl_matrix_complex* pw_T_DWBA_PC_LO(gsl_matrix_complex* T_I,
-        gsl_matrix_complex* G0, gsl_matrix_complex* V_LO);
+/*
+ * ****************************************************************************
+ * Functions to compute the corrections to T-matrices in MWPC
+ * ****************************************************************************
+ */
 
 
 /* This function computes the DWBA according to 
- * T_NLO = 
+ * T_NLO = \Omega_m^\dagger V_NLO \Omega_p.
+ *
+ * T_I  : The full off shell leading order T-matrix
+ * G0   : The free propagator
+ * V_NLO: The correction potential
+ *
+ * Note that T_NLO computed by this function is the NLO correction, to get the 
+ * full NLO amplitude the you must add T_LO + T_NLO.
  */
 gsl_matrix_complex* pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
-        gsl_matrix_complex* G0, gsl_matrix_complex* V_LO,
-        gsl_matrix_complex* V_NLO);
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO);
 
-gsl_matrix_complex* pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
-        gsl_matrix_complex* G0, gsl_matrix_complex* V_LO,
+
+/* This function computes the DWBA according to 
+ * T_N2LO = \Omega_m^\dagger V_N2LO \Omega_p + \Omega_m^\dagger 
+ * (V_NLO*G1*V_NLO) \Omega_p
+ *
+ * where G1 is the propagator for H_LO = H_0 + V_LO.
+ *
+ * T_I   : The full off shell leading order T-matrix
+ * G0    : The free propagator
+ * V_NLO : The correction potential at NLO
+ * V_N2LO: The correction potential at N2LO
+ *
+ * Note that T_N2LO computed by this function is the N2LO correction, to get the 
+ * full N2LO amplitude the you must add T_LO + T_NLO + T_N2LO.
+ */
+gsl_matrix_complex* pw_T_DWBA_PC_N2LO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
         gsl_matrix_complex* V_N2LO);
+/*
+ * This function computes the DWBA according to 
+ * T_N3LO = ... see NN notes.
+ *
+ * T_I    : Full LO T-matrix
+ * G0     : Free propagator
+ * V_NLO  : Correction potential at NLO
+ * V_N2LO : Correction potential at N2LO
+ * V_N3LO : Correction potential at N3LO
+ *
+ * Note that this is just the N3LO correction to the T-matrix and that the full
+ * sum off LO and correction need to be compute the get the full T-matrix.
+ */
+gsl_matrix_complex* pw_T_DWBA_PC_N3LO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
+        gsl_matrix_complex* V_N2LO, gsl_matrix_complex* V_N3LO);
+
+
 
 /*
+ * ****************************************************************************
  * Helperfunctions to compute the Möller wave operators
+ * ****************************************************************************
  */
 gsl_matrix_complex* pw_moller_plus(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0);

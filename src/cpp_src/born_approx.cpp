@@ -129,6 +129,134 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
     return tmp;
 }
 
+/*
+ * ****************************************************************************
+ * Functions to compute the corrections to T-matrices in MWPC
+ * ****************************************************************************
+ */
+gsl_matrix_complex* pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO)
+{
+    // Get the Möller wave operators
+    gsl_matrix_complex* omega_p = dwba::pw_moller_plus(T_I, G0);
+    gsl_matrix_complex* omega_m_dagger = dwba::pw_moller_minus_dagger(T_I, G0);
+    
+    // Allocate the T_NLO
+    gsl_matrix_complex* T_NLO = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+    gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+
+    // Make multiplication
+    ph::mult3(omega_m_dagger,V_NLO,omega_p,T_NLO);
+
+    // Remove all temporary matrices
+    gsl_matrix_complex_free(omega_p);
+    gsl_matrix_complex_free(omega_m_dagger);
+    gsl_matrix_complex_free(tmp);
+
+    return T_NLO;
+}
+
+gsl_matrix_complex* pw_T_DWBA_PC_N2LO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
+        gsl_matrix_complex* V_N2LO)
+{
+    // Get the Möller wave operators
+    gsl_matrix_complex* omega_p = dwba::pw_moller_plus(T_I, G0);
+    gsl_matrix_complex* omega_m_dagger = dwba::pw_moller_minus_dagger(T_I, G0);
+    
+    // Allocate the T_NLO
+    gsl_matrix_complex* term1 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+    gsl_matrix_complex* term2 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+
+    // Make multiplication F(V_N2LO)
+    ph::mult3(omega_m_dagger,V_N2LO,omega_p,term1);
+
+    // Compute F(V_NLO*G1*V_NLO)
+    
+    // Allocate the G1 matrix
+    gsl_matrix_complex* G1 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+    
+    // G1 = G0 + G0*T_I*G0 = (1 + G0*T_I)*G0
+    ph::mult(omega_p,G0,G1);
+
+    // Make multiplication
+    ph::mult5(omega_m_dagger,V_NLO,G1,V_NLO,omega_p,term2);   
+    
+    // Add the contributions
+    ph::matrix_add(term1,term2);
+
+    // Remove all temporary matrices
+    gsl_matrix_complex_free(omega_p);
+    gsl_matrix_complex_free(omega_m_dagger);
+    gsl_matrix_complex_free(term2);
+    gsl_matrix_complex_free(G1);
+
+    return term1;
+}
+
+gsl_matrix_complex* pw_T_DWBA_PC_N3LO(gsl_matrix_complex* T_I,
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
+        gsl_matrix_complex* V_N2LO, gsl_matrix_complex* V_N3LO)
+{
+    // Get the Möller wave operators
+    gsl_matrix_complex* omega_p = dwba::pw_moller_plus(T_I, G0);
+    gsl_matrix_complex* omega_m_dagger = dwba::pw_moller_minus_dagger(T_I, G0);
+    
+    // Allocate the G1 matrix
+    gsl_matrix_complex* G1 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+    
+    // G1 = G0 + G0*T_I*G0 = (1 + G0*T_I)*G0
+    ph::mult(omega_p,G0,G1);
+    
+    // Allocate the T_NLO
+    gsl_matrix_complex* term1 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+    gsl_matrix_complex* term2 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+    gsl_matrix_complex* term3 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+    gsl_matrix_complex* term4 = gsl_matrix_complex_alloc(T_I->size1,
+            T_I->size2);
+
+    // Term 1
+    ph::mult3(omega_m_dagger,V_N3LO,omega_p,term1);
+
+    // Term 2
+    ph::mult5(omega_m_dagger,V_N2LO,G1,V_NLO,omega_p,term2);
+    
+    // Term 3
+    ph::mult5(omega_m_dagger,V_NLO,G1,V_N2LO,omega_p,term3);
+    
+    // Term 4
+    ph::mult7(omega_m_dagger,V_NLO,G1,V_NLO,G1,V_NLO,omega_p,term4);
+
+    ph::matrix_add(term1, term2);
+    ph::matrix_add(term1, term3);
+    ph::matrix_add(term1, term4);
+
+    // Delete and return
+    gsl_matrix_complex_free(omega_p);
+    gsl_matrix_complex_free(omega_m_dagger);
+    gsl_matrix_complex_free(G1);
+    gsl_matrix_complex_free(term2);
+    gsl_matrix_complex_free(term3);
+    gsl_matrix_complex_free(term4);
+
+    return term1;
+}
+
+
+
+/*
+ * Helperfunctions to compute the Möller wave operators
+ */
+
 gsl_matrix_complex* dwba::pw_moller_plus(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0)
 {

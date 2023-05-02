@@ -129,10 +129,21 @@ void print_m_complex_to_file(std::string path,gsl_matrix_complex* matrix);
 void on_shell_mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res);
 /*
- * Ordinary matrix multiplization
+ * Ordinary matrix multiplization with two or more matrices.
  */
 void mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res);
+
+void mult3(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* m3, gsl_matrix_complex* res);
+
+void mult5(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* m3, gsl_matrix_complex* m4, gsl_matrix_complex* m5,
+        gsl_matrix_complex* res);
+
+void mult7(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* m3, gsl_matrix_complex* m4, gsl_matrix_complex* m5,
+        gsl_matrix_complex* m6, gsl_matrix_complex* m7,gsl_matrix_complex* res);
 /*
  * This is the brute force version of the 'ph::on_shell_mult()' function
  */

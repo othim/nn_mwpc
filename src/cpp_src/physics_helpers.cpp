@@ -359,6 +359,56 @@ void ph::mult(gsl_matrix_complex* m1, gsl_matrix_complex* m2,
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, alpha, m1,m2,beta,res);
 }
 
+void ph::mult3(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* m3, gsl_matrix_complex* res)
+{   
+    gsl_matrix_complex* tmp = gsl_matrix_complex_alloc(m1->size1,
+            m1->size2);
+    
+    ph::mult(m2,m3,tmp);
+    ph::mult(m1,tmp,res);
+
+    gsl_matrix_complex_free(tmp);
+}
+
+void ph::mult5(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* m3, gsl_matrix_complex* m4, gsl_matrix_complex* m5,
+        gsl_matrix_complex* res)
+{
+    gsl_matrix_complex* tmp1 = gsl_matrix_complex_alloc(m1->size1,
+            m1->size2);
+    gsl_matrix_complex* tmp2 = gsl_matrix_complex_alloc(m1->size1,
+            m1->size2);
+    
+    ph::mult(m4,m5,tmp1);
+    ph::mult(m3,tmp1,tmp2);
+    ph::mult(m2,tmp2,tmp1);
+    ph::mult(m1,tmp1,res);
+
+    gsl_matrix_complex_free(tmp1);
+    gsl_matrix_complex_free(tmp2);
+}
+
+void ph::mult7(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
+        gsl_matrix_complex* m3, gsl_matrix_complex* m4, gsl_matrix_complex* m5,
+        gsl_matrix_complex* m6, gsl_matrix_complex* m7,gsl_matrix_complex* res)
+{
+    gsl_matrix_complex* tmp1 = gsl_matrix_complex_alloc(m1->size1,
+            m1->size2);
+    gsl_matrix_complex* tmp2 = gsl_matrix_complex_alloc(m1->size1,
+            m1->size2);
+    
+    ph::mult(m6,m7,tmp1);
+    ph::mult(m5,tmp1,tmp2);
+    ph::mult(m4,tmp2,tmp1);
+    ph::mult(m3,tmp1,tmp2);
+    ph::mult(m2,tmp2,tmp1);
+    ph::mult(m1,tmp1,res);
+
+    gsl_matrix_complex_free(tmp1);
+    gsl_matrix_complex_free(tmp2);
+}
+
 void ph::on_shell_mult_bf(gsl_matrix_complex* m1, gsl_matrix_complex* m2, 
         gsl_matrix_complex* res)
 {
