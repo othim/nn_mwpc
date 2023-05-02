@@ -193,6 +193,40 @@ public:
     gsl_matrix_complex* solve_DWBA_full_T(double T_lab, 
             qs::quantum_channel chn, int order,
             std::string VI_name, std::string VII_name);
+
+
+    /*
+     * *********************************************************
+     * Functions to compute amplitudes for chiral EFT potentials
+     * *********************************************************
+     */
+
+    /*
+     * Function to compute the on-shell T-matrix amplitudes in the chiral PC.
+     *
+     * Args:
+     * -----
+     * T_lab     : laboratory kinetic energy for the projectile in MeV
+     * chn_index : index of the quantum channel to compute in
+     * order     : the chiral order (0 = LO, 1 = NLO, 2=N2LO, 3=N3LO)
+     * V_NxLO    : potential name for each order. Note that you just need to 
+     *             define the orders that are used. The others are set by
+     *             defaultarguments
+     *
+     * Returns:
+     * --------
+     * std::vector with four elements: [T[0,0],T[1,0],T[1,1],Tuncoup], where the 
+     * indices are over the 2x2 on-shell T-matrix. Tuncoup is the uncoupled 
+     * on-shell T-matrix element.
+     *
+     * Units of the T-matrix is MeV^{-2} and the normalization conventions 
+     * are that there is as given for the LS-Solver in the README.
+     */
+    std::vector<std::complex<double>> solve_DWBA_T_PC(
+            double T_lab, int chn_index, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
     
     /*
      * *********************************************
