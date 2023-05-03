@@ -216,7 +216,8 @@ double Pot_mwpc<gsl_m>::calc_element_JLS(double qi,double qo, int J, int L, int 
 }
 
 template <class gsl_m>
-double Pot_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int l, std::vector<double> v_alpha_arr)
+double Pot_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int l, 
+        std::vector<double> v_alpha_arr)
 {
    #ifdef ENABLE_DEBUG
    if (!(J<J_max_)) 
@@ -279,7 +280,8 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
          // This will fill up the array V_arr with the correct potential elements
          
          double tmp_arr[6];
-         //std::cout << terms_in_pot_[i].get_spin_structure() << " " << terms_in_pot_[i].get_isovector() << std::endl;
+         //std::cout << terms_in_pot_[i].get_spin_structure() << " " << 
+         //    terms_in_pot_[i].get_isovector() << std::endl;
          pwa(qi,qo,coupled,J,terms_in_pot_[i].get_spin_structure(),
                  terms_in_pot_[i].get_isovector(),v_alpha_arr,&tmp_arr[0]);
          
@@ -478,7 +480,11 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         if (!coupled)
         {
             double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
-            double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+            double A_M = 0;
+            if (J!=0)
+            {
+                A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+            }
 
             V_uncoupled_S0 = 0;
             V_uncoupled_S1 = 2.0*qo*qi*(1.0/(2*J+1))*(A_P - A_M);
@@ -492,8 +498,11 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
             V_coupled_pp = 2.0*qo*qi*((J+2)/(2*J+3))*(A_P2 - A_0);
             if (J!= 0)
             {
-                double A_M2 = compute_A_integral(qi,qo,J-2,0,v_alpha_arr);
-                
+                double A_M2 = 0;
+                if (J>1)
+                {
+                    A_M2 = compute_A_integral(qi,qo,J-2,0,v_alpha_arr);
+                }  
                 V_coupled_mm = 2.0*qo*qi*((J-1)/(2*J-1))*(A_M2 - A_0);
                 V_coupled_mp = 0.0;
                 V_coupled_pm = 0.0;
@@ -509,7 +518,11 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
             double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
             double A_1 = compute_A_integral(qi,qo,J,1,v_alpha_arr);
             double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
-            double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+            double A_M = 0;
+            if (J!=0)
+            {
+                A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+            }
 
             V_uncoupled_S0 = 2.0 * (-(qo*qo+qi*qi)*A_0 + 2.0*qo*qi*A_1);
             V_uncoupled_S1 = 2.0 * ((qo*qo+qi*qi)*A_0 - 2.0*qo*qi*(1.0/(2.0*J+1.0))
@@ -536,7 +549,6 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
                     (qi*qi*A_M + qo*qo*A_P - 2*qo*qi*A_0);
             }
         }
-
     }
     else if (spin_struct == "sigmaL")
     {
@@ -544,8 +556,11 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         {
             double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
             double A_2 = compute_A_integral(qi,qo,J,2,v_alpha_arr);
-            
-            double A_M_1 = compute_A_integral(qi,qo,J-1,1,v_alpha_arr);
+            double A_M_1 = 0;
+            if (J!=0)
+            {
+                A_M_1 = compute_A_integral(qi,qo,J-1,1,v_alpha_arr);
+            }
             double A_P_1 = compute_A_integral(qi,qo,J+1,1,v_alpha_arr);
             
             V_uncoupled_S0 = 2.0*qo*qo*qi*qi*(A_2-A_0);
@@ -758,7 +773,7 @@ void Pot_mwpc<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, bool rel_corre
    #ifdef ENABLE_DEBUG
       std::cerr << "populate_saved_mtx()" << std::endl;
    #endif
-
+    
    clear_saved_matrices(); // Clears the allocated pointers
 
    // Get the constant
