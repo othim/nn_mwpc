@@ -72,6 +72,12 @@ typedef struct
    gsl_matrix_complex* eigenvectors;
 } eigen_t;
 
+typedef struct 
+{
+   gsl_vector* eigenvalues;
+   gsl_matrix_complex* eigenvectors;
+} eigen_t_herm;
+
 /*
  * This function solves the SE for a given parital-wave channel and
  * produces eigenvales and eigenvectors. The method is exact diagonalization 
@@ -88,7 +94,7 @@ eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,
 
 // Same mwthod but now the potential is complex and has weights and momentum
 // factors factored in.
-eigen_t solve_SE_complex_weights(double* p, double* w, 
+eigen_t_herm solve_SE_complex_weights(double* p, double* w, 
         unsigned int numer_of_grid_points,
         qs::quantum_channel chn, const gsl_matrix_complex* V);
 

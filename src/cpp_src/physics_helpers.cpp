@@ -184,7 +184,7 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
       }
    }
    // Get reduced mass of system
-   double mu = ph::get_Mn(chn.Tz)/2.0;
+   double mu = ph::get_mN(chn.Tz)/2.0;
    
    gsl_matrix* H = gsl_matrix_alloc(V->size1,V->size2);
    
@@ -249,7 +249,7 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
    return e;
 }
 
-ph::eigen_t ph::solve_SE_complex_weights(double* p, double* w, 
+ph::eigen_t_herm ph::solve_SE_complex_weights(double* p, double* w, 
         unsigned int number_of_grid_points
         ,qs::quantum_channel chn, const gsl_matrix_complex* V)
 {
@@ -269,7 +269,7 @@ ph::eigen_t ph::solve_SE_complex_weights(double* p, double* w,
       }
    }
    // Get reduced mass of system
-   double mu = ph::get_Mn(chn.Tz)/2.0;
+   double mu = ph::get_mN(chn.Tz)/2.0;
    
    gsl_matrix_complex* H = gsl_matrix_complex_alloc(V->size1,V->size2);
    
@@ -280,14 +280,9 @@ ph::eigen_t ph::solve_SE_complex_weights(double* p, double* w,
       {
          // This is to still use the same momenta
          int l = j;
-         int k = i;
          if (!(j<(int)number_of_grid_points))
          {
             l = j-number_of_grid_points;
-         }
-         if (!(i<(int)number_of_grid_points))
-         {
-            k = i-number_of_grid_points;
          }
          double p2 = p[l]*p[l];
          
@@ -304,16 +299,16 @@ ph::eigen_t ph::solve_SE_complex_weights(double* p, double* w,
    //print_m(H);
 
    // Diagonalize the matrix
-   gsl_vector_complex* eval = gsl_vector_complex_alloc(V->size1);
+   gsl_vector* eval = gsl_vector_alloc(V->size1);
    gsl_matrix_complex* evec = gsl_matrix_complex_alloc(V->size1, V->size1);
 
-   gsl_eigen_nonsymmv_workspace* ws = gsl_eigen_nonsymmv_alloc(V->size1);
-   gsl_eigen_nonsymmv(H,eval,evec,ws);
+   gsl_eigen_hermv_workspace* ws = gsl_eigen_hermv_alloc(V->size1);
+   gsl_eigen_hermv(H,eval,evec,ws);
    
-   gsl_eigen_nonsymmv_free(ws);
+   gsl_eigen_hermv_free(ws);
 
-   gsl_eigen_nonsymmv_sort(eval, evec, GSL_EIGEN_SORT_ABS_DESC);
-   ph::eigen_t e;
+   gsl_eigen_hermv_sort(eval, evec, GSL_EIGEN_SORT_ABS_DESC);
+   ph::eigen_t_herm e;
 
    e.eigenvalues  = eval;
    e.eigenvectors = evec;

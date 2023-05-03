@@ -26,6 +26,9 @@ template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_saved_matrix(doub
 
 template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_matrix(double q_on_shell,qs::quantum_channel chn, 
         bool rel_correction);
+    
+template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_matrix_no_onshell(
+        qs::quantum_channel chn, bool rel_correction);
 
 template Pot_mwpc<gsl_matrix_complex>::~Pot_mwpc();
 
@@ -984,7 +987,8 @@ gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel 
 
 
 template <class gsl_m>
-gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn, bool rel_correction)
+gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn, 
+        bool rel_correction)
 {
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;

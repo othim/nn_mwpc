@@ -203,6 +203,8 @@ public:
 
     /*
      * Function to compute the on-shell T-matrix amplitudes in the chiral PC.
+     * Note that if you choose LO (order = 0) this just solved the LS equation 
+     * for the potential V_LO and returns the T-matrix.
      *
      * Args:
      * -----
@@ -227,6 +229,33 @@ public:
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
     
+    std::vector<std::complex<double>> solve_DWBA_phases_PC(
+            double T_lab, int chn_index, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+    void solve_DWBA_T_save_chn_PC(double T_lab, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+    std::complex<double> observable_from_saved_T(double T_lab, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+
+    /*
+     * ************************************************************
+     * Functions to compute other things than scattering properties
+     * ************************************************************
+     */
+
+
+    /*
+     * This function computes the lowest eigenvalue to the Hamiltonian in the 
+     * specified channel. The unit is MeV
+     */
+    std::vector<double> compute_binding_energy(int chn_number, 
+            bool rel_corr, const std::string& V_name);
     
     /*
      * *********************************************

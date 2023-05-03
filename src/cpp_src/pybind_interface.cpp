@@ -69,6 +69,9 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("solve_exact_pot_sum_T", 
                 &nn_mwpc_dwb_interface::solve_exact_pot_sum_T,
                 py::return_value_policy::copy)
+        .def("compute_binding_energy", 
+                &nn_mwpc_dwb_interface::compute_binding_energy,
+                py::return_value_policy::copy)
 
         .def("create_new_potential", 
                 &nn_mwpc_dwb_interface::create_new_potential,

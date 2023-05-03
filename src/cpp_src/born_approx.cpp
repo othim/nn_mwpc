@@ -134,7 +134,7 @@ gsl_matrix_complex* dwba::pw_T_DWBA(int order,
  * Functions to compute the corrections to T-matrices in MWPC
  * ****************************************************************************
  */
-gsl_matrix_complex* pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
+gsl_matrix_complex* dwba::pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
         gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO)
 {
     // Get the Möller wave operators
@@ -158,7 +158,7 @@ gsl_matrix_complex* pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
     return T_NLO;
 }
 
-gsl_matrix_complex* pw_T_DWBA_PC_N2LO(gsl_matrix_complex* T_I,
+gsl_matrix_complex* dwba::pw_T_DWBA_PC_N2LO(gsl_matrix_complex* T_I,
         gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
         gsl_matrix_complex* V_N2LO)
 {
@@ -199,7 +199,7 @@ gsl_matrix_complex* pw_T_DWBA_PC_N2LO(gsl_matrix_complex* T_I,
     return term1;
 }
 
-gsl_matrix_complex* pw_T_DWBA_PC_N3LO(gsl_matrix_complex* T_I,
+gsl_matrix_complex* dwba::pw_T_DWBA_PC_N3LO(gsl_matrix_complex* T_I,
         gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
         gsl_matrix_complex* V_N2LO, gsl_matrix_complex* V_N3LO)
 {

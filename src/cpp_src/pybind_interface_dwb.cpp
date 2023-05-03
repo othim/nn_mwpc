@@ -258,7 +258,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
         gsl_matrix_complex* T2 = nullptr;
         gsl_matrix_complex* T3 = nullptr;
         
-        T1 = dwba::pw_T_DWBA_PC_NLO(TI, G0, V_NLO);
+        T1 = dwba::pw_T_DWBA_PC_NLO (TI, G0, V_NLO);
         T2 = dwba::pw_T_DWBA_PC_N2LO(TI, G0, V_NLO, V_N2LO);
         T3 = dwba::pw_T_DWBA_PC_N3LO(TI, G0, V_NLO, V_N2LO, V_N3LO);
         
@@ -288,6 +288,44 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
 
 
     return T_arr;
+}
+/*
+ * ************************************************************
+ * Functions to compute other things than scattering properties
+ * ************************************************************
+ */
+
+
+/*
+ * This function computes the lowest eigenvalue to the Hamiltonian in the 
+ * specified channel. The unit is MeV
+ */
+std::vector<double> nn_mwpc_dwb_interface::compute_binding_energy(int chn_number, 
+        bool rel_corr, const std::string& V_name)
+{
+    qs::quantum_channel chn = chns_[0]; // Just to have it initialized
+    if (chn_number < (int)chns_.size())
+    {
+        chn = chns_[chn_number];
+    } else 
+    {
+        std::cout << "Error: chn_number out of range" << std::endl;
+    }
+    gsl_matrix_complex* pot_V_mtx = 
+        potentials_[V_name]->get_matrix_no_onshell(chn, rel_corr_);
+    
+    ph::eigen_t_herm diag_res = ph::solve_SE_complex_weights(p_grid_, w_grid_, 
+            number_of_p_points_, chn, pot_V_mtx);
+    
+    std::vector<double> eigenvalues;
+    for (int i = 0; i < (int)pot_V_mtx->size1; i++) {
+        eigenvalues.push_back(gsl_vector_get(diag_res.eigenvalues,i));
+    }
+
+    gsl_matrix_complex_free(diag_res.eigenvectors);
+    gsl_vector_free(diag_res.eigenvalues); 
+    gsl_matrix_complex_free(pot_V_mtx);
+    return eigenvalues;
 }
 
 /*
