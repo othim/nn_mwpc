@@ -184,19 +184,7 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
       }
    }
    // Get reduced mass of system
-   double mu = 0.0;
-   if (chn.Tz == -1)
-   {
-      mu = constants::Mn/2.0; // nn
-   } else if (chn.Tz == 0)
-   {
-      mu = constants::Mp*constants::Mn/(constants::Mn+constants::Mp); // np
-   } else if (chn.Tz == 1)
-   {
-      mu = constants::Mp/2.0; // pp
-   } else { 
-      std::cout << "Error: unknown isospin" << std::endl;
-   }
+   double mu = ph::get_Mn(chn.Tz)/2.0;
    
    gsl_matrix* H = gsl_matrix_alloc(V->size1,V->size2);
    
@@ -240,6 +228,91 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
    gsl_eigen_nonsymmv_free(ws);
 
    gsl_eigen_nonsymmv_sort (eval, evec, GSL_EIGEN_SORT_ABS_DESC);
+   ph::eigen_t e;
+
+   e.eigenvalues  = eval;
+   e.eigenvectors = evec;
+   
+   // Use a test matrix
+   /* finds eigenvalues to this...
+   gsl_matrix* H_test = gsl_matrix_alloc(2,2);
+   gsl_matrix_set(H_test,0,0,1);
+   gsl_matrix_set(H_test,0,1,0);
+   gsl_matrix_set(H_test,1,0,0);
+   gsl_matrix_set(H_test,1,1,1);
+
+   eval = gsl_vector_complex_alloc(2);
+   gsl_eigen_nonsymm_workspace* ws_test = gsl_eigen_nonsymm_alloc(2);
+   gsl_eigen_nonsymm(H_test,eval,ws_test);
+   */
+   
+   return e;
+}
+
+ph::eigen_t ph::solve_SE_complex_weights(double* p, double* w, 
+        unsigned int number_of_grid_points
+        ,qs::quantum_channel chn, const gsl_matrix_complex* V)
+{
+   // The potential is assumed to be in a partial wave basis with normalization 
+   // <p'|p> = \delta(p'-p)/p^2, with \pi/2 factor from Landau removed.
+   if (chn.coupled)
+   {
+      if (V->size1 != 2*number_of_grid_points)
+      {
+         std::cerr << "Error in solve_SE(): Number of grid points do not match potential dimensions" << std::endl;
+      }
+   } else 
+   {
+     if (V->size1 != number_of_grid_points)
+      {
+         std::cerr << "Error in solve_SE(): Number of grid points do not match potential dimensions" << std::endl;
+      }
+   }
+   // Get reduced mass of system
+   double mu = ph::get_Mn(chn.Tz)/2.0;
+   
+   gsl_matrix_complex* H = gsl_matrix_complex_alloc(V->size1,V->size2);
+   
+   // Construct Hamiltonian
+   for (int i = 0; i < (int)H->size1; i++)
+   {
+      for (int j=0; j < (int)H->size2; j++)
+      {
+         // This is to still use the same momenta
+         int l = j;
+         int k = i;
+         if (!(j<(int)number_of_grid_points))
+         {
+            l = j-number_of_grid_points;
+         }
+         if (!(i<(int)number_of_grid_points))
+         {
+            k = i-number_of_grid_points;
+         }
+         double p2 = p[l]*p[l];
+         
+         // These two gives the same answer...
+         gsl_complex el = gsl_matrix_complex_get(V,i,j);
+         
+         if (i==j) {
+            el = gsl_complex_add(gsl_complex_rect(p2/(2.0*mu),0.0),el);
+         }
+         gsl_matrix_complex_set(H,i,j,el);
+      }
+   }
+   //std::cout << "Hamiltonian matrix" << std::endl;
+   //print_m(H);
+
+   // Diagonalize the matrix
+   gsl_vector_complex* eval = gsl_vector_complex_alloc(V->size1);
+   gsl_matrix_complex* evec = gsl_matrix_complex_alloc(V->size1, V->size1);
+
+   gsl_eigen_nonsymmv_workspace* ws = gsl_eigen_nonsymmv_alloc(V->size1);
+   gsl_eigen_nonsymmv(H,eval,evec,ws);
+   
+   gsl_eigen_nonsymmv_free(ws);
+
+   gsl_eigen_nonsymmv_sort(eval, evec, GSL_EIGEN_SORT_ABS_DESC);
    ph::eigen_t e;
 
    e.eigenvalues  = eval;

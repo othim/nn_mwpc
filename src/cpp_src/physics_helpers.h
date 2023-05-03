@@ -86,6 +86,12 @@ typedef struct
 eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,
         qs::quantum_channel chn, const gsl_matrix* V);
 
+// Same mwthod but now the potential is complex and has weights and momentum
+// factors factored in.
+eigen_t solve_SE_complex_weights(double* p, double* w, 
+        unsigned int numer_of_grid_points,
+        qs::quantum_channel chn, const gsl_matrix_complex* V);
+
 /*
  * Converts radians to degrees
  */
