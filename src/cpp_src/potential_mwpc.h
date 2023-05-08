@@ -39,43 +39,49 @@ template <class gsl_m>
 class Pot_mwpc
 {
 private:
-   // The matrices are saved in a specific channel and the class
-   // should be able to store a list of W's for different channels.
-   // By calling populate_saved_matrices() the matrices are stored in memory.
-   std::map<qs::quantum_channel, std::map<std::string, gsl_m*>, qs::comp> saved_matrices_;
-   
-   // Variables to store the Gauss-Legendre grid for the potential
-   double* p_grid_;
-   double* w_grid_;
-   std::size_t mom_grid_size_;
+    // The matrices are saved in a specific channel and the class
+    // should be able to store a list of W's for different channels.
+    // By calling populate_saved_matrices() the matrices are stored in memory.
+    std::map<qs::quantum_channel, std::map<std::string, gsl_m*>, qs::comp> saved_matrices_;
 
-   // Momentum cutoff for the potential. This is used to regulate 
-   // the potential elements for solving the LS-equation in a more
-   // stable way.
-   double cutoff_Lambda_;
-   
-   // The power that Lambda and p is raised to
-   int cut_pow_;
-   bool sharp_cutoff_;
-   // This is the maximum J of the channels the potential class can
-   // calculate matrix elements in, since Lagandre polynomials are just
-   // precomputed and stored to this order.
-   unsigned int J_max_;
-    
-   // If the weights and momentum vectors should be included in the potential
-   bool inc_grid_weights_in_pot_;
+    // Variables to store the Gauss-Legendre grid for the potential
+    double* p_grid_;
+    double* w_grid_;
+    std::size_t mom_grid_size_;
 
-   // If the cutoff also should affect the on-shell part.
-   bool cut_on_shell_;
-   // Pointer to the array of the stored polynomials
-   double** stored_Legendre_polynomials_;
+    // Momentum cutoff for the potential. This is used to regulate 
+    // the potential elements for solving the LS-equation in a more
+    // stable way.
+    double cutoff_Lambda_;
 
-   unsigned int N_GLI_PWA_; // Number of points in Gauss-Legandre angular integration
+    // The power that Lambda and p is raised to
+    int cut_pow_;
+    bool sharp_cutoff_;
+    // This is the maximum J of the channels the potential class can
+    // calculate matrix elements in, since Lagandre polynomials are just
+    // precomputed and stored to this order.
 
-   gsl_integration_fixed_workspace* int_ang_; // Need to be saved to not delete pointers
-   double* z_mesh; // GL integration points
-   double* w_z_mesh; // GL integration weights
-   unsigned int len_z_mesh; // GL integration number of points
+
+    std::string loop_reg_; // == 'DR' or 'SFR'
+    double lam_SFR_; // SFR cutoffs in MeV, used if loop_reg_ == 'SFR'
+
+
+    unsigned int J_max_;
+
+    // If the weights and momentum vectors should be included in the potential
+    bool inc_grid_weights_in_pot_;
+
+    // If the cutoff also should affect the on-shell part.
+    bool cut_on_shell_;
+    // Pointer to the array of the stored polynomials
+    double** stored_Legendre_polynomials_;
+
+    unsigned int N_GLI_PWA_; // Number of points in Gauss-Legandre angular integration
+
+    gsl_integration_fixed_workspace* int_ang_; // Need to be saved to not delete pointers
+    double* z_mesh; // GL integration points
+    double* w_z_mesh; // GL integration weights
+    unsigned int len_z_mesh; // GL integration number of points
 
 private:
    /*
@@ -153,7 +159,8 @@ public:
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
-           bool inc_grid_weights_in_pot = false, bool cut_on_shell = true);
+           bool inc_grid_weights_in_pot = false, bool cut_on_shell = true,
+           std::string loop_reg = "DR", double lam_SFR = 0.0);
 
     /* 
       Destructor

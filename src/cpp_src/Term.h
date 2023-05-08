@@ -93,11 +93,19 @@ private:
     bool well_def_pw_;
     LS_term LS_well_def_pw_;
 
+
+    // Variables to keep track of regularization for loop integrals 
+    // mainly in chiral EFT potential terms
+
 public:
+
+
+    // loop_reg == 'DR' or 'SFR'
+    // lam_SFR is the SFR cutoff in MeV
     std::vector<double> (*my_v_alpha)(double qi, double qo, double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
     // Constructor
     Term(std::string name);
@@ -115,7 +123,7 @@ public:
     std::vector<double> get_v_alpha(double qi, double qo, double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
     double get_v_alpha_well_def_pw(double qi, double qo,
             std::unordered_map<std::string,double>& LECs,
@@ -124,7 +132,7 @@ public:
     static std::vector<double> v_alpha_OPEP(double qi, double qo, double* z, int z_len, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
     static double mom_C1S0(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
@@ -209,6 +217,36 @@ public:
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
     
+
+    /*
+     * Some loop functions to be used in  potentials 
+     */
+    
+    // Function to get the absolute value of the 3-momentum transfer
+    static double get_q(double qi, double qo, double z);
+
+    static double w_f(double q, double mpi);   
+
+    static double L_DR(double q, double mpi);
+
+    // As eq. (2.22) in Epelbaum et al. Eur. Phys. J. A 19 125-137 (2004)
+    static double L_SFR(double q, double mpi, double lam_SFR);
+    
+    
+    static double w_tilde_f(double q, double mpi);
+    
+    static double A_DR(double q, double mpi);
+
+    static double A_SFR(double q, double mpi, double lam_SFR);
+    
+    // General loop functions to be used, sice they take the Term-regularization
+    // into account
+    static double L_gen(double q, double mpi, std::string loop_reg, 
+            double lam_SFR);
+    static double A_gen(double q, double mpi, std::string loop_reg,
+            double lam_SFR);
+    
+
     /*
      * nu=2 (N2LO) Chiral two-pion exchange contributions in dimensional
      * regularization. As eq. 4.9-4.12 in M&E Phys. Rep. 503 (2011)
@@ -223,20 +261,14 @@ public:
      *
      */
 
-    // Function to get the absolute value of the 3-momentum transfer
-    static double get_q(double qi, double qo, double z);
-
-    static double w_f(double q, double mpi);   
-
-    static double L_DR(double q, double mpi);
-
     static std::vector<double> V_T_2pi_nu_2(double qi, double qo, 
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
     
-    static double V_T_2pi_nu_2(double q, double gA, double mpi, double fpi);
+    static double V_T_2pi_nu_2(double q, double gA, double mpi, double fpi,
+            std::string loop_reg, double lam_SFR);
     
     
 
@@ -244,7 +276,7 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
 
     
@@ -252,28 +284,26 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
     static double W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
-            double w);  
+            double w, std::string loop_reg, double lam_SFR);
     /*
      * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
      * regularization. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
      */
 
-    static double w_tilde_f(double q, double mpi);
-    
-    static double A_DR(double q, double mpi);
     
     static std::vector<double> V_C_2pi_nu_3(double qi, double qo, 
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
     // q is the absolute value of the 3-momentum transfer
     static double V_C_2pi_nu_3(double q, double gA, double c1, double c3, 
-        double mpi, double fpi, double mN, double w, double w_t);
+        double mpi, double fpi, double mN, double w, double w_t,
+        std::string loop_reg, double lam_SFR);
     
 
 
@@ -281,10 +311,11 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
-    
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+   
     static double W_C_2pi_nu_3(double q, double gA, double mpi, double fpi, 
-            double mN, double w, double w_t);
+            double mN, double w, double w_t,
+            std::string loop_reg, double lam_SFR);
 
 
 
@@ -292,10 +323,11 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
     static double V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
-            double mN, double w, double w_t);
+            double mN, double w, double w_t,
+            std::string loop_reg, double lam_SFR);
 
 
 
@@ -303,7 +335,7 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
 
     
@@ -311,11 +343,12 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
     
    
     static double W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fpi,
-            double mN, double w);
+            double mN, double w,
+            std::string loop_reg, double lam_SFR);
 
 
     
@@ -323,7 +356,7 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
  
 
 
@@ -331,10 +364,11 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
     
     static double V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
-            double mN, double w_t);
+            double mN, double w_t,
+            std::string loop_reg, double lam_SFR);
  
 
 
@@ -342,10 +376,11 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
     static double W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi, 
-            double mN, double w);
+            double mN, double w,
+            std::string loop_reg, double lam_SFR);
 };
 
 #endif

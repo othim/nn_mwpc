@@ -16,7 +16,8 @@ template Pot_mwpc<gsl_matrix>::~Pot_mwpc();
 
 template Pot_mwpc<gsl_matrix>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell);
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   std::string loop_reg, double lam_SFR);
 
 template void Pot_mwpc<gsl_matrix_complex>::populate_saved_mtx(qs::quantum_channel chn, 
         bool rel_correction);
@@ -34,26 +35,29 @@ template Pot_mwpc<gsl_matrix_complex>::~Pot_mwpc();
 
 template Pot_mwpc<gsl_matrix_complex>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell);
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   std::string loop_reg, double lam_SFR);
 
 
 template <class gsl_m>
 Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell)
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   std::string loop_reg, double lam_SFR)
 {
    // Init constants
-   N_GLI_PWA_ = N_GLI_PWA;
-   p_grid_ = p_grid;
-   w_grid_ = w_grid;
-   mom_grid_size_ = mom_grid_size;
-   J_max_ = J_max;
-   cutoff_Lambda_ = cutoff_Lambda;
-   cut_pow_ = cut_pow;   
-   sharp_cutoff_ = sharp_cutoff;
-   
+   N_GLI_PWA_               = N_GLI_PWA;
+   p_grid_                  = p_grid;
+   w_grid_                  = w_grid;
+   mom_grid_size_           = mom_grid_size;
+   J_max_                   = J_max;
+   cutoff_Lambda_           = cutoff_Lambda;
+   cut_pow_                 = cut_pow;   
+   sharp_cutoff_            = sharp_cutoff;
    inc_grid_weights_in_pot_ = inc_grid_weights_in_pot;
-   cut_on_shell_ = cut_on_shell;
+   cut_on_shell_            = cut_on_shell;
+   loop_reg_                = loop_reg;
+   lam_SFR_                 = lam_SFR;
 
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
@@ -274,7 +278,7 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
          // Compute v_alpha array. Just make this function call ONCE!
          std::vector<double> v_alpha_arr = 
              terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_,params_,
-                     chn);
+                     chn,loop_reg_,lam_SFR_);
 
          // Call pwa with the correct spin structure from this term
          // This will fill up the array V_arr with the correct potential elements

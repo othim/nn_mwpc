@@ -410,9 +410,9 @@ std::vector<std::string> Term::get_params_in_term()
 std::vector<double> Term::get_v_alpha(double qi, double qo, double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
-    return my_v_alpha(qi,qo,z,z_len,LECs,params,chn);
+    return my_v_alpha(qi,qo,z,z_len,LECs,params,chn,loop_reg,lam_SFR);
 }
 
 double Term::get_v_alpha_well_def_pw(double qi, double qo,
@@ -437,7 +437,7 @@ double Term::get_v_alpha_well_def_pw(double qi, double qo,
 std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z, int z_len, 
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double lec = params["gA"];
     std::vector<double> tmp(z_len);
@@ -670,13 +670,88 @@ double Term::L_DR(double q, double mpi)
     return (w/q)*std::log((w+q)/(2*mpi));
 }
 
+double L_SFR(double q, double mpi, double lam_SFR)
+{
+    if (lam_SFR > 2.0*mpi)
+    {
+        double w = Term::w_f(q,mpi);
+        
+        double s = std::sqrt(lam_SFR*lam_SFR - 4.0*mpi*mpi);
+
+        double ln_fac = (lam_SFR*lam_SFR*w*w + q*q*s*s + 2.0*lam_SFR*q*w*s)/(
+                4.0*mpi*mpi*(lam_SFR*lam_SFR + q*q));
+
+        return (w/2.0*q)*std::log(ln_fac);
+    } else 
+    {
+        return 0;
+    }
+}
+
+
+double A_SFR(double q, double mpi, double lam_SFR)
+{
+    if (lam_SFR > 2.0*mpi)
+    {
+        double tmp = (q*(lam_SFR - 2.0*mpi))/(q*q + 2.0*lam_SFR*mpi);
+
+        return (1.0/(2.0*q))*std::atan(tmp);
+    } else
+    {
+        return 0.0;
+    }
+
+}
+
+double Term::w_tilde_f(double q, double mpi)
+{
+    return std::sqrt(2.0*mpi*mpi+q*q);
+}
+
+double Term::A_DR(double q, double mpi)
+{
+    return (1.0/(2.0*q))*std::atan(q/(2.0*mpi));
+}
+
+
+double L_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
+{
+    if (loop_reg == "DR")
+    {
+        return Term::L_DR(q,mpi);
+    } else if (loop_reg == "SFR")
+    {
+        return Term::L_SFR(q, mpi, lam_SFR);
+    } else
+    {   
+        std::cout << "Error, loop_reg_ is not 'DR' or 'SFR'" << std::endl;
+        return -1.0;
+    }
+}
+
+double A_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
+{
+    if (loop_reg == "DR")
+    {
+        return Term::A_DR(q, mpi);   
+    } else if (loop_reg == "SFR")
+    {
+        return Term::A_SFR(q, mpi, lam_SFR);
+    } else
+    {   
+        std::cout << "Error, loop_reg_ is not 'DR' or 'SFR'" << std::endl;
+        return -1.0;
+    }
+
+}
+
 //*****************************************************************************
 
 std::vector<double> Term::V_T_2pi_nu_2(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
     double mpi = constants::mpi;
@@ -688,15 +763,17 @@ std::vector<double> Term::V_T_2pi_nu_2(double qi, double qo,
     for (int i = 0; i < (int)z_len; i++)
     {
         q      = Term::get_q(qi,qo,z[i]);
-        tmp[i] = Term::V_T_2pi_nu_2(q, gA, mpi, fpi);
+        tmp[i] = Term::V_T_2pi_nu_2(q, gA, mpi, fpi, loop_reg, lam_SFR);
     }
 	return tmp;
 
 }
 
-double Term::V_T_2pi_nu_2(double q, double gA, double mpi, double fpi)
+double Term::V_T_2pi_nu_2(double q, double gA, double mpi, double fpi,
+        std::string loop_reg, double lam_SFR)
 {
-    return (-3.0*std::pow(gA,4)*Term::L_DR(q,mpi))/(64.0*M_PI*M_PI*std::pow(fpi,4));
+    return (-3.0*std::pow(gA,4)*Term::L_gen(q,mpi,loop_reg,lam_SFR))/
+        (64.0*M_PI*M_PI*std::pow(fpi,4));
 }
 
 //*****************************************************************************
@@ -705,7 +782,7 @@ std::vector<double> Term::V_S_2pi_nu_2(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
     double mpi = constants::mpi;
@@ -717,7 +794,7 @@ std::vector<double> Term::V_S_2pi_nu_2(double qi, double qo,
     for (int i = 0; i < (int)z_len; i++)
     {
         q      = Term::get_q(qi,qo,z[i]);
-        tmp[i] = -q*q*Term::V_T_2pi_nu_2(q, gA, mpi, fpi);
+        tmp[i] = -q*q*Term::V_T_2pi_nu_2(q, gA, mpi, fpi, loop_reg, lam_SFR);
     }
 	return tmp;
 }
@@ -728,7 +805,7 @@ std::vector<double> Term::W_C_2pi_nu_2(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
     double mpi = constants::mpi;
@@ -741,13 +818,13 @@ std::vector<double> Term::W_C_2pi_nu_2(double qi, double qo,
     {
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
-        tmp[i] = Term::W_C_2pi_nu_2(q, gA, mpi, fpi, w);
+        tmp[i] = Term::W_C_2pi_nu_2(q, gA, mpi, fpi, w, loop_reg, lam_SFR);
     }
 	return tmp;
 }
 
 double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
-        double w)
+        double w, std::string loop_reg, double lam_SFR)
 {
     double gA2 = gA*gA;
     double gA4 = std::pow(gA,4);
@@ -755,7 +832,8 @@ double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
     double fac = 4.0*mpi*mpi*(5.0*gA4-4.0*gA2-1)+q*q*(23.0*gA4-10*gA2-1)+
         (48.0*gA4*std::pow(mpi,4))/(w*w);
 
-    return ((-Term::L_DR(q,mpi))/(384.0*M_PI*M_PI*std::pow(fpi,4)))*fac;
+    return ((-Term::L_gen(q,mpi,loop_reg, lam_SFR))/
+            (384.0*M_PI*M_PI*std::pow(fpi,4)))*fac;
 }
 
 //*****************************************************************************
@@ -765,15 +843,6 @@ double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
  * regularization. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
  */
 
-double Term::w_tilde_f(double q, double mpi)
-{
-    return std::sqrt(2.0*mpi*mpi+q*q);
-}
-
-double Term::A_DR(double q, double mpi)
-{
-    return (1.0/(2.0*q))*std::atan(q/(2.0*mpi));
-}
 
 //*****************************************************************************
 
@@ -781,7 +850,7 @@ std::vector<double> Term::V_C_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     // Get the constants
     double gA  = params["gA"];
@@ -800,13 +869,15 @@ std::vector<double> Term::V_C_2pi_nu_3(double qi, double qo,
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
         w_t    = Term::w_tilde_f(q,mpi);
-        tmp[i] = Term::V_C_2pi_nu_3(q, gA, c1, c3, mpi, fpi, mN, w, w_t);
+        tmp[i] = Term::V_C_2pi_nu_3(q, gA, c1, c3, mpi, fpi, mN, w, w_t, 
+                loop_reg, lam_SFR);
     }
 	return tmp;
 }  
 
 double Term::V_C_2pi_nu_3(double q, double gA, double c1, double c3, 
-        double mpi, double fpi, double mN, double w, double w_t)
+        double mpi, double fpi, double mN, double w, double w_t,
+        std::string loop_reg, double lam_SFR)
 {
     double gA2 = gA*gA;
 
@@ -816,7 +887,7 @@ double Term::V_C_2pi_nu_3(double q, double gA, double c1, double c3,
     
     double tmp3 = (3.0*gA2)/(16.0*M_PI*std::pow(fpi,4));
 
-    return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_DR(q,mpi));
+    return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR));
 
 }
 
@@ -826,7 +897,7 @@ std::vector<double> Term::W_C_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
     
@@ -841,13 +912,14 @@ std::vector<double> Term::W_C_2pi_nu_3(double qi, double qo,
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
         w_t    = Term::w_tilde_f(q,mpi);
-        tmp[i] = Term::W_C_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
+        tmp[i] = Term::W_C_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t, loop_reg,
+                lam_SFR);
     }
 	return tmp;
 }
 
 double Term::W_C_2pi_nu_3(double q, double gA, double mpi, double fpi, 
-        double mN, double w, double w_t)
+        double mN, double w, double w_t, std::string loop_reg, double lam_SFR)
 {
     double gA2 = gA*gA;
     
@@ -857,7 +929,7 @@ double Term::W_C_2pi_nu_3(double q, double gA, double mpi, double fpi,
 
     double tmp3 = (gA2)/(128.0*M_PI*mN*std::pow(fpi,4));
 
-    return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_DR(q,mpi));
+    return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR));
 }
 
 //*****************************************************************************
@@ -866,7 +938,7 @@ std::vector<double> Term::V_T_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
 
@@ -882,16 +954,18 @@ std::vector<double> Term::V_T_2pi_nu_3(double qi, double qo,
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
         w_t    = Term::w_tilde_f(q,mpi);
-        tmp[i] = Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
+        tmp[i] = Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t, loop_reg,
+                lam_SFR);
     }
 	return tmp;
 }
 
 double Term::V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
-        double mN, double w, double w_t)
+        double mN, double w, double w_t, std::string loop_reg, double lam_SFR)
 {
     double gA4 = std::pow(gA,4);
-    return (9.0*gA4*w_t*w_t*Term::A_DR(q,mpi))/(512.0*M_PI*mN*std::pow(fpi,4));
+    return (9.0*gA4*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
+        (512.0*M_PI*mN*std::pow(fpi,4));
 }
 
 //*****************************************************************************
@@ -900,7 +974,7 @@ std::vector<double> Term::V_S_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
 
@@ -916,7 +990,8 @@ std::vector<double> Term::V_S_2pi_nu_3(double qi, double qo,
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
         w_t    = Term::w_tilde_f(q,mpi);
-        tmp[i] = -q*q*Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t);
+        tmp[i] = -q*q*Term::V_T_2pi_nu_3(q, gA, mpi, fpi, mN, w, w_t, loop_reg,
+                lam_SFR);
     }
 	return tmp;
 }
@@ -927,7 +1002,7 @@ std::vector<double> Term::W_T_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
     double c4  = params["c4"];
@@ -943,19 +1018,21 @@ std::vector<double> Term::W_T_2pi_nu_3(double qi, double qo,
     {
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
-        tmp[i] = Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
+        tmp[i] = Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w, loop_reg, 
+                lam_SFR);
     }
 	return tmp;
 }
 
 double Term::W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fpi,
-        double mN, double w)
+        double mN, double w, std::string loop_reg, double lam_SFR)
 {
     double gA2 = std::pow(gA,2);
     
     double tmp1 = (c4+1.0/(4.0*mN))*w*w - (gA2/(8.0*mN))*(10.0*mpi*mpi+3.0*q*q);
 
-    double tmp2 = (-gA2*Term::A_DR(q,mpi))/(32.0*M_PI*std::pow(fpi,4));
+    double tmp2 = (-gA2*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
+        (32.0*M_PI*std::pow(fpi,4));
     
     return tmp2*tmp1;
 
@@ -967,7 +1044,7 @@ std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
     double c4  = params["c4"];
@@ -983,7 +1060,8 @@ std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo,
     {
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
-        tmp[i] = -q*q*Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w);
+        tmp[i] = -q*q*Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w, loop_reg,
+                lam_SFR);
     }
 	return tmp;
 }
@@ -994,7 +1072,7 @@ std::vector<double> Term::V_LS_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
 
@@ -1009,17 +1087,19 @@ std::vector<double> Term::V_LS_2pi_nu_3(double qi, double qo,
     {
         q      = Term::get_q(qi,qo,z[i]);
         w_t    = Term::w_tilde_f(q,mpi);
-        tmp[i] = Term::V_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w_t);
+        tmp[i] = Term::V_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w_t, loop_reg, 
+                lam_SFR);
     }
 	return tmp;
 }
 
 double Term::V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
-        double mN, double w_t)
+        double mN, double w_t, std::string loop_reg, double lam_SFR)
 {
     double gA4 = std::pow(gA,4);
     
-    return (3.0*gA4*w_t*w_t*Term::A_DR(q,mpi))/(32.0*M_PI*mN*std::pow(fpi,4));
+    return (3.0*gA4*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
+        (32.0*M_PI*mN*std::pow(fpi,4));
 }
 
 //*****************************************************************************
@@ -1028,7 +1108,7 @@ std::vector<double> Term::W_LS_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
 
@@ -1042,15 +1122,16 @@ std::vector<double> Term::W_LS_2pi_nu_3(double qi, double qo,
     {
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
-        tmp[i] = Term::W_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w);
+        tmp[i] = Term::W_LS_2pi_nu_3(q, gA, mpi, fpi, mN, w, loop_reg, lam_SFR);
     }
 	return tmp;
 }
 
 double Term::W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi, 
-        double mN, double w)
+        double mN, double w, std::string loop_reg, double lam_SFR)
 {
     double gA2 = std::pow(gA,2);
     
-    return (gA2*(1-gA2)*w*w*Term::A_DR(q,mpi))/(32.0*M_PI*mN*std::pow(fpi,4));
+    return (gA2*(1-gA2)*w*w*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
+        (32.0*M_PI*mN*std::pow(fpi,4));
 }

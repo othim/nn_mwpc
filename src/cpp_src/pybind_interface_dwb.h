@@ -118,7 +118,7 @@ private:
      *
      */
     Pot_mwpc<gsl_matrix_complex>* load_pre_def_pot(
-            std::string pre_def_name);
+            std::string pre_def_name, double lam_SFR);
 
 public:
 
@@ -263,7 +263,7 @@ public:
      * *********************************************
      */
     void create_new_potential(const std::string& potential_name, 
-            std::string pre_def_name);
+            std::string pre_def_name, double lam_SFR);
     
     void print_LEC_values(const std::string& potential_name);
     void print_param_values(const std::string& potential_name);
