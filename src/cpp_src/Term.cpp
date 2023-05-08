@@ -829,7 +829,7 @@ double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
     double gA2 = gA*gA;
     double gA4 = std::pow(gA,4);
 
-    double fac = 4.0*mpi*mpi*(5.0*gA4-4.0*gA2-1)+q*q*(23.0*gA4-10*gA2-1)+
+    double fac = 4.0*mpi*mpi*(5.0*gA4-4.0*gA2-1)+q*q*(23.0*gA4-10.0*gA2-1.0)+
         (48.0*gA4*std::pow(mpi,4))/(w*w);
 
     return ((-Term::L_gen(q,mpi,loop_reg, lam_SFR))/

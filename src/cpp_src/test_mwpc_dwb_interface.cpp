@@ -109,9 +109,9 @@ int main(int argc, char** argv)
 
     gA   = 1.29;
 
-    double c1 = -0.69*1e3;
-    double c3 = -4.12*1e3;
-    double c4 = 5.35*1e3;
+    double c1 = -0.69*1e-3;
+    double c3 = -4.12*1e-3;
+    double c4 = 5.35*1e-3;
     // Set parameters before saving!
     params = {gA};
     // LECs need to be set after saving!
