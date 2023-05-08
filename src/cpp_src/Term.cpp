@@ -670,7 +670,7 @@ double Term::L_DR(double q, double mpi)
     return (w/q)*std::log((w+q)/(2*mpi));
 }
 
-double L_SFR(double q, double mpi, double lam_SFR)
+double Term::L_SFR(double q, double mpi, double lam_SFR)
 {
     if (lam_SFR > 2.0*mpi)
     {
@@ -681,7 +681,7 @@ double L_SFR(double q, double mpi, double lam_SFR)
         double ln_fac = (lam_SFR*lam_SFR*w*w + q*q*s*s + 2.0*lam_SFR*q*w*s)/(
                 4.0*mpi*mpi*(lam_SFR*lam_SFR + q*q));
 
-        return (w/2.0*q)*std::log(ln_fac);
+        return (w/(2.0*q))*std::log(ln_fac);
     } else 
     {
         return 0;
@@ -689,7 +689,7 @@ double L_SFR(double q, double mpi, double lam_SFR)
 }
 
 
-double A_SFR(double q, double mpi, double lam_SFR)
+double Term::A_SFR(double q, double mpi, double lam_SFR)
 {
     if (lam_SFR > 2.0*mpi)
     {
@@ -714,7 +714,7 @@ double Term::A_DR(double q, double mpi)
 }
 
 
-double L_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
+double Term::L_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
 {
     if (loop_reg == "DR")
     {
@@ -729,7 +729,7 @@ double L_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
     }
 }
 
-double A_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
+double Term::A_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
 {
     if (loop_reg == "DR")
     {

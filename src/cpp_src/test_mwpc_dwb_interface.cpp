@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     // ****** CONSTANTS TO CHANGE *********************************************
     // ************************************************************************
     double scale_              = 100; // Scale of momenutm grid MeV (100)
-    int number_of_p_points_    = 100; // Number of momentum-grid points (60)
+    int number_of_p_points_    = 60; // Number of momentum-grid points (60)
     int ang_int_points_        = 76; // Number of points in angular integration
     int J_max_in_pot_          = 50; // Maximum J that is stored for L-polynomials
     int J_max_chn_             = 2;
@@ -87,10 +87,44 @@ int main(int argc, char** argv)
     LECs = {C1S0,C3S1,D1P1,D1S0,D3P0,D3P1,D3P2,D3S1,D_SD};
     
     name = "NLO";
-    pre_def_name = "WPC_NLO_DR";
+    pre_def_name = "WPC_NLO_SFR";
     compute_spectrum(name,pre_def_name,LECs,params, obj);
 
 
+    /*
+     * ***************
+     * N2LO   
+     * ***************
+     */
+    C1S0 = -0.150533e-2;
+    C3S1 = -0.1742e-2;
+    
+    D1P1 = 0.849e-8;
+    D1S0 = 1.6926e-8;
+    D3P0 = 1.3085e-8;
+    D3P1 = -0.3409e-8;
+    D3P2 = -0.2011e-8;
+    D3S1 = -0.408e-8;
+    D_SD = 0.238e-8;
+
+    gA   = 1.29;
+
+    double c1 = -0.69*1e3;
+    double c3 = -4.12*1e3;
+    double c4 = 5.35*1e3;
+    // Set parameters before saving!
+    params = {gA};
+    // LECs need to be set after saving!
+    LECs = {C1S0,C3S1,D1P1,D1S0,D3P0,D3P1,D3P2,D3S1,D_SD,c1,c3,c4};
+    name = "N2LO";
+    pre_def_name = "WPC_N2LO_SFR";
+    compute_spectrum(name,pre_def_name,LECs,params, obj);
+
+    /*for (int q=1; q<300;q++)
+    {
+        std::cout << Term::L_DR((double)q,constants::mpi) << ", ";
+        std::cout << Term::L_SFR((double)q,constants::mpi,1000000.0) << std::endl;
+    }*/
 
     return 0;
 }
@@ -110,9 +144,6 @@ void compute_spectrum(std::string name, std::string pot_name, std::vector<double
 
     obj.save_potential_decomposition(name);
     
-    int a;
-    std::cin >> a;
-
     obj.set_LECs_in_potential(name,LECs);
     obj.print_LEC_values(name);
  
@@ -124,6 +155,4 @@ void compute_spectrum(std::string name, std::string pot_name, std::vector<double
             std::cout << a << std::endl;
         }
     }
-
-
 }
