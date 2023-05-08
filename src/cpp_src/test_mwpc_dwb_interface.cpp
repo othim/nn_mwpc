@@ -1,0 +1,129 @@
+
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cstdio>
+#include <ctime>
+#include <algorithm>
+#include "pybind_interface.h"
+#include "pybind_interface_dwb.h"
+#include "pot_ext.h"
+#include "born_approx.h"
+#include "potential_mwpc.h"
+#include "physics_helpers.h"
+
+void compute_spectrum(std::string name, std::string pot_name, 
+        std::vector<double> LECs, std::vector<double> params, 
+        nn_mwpc_dwb_interface& obj);
+
+
+int main(int argc, char** argv)
+{
+
+    // ************************************************************************
+    // ****** CONSTANTS TO CHANGE *********************************************
+    // ************************************************************************
+    double scale_              = 100; // Scale of momenutm grid MeV (100)
+    int number_of_p_points_    = 100; // Number of momentum-grid points (60)
+    int ang_int_points_        = 76; // Number of points in angular integration
+    int J_max_in_pot_          = 50; // Maximum J that is stored for L-polynomials
+    int J_max_chn_             = 2;
+    double cutoff_             = 500; // Cutoff in LS-equation
+    int cut_pow_               = 6;
+    bool sharp_cutoff_         = false;
+    bool rel_corr_             = true;
+    bool finite_grid_          = false;
+    bool finite_grid_max_      = 0.0; // Just default value
+    bool cut_on_shell_         = true;
+    bool print_                = true;
+    
+    
+    // Construct an object
+    
+    nn_mwpc_dwb_interface obj = 
+        nn_mwpc_dwb_interface(scale_,J_max_chn_,cutoff_, 
+            cut_pow_,sharp_cutoff_,rel_corr_,number_of_p_points_, finite_grid_,
+            cut_on_shell_,print_);
+    /*
+     * ***************
+     * LO   
+     * ***************
+     */
+    double C1S0 = -0.10768e-2;
+    double C3S1 = -0.07172e-2;
+
+    double gA   = 1.276;
+
+    // Set parameters before saving!
+    std::vector<double> params = {gA};
+    // LECs need to be set after saving!
+    std::vector<double> LECs = {C1S0,C3S1};
+    
+    std::string name = "LO";
+    std::string pre_def_name = "WPC_LO";
+    compute_spectrum(name,pre_def_name,LECs,params, obj);
+    
+    /*
+     * ***************
+     * NLO   
+     * ***************
+     */
+    C1S0 = -0.150533e-2;
+    C3S1 = -0.1742e-2;
+    
+    double D1P1 = 0.849e-8;
+    double D1S0 = 1.6926e-8;
+    double D3P0 = 1.3085e-8;
+    double D3P1 = -0.3409e-8;
+    double D3P2 = -0.2011e-8;
+    double D3S1 = -0.408e-8;
+    double D_SD = 0.238e-8;
+
+    gA   = 1.29;
+
+    // Set parameters before saving!
+    params = {gA};
+    // LECs need to be set after saving!
+    LECs = {C1S0,C3S1,D1P1,D1S0,D3P0,D3P1,D3P2,D3S1,D_SD};
+    
+    name = "NLO";
+    pre_def_name = "WPC_NLO_DR";
+    compute_spectrum(name,pre_def_name,LECs,params, obj);
+
+
+
+    return 0;
+}
+
+
+void compute_spectrum(std::string name, std::string pot_name, std::vector<double> LECs, 
+        std::vector<double> params, nn_mwpc_dwb_interface& obj)
+{
+    double lam_SFR = 700.0;
+    obj.create_new_potential(name,pot_name,lam_SFR);
+    obj.print_LECs_in_use(name);
+    obj.print_params_in_use(name);
+
+
+    obj.set_params_in_potential(name,params);
+    obj.print_param_values(name);
+
+    obj.save_potential_decomposition(name);
+    
+    int a;
+    std::cin >> a;
+
+    obj.set_LECs_in_potential(name,LECs);
+    obj.print_LEC_values(name);
+ 
+    int chn_number = 3;
+    std::vector<double> res = obj.compute_binding_energy(chn_number, true, name);
+    std::cout << name << std::endl;
+    for (auto a : res)
+    {   if (a<0) {
+            std::cout << a << std::endl;
+        }
+    }
+
+
+}
