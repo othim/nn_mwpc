@@ -98,6 +98,7 @@ Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA
    LEC_names_.push_back("Yamaguchi_lambda_11");
    
    param_names_.push_back("gA");
+   param_names_.push_back("d18");
    param_names_.push_back("Yamaguchi_beta");
 
    // Initialize all LECs to zero

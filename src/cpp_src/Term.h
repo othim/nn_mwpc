@@ -288,6 +288,16 @@ public:
 
     static double W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
             double w, std::string loop_reg, double lam_SFR);
+    
+    // This is an NLO OPE contribution. This is similar to OPE but 
+    // with different prefactors.
+    // As eq. (2.8) in Eur. Phys. J. A 19, 401-214 (2004)
+    static std::vector<double> W_T_1pi_nu_2(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+
     /*
      * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
      * regularization. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).

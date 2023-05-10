@@ -37,6 +37,15 @@ Term::Term(std::string name)
         my_v_alpha = &Term::W_C_2pi_nu_2; 
         params_in_term_.push_back("gA");
         isovector_ = true;
+    } else if (name == "W_T_1pi_nu_2")
+    {
+        term_name_ = name;
+        spin_structure_ = "T";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_T_1pi_nu_2; 
+        params_in_term_.push_back("gA");
+        params_in_term_.push_back("d18");
+        isovector_ = true;
     } else if (name == "V_C_2pi_nu_3")
     {
         term_name_ = name;
@@ -836,6 +845,25 @@ double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
             (384.0*M_PI*M_PI*std::pow(fpi,4)))*fac;
 }
 
+static std::vector<double> W_T_1pi_nu_2(double qi, double qo, 
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+{
+    double gA = params["gA"];
+    double d18 = params["d18"];
+    double mpi = constants::mpi;
+    double fpi = constants::fpi;
+    std::vector<double> tmp(z_len);
+    
+    for (int i = 0; i < (int)z_len; i++)
+    {
+        q      = Term::get_q(qi,qo,z[i]);
+        tmp[i] = ((gA*d18*mpi*mpi)/(fpi*fpi))*(1.0/(q*q + mpi*mpi));
+    }
+	return tmp;
+}
 //*****************************************************************************
 
 /*
