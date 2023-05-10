@@ -845,7 +845,7 @@ double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
             (384.0*M_PI*M_PI*std::pow(fpi,4)))*fac;
 }
 
-static std::vector<double> W_T_1pi_nu_2(double qi, double qo, 
+std::vector<double> Term::W_T_1pi_nu_2(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
@@ -856,7 +856,8 @@ static std::vector<double> W_T_1pi_nu_2(double qi, double qo,
     double mpi = constants::mpi;
     double fpi = constants::fpi;
     std::vector<double> tmp(z_len);
-    
+    double q;
+
     for (int i = 0; i < (int)z_len; i++)
     {
         q      = Term::get_q(qi,qo,z[i]);
