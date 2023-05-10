@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 #include <string>
 #include <map>
@@ -214,7 +215,11 @@ public:
       appropriate LECs.
     */
     gsl_m* get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction);
- 
- };
+    
 
+    /*
+     * Print info about LECs and params in the potential
+     */
+    void print_LECs_and_params_info();
+ };
 #endif

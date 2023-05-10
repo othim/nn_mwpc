@@ -38,6 +38,8 @@ template Pot_mwpc<gsl_matrix_complex>::Pot_mwpc(std::vector<std::string> terms, 
    bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
    std::string loop_reg, double lam_SFR);
 
+template void Pot_mwpc<gsl_matrix_complex>::print_LECs_and_params_info();
+template void Pot_mwpc<gsl_matrix>::print_LECs_and_params_info();
 
 template <class gsl_m>
 Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
@@ -107,7 +109,7 @@ Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA
    // Initialize all params to zero
    for (std::size_t i = 0; i < param_names_.size(); i++)
    {
-      LECs_.insert( std::make_pair (param_names_[i],0.0) );
+      params_.insert( std::make_pair (param_names_[i],0.0) );
    }
 
    // Update list of LECs and params that are in this instancs of the potential 
@@ -1164,4 +1166,74 @@ double Pot_mwpc<gsl_m>::get_total_rel_cut_weight_factor(double p_in, int j,
 
      // Multiply everything together
      return rel_fac*cutoff_regulator*weights_momenta;
+}
+
+template <class gsl_m>
+void Pot_mwpc<gsl_m>::print_LECs_and_params_info()
+{
+    std::cout << std::endl << 
+        "#####################################################################"
+        << std::endl;
+    std::cout << 
+        "#####################################################################"
+        << std::endl;
+
+    std::cout << "                     Printing potential info" << std::endl;
+
+    std::cout << 
+        "#####################################################################" 
+        << std::endl;
+    std::cout << 
+        "#####################################################################"
+        << std::endl;
+
+    std::cout << "Terms in potential:" <<  std::endl;
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+    for (auto& T : terms_in_pot_)
+    {
+        std::cout << T.term_name_ << std::endl;
+    }    
+
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+    std::cout << std::endl << "The LECs in the same order as they must be set in the"
+              << " set functions:" << std::endl;
+    std::cout << "Current set LEC values are shown (All units in powers of MeV)" 
+        << std::endl;
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+
+    for (auto s : LECs_in_use_)
+    {
+        std::cout << std::setw(20) << s << " = " << LECs_[s] << std::endl; 
+    }
+    
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+    std::cout << std::endl << "The params in the same order as they must be set in the"
+              << " set functions:" << std::endl;
+    std::cout << "(All units in powers of MeV)" << std::endl;
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+
+    for (auto s : params_in_use_)
+    {
+        std::cout << std::setw(20) << s << " = " << params_[s] << std::endl; 
+    }
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+    std::cout << 
+        "#####################################################################"
+        << std::endl;
+    std::cout << 
+        "#####################################################################" 
+        << std::endl << std::endl;
+
 }

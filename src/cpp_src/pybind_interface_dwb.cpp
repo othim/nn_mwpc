@@ -347,15 +347,24 @@ void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_na
     potential_names_.push_back(potential_name);
 }
 
+void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_name)
+{   
+    potentials_[potential_name]->print_LECs_and_params_info();
+}
+
 void nn_mwpc_dwb_interface::print_LEC_values(const std::string& potential_name)
 {
-    std::cout << "LECs and their current values\n" << 
-                 "-----------------------------" << std::endl;
+    std::cout << "LECs and their current values\n";
+    std::cout << 
+        "#####################################################################" 
+        << std::endl;
     for (auto& it: potentials_[potential_name]->LECs_)
     {
         std::cout << std::setw(20) << it.first << " = " << it.second << std::endl;
     }
-    std::cout << "-----------------------------" << std::endl << std::endl;
+    std::cout << 
+        "#####################################################################" 
+        << std::endl << std::endl;
 }
 
 void nn_mwpc_dwb_interface::print_param_values(const std::string& potential_name)
@@ -374,6 +383,7 @@ void nn_mwpc_dwb_interface::print_LECs_in_use(const std::string& potential_name)
     // Print the LECs in the same order as they are set in the compute functions.
     std::cout << "The LECs in the same order as they must be set in the"
               << " set functions:" << std::endl;
+    std::cout << "(All units in powers of MeV)" << std::endl;
     std::cout << "-----------------------------------------------------"
               << "---------------" << std::endl;
     for (auto s : potentials_[potential_name]->LECs_in_use_)
@@ -403,6 +413,7 @@ void nn_mwpc_dwb_interface::set_LECs_in_potential(const std::string& potential_n
 {
     // Set the LECs 
     int i=0;
+
     for (auto& it: potentials_[potential_name]->LECs_in_use_)
     {
          std::cout << "LEC: " <<  it << "=" << LECs[i] << std::endl;

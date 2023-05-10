@@ -71,8 +71,6 @@ private:
     // Variable for spin structure
     std::string spin_structure_; // eg. spin-spin, tensor
 
-    // Variable for which term is created 
-    std::string term_name_; // eg. OPEP, C1S0
     
     // Which LECs are associated to the terms (independent of channel)
     std::vector<std::string> lecs_in_term_; // Will be filled in by the constructor
@@ -99,6 +97,8 @@ private:
 
 public:
 
+    // Variable for which term is created 
+    std::string term_name_; // eg. OPEP, C1S0
 
     // loop_reg == 'DR' or 'SFR'
     // lam_SFR is the SFR cutoff in MeV

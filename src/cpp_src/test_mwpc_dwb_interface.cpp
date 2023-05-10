@@ -135,17 +135,14 @@ void compute_spectrum(std::string name, std::string pot_name, std::vector<double
 {
     double lam_SFR = 700.0;
     obj.create_new_potential(name,pot_name,lam_SFR);
-    obj.print_LECs_in_use(name);
-    obj.print_params_in_use(name);
-
+    
+    obj.print_potential_info(name);
 
     obj.set_params_in_potential(name,params);
-    obj.print_param_values(name);
-
     obj.save_potential_decomposition(name);
-    
     obj.set_LECs_in_potential(name,LECs);
-    obj.print_LEC_values(name);
+    
+    obj.print_potential_info(name);
  
     int chn_number = 3;
     std::vector<double> res = obj.compute_binding_energy(chn_number, true, name);
