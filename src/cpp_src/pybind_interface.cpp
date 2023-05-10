@@ -78,14 +78,6 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("print_potential_info", &nn_mwpc_dwb_interface::print_potential_info,
                 py::return_value_policy::copy)
-        .def("print_LEC_values", &nn_mwpc_dwb_interface::print_LEC_values,
-                py::return_value_policy::copy)
-        .def("print_param_values", &nn_mwpc_dwb_interface::print_param_values,
-                py::return_value_policy::copy)
-        .def("print_LECs_in_use", &nn_mwpc_dwb_interface::print_LECs_in_use,
-                py::return_value_policy::copy)
-        .def("print_params_in_use", &nn_mwpc_dwb_interface::print_params_in_use,
-                py::return_value_policy::copy)
         .def("set_LECs_in_potential", 
                 &nn_mwpc_dwb_interface::set_LECs_in_potential,
                 py::return_value_policy::copy)

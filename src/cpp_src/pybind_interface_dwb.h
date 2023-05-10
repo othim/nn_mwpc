@@ -267,12 +267,6 @@ public:
     
     void print_potential_info(const std::string& potential_name);
 
-    void print_LEC_values(const std::string& potential_name);
-    void print_param_values(const std::string& potential_name);
-
-    void print_LECs_in_use(const std::string& potential_name);
-    void print_params_in_use(const std::string& potential_name);
-
     void set_LECs_in_potential(const std::string& potential_name, 
             const std::vector<double>& LECs);
     void set_params_in_potential(const std::string& potential_name, 
