@@ -1,4 +1,4 @@
-#include "pot_ext.h"
+#include "potential_ext.h"
 
 extern "C" {
     void cdbonn_fort_interface(double *qi,

@@ -18,7 +18,7 @@
 
 #include "pot_nn_mwpc.h"
 #include "potential_mwpc.h"
-#include "pot_ext.h"
+#include "potential_ext.h"
 #include "quantum_states.h"
 #include "LS_Solver.h"
 #include "gsl_sf_legendre.h" 
@@ -275,7 +275,7 @@ public:
     void save_potential_decomposition(const std::string& potential_name);
 
     void print_potential_names();
-
+    
     /*
      * **********************************
      * Functions to get various constants

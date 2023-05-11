@@ -116,8 +116,8 @@ endif
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 CDBONN_FILES = cdbonn_interface.o cdbonn.o # Compiled separately from Fortran code
 NN_MWPC_FILES = pybind_interface.o Term.o \
-				quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
-				born_approx.o pybind_interface_dwb.o potential_mwpc.o
+				quantum_states.o LS_Solver.o scattering.o physics_helpers.o potential_ext.o \
+				born_approx.o pybind_interface_dwb.o potential_mwpc.o potential.o
 
 obs: $(NN_MWPC_FILES) compute_obs.o
 	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) compute_obs.o $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
@@ -126,7 +126,7 @@ tmi: $(NN_MWPC_FILES) test_mwpc_dwb_interface.o
 	$(CC) $(CFLAGS2) -o tmi $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) test_mwpc_dwb_interface.o $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
 FILES_SO = pybind_interface.o compute_obs.o Term.o pot_nn_mwpc.o\
-		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o pot_ext.o \
+		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o potential_ext.o \
 		   born_approx.o pybind_interface_dwb.o potential_mwpc.o
 
 so: $(FILES_SO)
@@ -134,6 +134,9 @@ so: $(FILES_SO)
 
 pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) $(FLAGS) -c pybind_interface.cpp
+
+potential.o: potential.cpp
+	$(CC) $(CFLAGS) $(PY_BIND) $(FLAGS) -c potential.cpp
 
 compute_obs.o: compute_obs.cpp
 	$(CC) $(CFLAGS) $(FLAGS) -c compute_obs.cpp
@@ -159,8 +162,8 @@ scattering.o: scattering.h
 physics_helpers.o: physics_helpers.h 
 	$(CC) $(CFLAGS) $(FLAGS) -c physics_helpers.cpp	
 
-pot_ext.o: pot_ext.h
-	$(CC) $(CFLAGS) $(FLAGS) -c pot_ext.cpp
+potential_ext.o: potential_ext.h
+	$(CC) $(CFLAGS) $(FLAGS) -c potential_ext.cpp
 
 born_approx.o: born_approx.h
 	$(CC) $(CFLAGS) $(FLAGS) -c born_approx.cpp
@@ -173,4 +176,4 @@ potential_mwpc.o: potential_mwpc.h
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
-	   	pot_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o *.tmp
+	   	potential_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o *.tmp

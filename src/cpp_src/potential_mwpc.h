@@ -33,11 +33,12 @@
 #include "Constants.h"
 #include "quantum_states.h"
 #include "physics_helpers.h"
+#include "potential.h"
 
 //#define ENABLE_DEBUG
 
 template <class gsl_m>
-class Pot_mwpc
+class Pot_mwpc : public potential<gsl_m>
 {
 private:
     // The matrices are saved in a specific channel and the class

@@ -10,7 +10,7 @@
 #include <ctime>
 #include <algorithm>
 #include "pybind_interface.h"
-#include "pot_ext.h"
+#include "potential_ext.h"
 #include "born_approx.h"
 #include "potential_mwpc.h"
 #include "physics_helpers.h"

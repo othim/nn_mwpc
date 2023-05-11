@@ -20,7 +20,8 @@
 #include <cmath>
 #include "gsl_pow_int.h"
 
-class Potential_ext
+template <class gsl_m>
+class Potential_ext : public potential<gsl_m>
 {
 private:
     /*

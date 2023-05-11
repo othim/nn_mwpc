@@ -24,7 +24,7 @@
 #include "gsl_integration.h" 
 #include "scattering.h"
 #include "physics_helpers.h"
-#include "pot_ext.h"
+#include "potential_ext.h"
 
 /* This class will be acessed from python through the bindings in pybind11.
  * The pybind code will be written in sucha a way that C++ will always have
@@ -200,7 +200,7 @@ public:
     gsl_matrix* get_my_potential_matrix(double q_on_shell,qs::quantum_channel chn);
     
         
-        void print_LEC_values();
+    void print_LEC_values();
     void print_LECs_in_use();
 
     
