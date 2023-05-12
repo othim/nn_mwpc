@@ -216,24 +216,23 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     }
 
     std::vector<std::string> terms;
-    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("W_T_1pi_nu_0");
     terms.push_back("C1S0");
     terms.push_back("C3S1");
   
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0, 6);
-/* 
-   for (auto chn : chns)
-   {
-      Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
-   }
-*/
+    Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(
+            terms,ang_int_points,p_grid,w_grid,number_of_p_points,
+            J_max_in_pot,450.0, 6);
+    
+    
     double C1S0	= -0.112927/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.087340/100.0; // contact term C3S1 for lambda = 450 [MeV]
-    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
+    Pot.params_["gA"]  = constants::gA; // Set correct LEC
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
 
-    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
+            p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
 
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid, FINITE_GRID);
 
@@ -312,7 +311,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
          
             //gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn,true);
             //ph::print_m(pot_V_mtx);
-            gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+            gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn, false);
          
             Phase_shifts_chn phases = solver.solve_in_chn_R(T_lab,chn,pot_V_mtx);
             //Phase_shifts_chn phases = solver.solve_in_chn_T(T_lab,chn,pot_V_mtx);
@@ -415,18 +414,19 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     // Choose terms in LO WPC potential
     
     std::vector<std::string> terms;
-    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("W_T_1pi_nu_0");
     terms.push_back("C1S0");
     terms.push_back("C3S1");
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,6);
+    Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(
+            terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,6);
    
+    Pot.params_["gA"]  = constants::gA; // Set correct LEC
     for (auto chn : chns)
     {
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
   
-    Pot.LECs_["gA2"]  = constants::gA*constants::gA; // Set correct LEC
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
 
@@ -436,9 +436,11 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
     
     int l_max = 50;
     std::vector<std::string> terms2;
-    terms2.push_back("OPEP"); // To just test elements use just OPEP
+    terms2.push_back("W_T_1pi_nu_0");
 
-    Potential_mwpc OPE = Potential_mwpc(terms2,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda,6);
+    Potential_mwpc<gsl_matrix> OPE = Potential_mwpc<gsl_matrix>(
+            terms2,ang_int_points,p_grid,w_grid,number_of_p_points,
+            J_max_in_pot,Lambda,6);
   
     
     for (auto chn : chns)
@@ -475,7 +477,8 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
         obs_string2 = obs_string;
     }
 
-    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, 
+    Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
+            p_grid, number_of_p_points, Lambda, 
             &nijm_correct_arg);
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
@@ -545,14 +548,14 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
             {
                 if (chn.J < 10)
                 {
-                    pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+                    pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn, false);
                 } else 
                 {
                     pot_V_mtx = OPE.get_saved_matrix(q_on_shell, chn, true);
                 }
             } else
             {
-                pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn);
+                pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn, false);
             }
             //Phase_shifts_chn phases = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
             Phase_shifts_chn phases = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
@@ -706,14 +709,15 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     
     // Choose terms in LO WPC potential
     std::vector<std::string> terms;
-    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("W_T_1pi_nu_0");
     terms.push_back("C1S0");
     terms.push_back("C3S1");
 
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,cut_pow,false);
+    Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,450.0,cut_pow,false);
     
     std::cout << "Saving potential matrices" << std::endl;
     start = std::clock();   
+    Pot.params_["gA"]  = constants::gA;
     for (auto chn : chns)
     {
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
@@ -722,7 +726,6 @@ void check_speed(std::vector<qs::quantum_channel> chns, unsigned int number_of_p
     std::cout << "Time to save matrices: " << 1e6*(double)(end-start)/(double)CLOCKS_PER_SEC << " us" << std::endl; 
 
     // Set correct LECs
-    Pot.LECs_["gA2"]  = constants::gA*constants::gA;
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
 
@@ -960,15 +963,16 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
 
         // Choose terms in LO WPC potential
         std::vector<std::string> terms;
-        terms.push_back("OPEP"); // To just test elements use just OPEP
+        terms.push_back("W_T_1pi_nu_0");
         terms.push_back("C1S0");
         terms.push_back("C3S1");
-        terms.push_back("C3P0");
-        terms.push_back("C3P2");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
 
-
-        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,
+        Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,
                 w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow,false);
+        
+        Pot.params_["gA"]  = constants::gA;
         
         for (auto chn : chns)
         {
@@ -976,11 +980,12 @@ bool check_chn(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_p
         }
 
         // Set correct LECs
-        Pot.LECs_["gA2"]  = constants::gA*constants::gA;
         Pot.LECs_["C1S0"] = C1S0;
         Pot.LECs_["C3S1"] = C3S1;
-        Pot.LECs_["C3P0"] = C3P0;
-        Pot.LECs_["C3P2"] = C3P2;
+        Pot.LECs_["D3P0"] = C3P0;
+        Pot.LECs_["D3P2"] = C3P2;
+        
+        //Pot.print_LECs_and_params_info();
 
         LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid, FINITE_GRID);
        
@@ -1180,27 +1185,26 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
 
         // Choose terms in LO WPC potential
         std::vector<std::string> terms;
-        terms.push_back("OPEP"); // To just test elements use just OPEP
+        terms.push_back("W_T_1pi_nu_0");
         terms.push_back("C1S0");
         terms.push_back("C3S1");
-        terms.push_back("C3P0");
-        terms.push_back("C3P2");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
 
-
-        Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,
+        Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,
                 w_grid,number_of_p_points,J_max_in_pot,Lambda,cut_pow,false);
         
+        Pot.params_["gA"]  = constants::gA;
         for (auto chn : chns)
         {
             Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
         }
         
         // Set correct LECs
-        Pot.LECs_["gA2"]  = constants::gA*constants::gA;
         Pot.LECs_["C1S0"] = C1S0;
         Pot.LECs_["C3S1"] = C3S1;
-        Pot.LECs_["C3P0"] = C3P0;
-        Pot.LECs_["C3P2"] = C3P2;
+        Pot.LECs_["D3P0"] = C3P0;
+        Pot.LECs_["D3P2"] = C3P2;
 
         LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,
                 FINITE_GRID);
@@ -1387,27 +1391,27 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     double C3P2 = 0.0;    
     // Choose terms in LO WPC potential
     std::vector<std::string> terms;
-    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("W_T_1pi_nu_0");
     terms.push_back("C1S0");
     terms.push_back("C3S1");
-    terms.push_back("C3P0");
-    terms.push_back("C3P2");
+    terms.push_back("D3P0");
+    terms.push_back("D3P2");
 
-
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow,false);
+    Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(
+            terms,ang_int_points,p_grid,w_grid,number_of_p_points,J_max_in_pot,Lambda, cut_pow,false);
     
     std::cout << "Saving potential matrices" << std::endl;
+    Pot.params_["gA"]  = 1.29;
     for (auto chn : chns)
     {
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
 
     // Set correct LECs
-    Pot.LECs_["gA2"]  = 1.29*1.29;
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
-    Pot.LECs_["C3P0"] = C3P0;
-    Pot.LECs_["C3P2"] = C3P2;
+    Pot.LECs_["D3P0"] = C3P0;
+    Pot.LECs_["D3P2"] = C3P2;
 
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
     
@@ -1433,9 +1437,10 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
     LS_Solver::get_mu_q_on_shell(0.0, chn, &mu, &q_on_shell);
     
     //Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
-    Potential_ext nijmegen = Potential_ext(p_grid, number_of_p_points, Lambda, &cdbonn_correct_arg);
-    pot_V_mtx = nijmegen.get_matrix(10.0,chn);
-    pot_V_mtx = nijmegen.get_matrix_no_onshell(chn);
+    Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
+            p_grid, number_of_p_points, Lambda, &cdbonn_correct_arg);
+    pot_V_mtx = nijmegen.get_matrix(10.0,chn,false);
+    pot_V_mtx = nijmegen.get_matrix_no_onshell(chn,false);
     diag_res = ph::solve_SE(p_grid, w_grid, number_of_p_points, chn, pot_V_mtx);
     if (TEST) {
         std::cout << "The eigenvalues in 3S1-3D1 LO nijmegen1" << quantum_channel_to_string(chn) << " is: "
@@ -1484,28 +1489,27 @@ void check_MWPC(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     double C3P2 = 0.0;    
     // Choose terms in LO WPC potential
     std::vector<std::string> terms;
-    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("W_T_1pi_nu_0");
     terms.push_back("C1S0");
     terms.push_back("C3S1");
-    terms.push_back("C3P0");
-    terms.push_back("C3P2");
+    terms.push_back("D3P0");
+    terms.push_back("D3P2");
 
-
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
     
     std::cout << "Saving potential matrices" << std::endl;
+    Pot.params_["gA"]  = 1.29;
     for (auto chn : chns)
     {
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
 
     // Set correct LECs
-    Pot.LECs_["gA2"]  = 1.29*1.29;
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
-    Pot.LECs_["C3P0"] = C3P0;
-    Pot.LECs_["C3P2"] = C3P2;
+    Pot.LECs_["D3P0"] = C3P0;
+    Pot.LECs_["D3P2"] = C3P2;
 
 
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
@@ -1574,28 +1578,27 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     double C3P2 = 0.0;    
     // Choose terms in LO WPC potential
     std::vector<std::string> terms;
-    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("W_T_1pi_nu_0");
     terms.push_back("C1S0");
     terms.push_back("C3S1");
-    terms.push_back("C3P0");
-    terms.push_back("C3P2");
+    terms.push_back("D3P0");
+    terms.push_back("D3P2");
 
-
-    Potential_mwpc Pot = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
     
     std::cout << "Saving potential matrices" << std::endl;
+    Pot.params_["gA"]  = 1.29;
     for (auto chn : chns)
     {
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
 
     // Set correct LECs
-    Pot.LECs_["gA2"]  = 1.29*1.29;
     Pot.LECs_["C1S0"] = C1S0;
     Pot.LECs_["C3S1"] = C3S1;
-    Pot.LECs_["C3P0"] = C3P0;
-    Pot.LECs_["C3P2"] = C3P2;
+    Pot.LECs_["D3P0"] = C3P0;
+    Pot.LECs_["D3P2"] = C3P2;
 
 
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
@@ -1726,27 +1729,28 @@ void check_NPOT(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_
     double C3P2 = 0.0;    
     // Choose terms in LO WPC potential
     std::vector<std::string> terms;
-    terms.push_back("OPEP"); // To just test elements use just OPEP
+    terms.push_back("W_T_1pi_nu_0");
     terms.push_back("C1S0");
     terms.push_back("C3S1");
-    terms.push_back("C3P0");
-    terms.push_back("C3P2");
+    terms.push_back("D3P0");
+    terms.push_back("D3P2");
 
-    Pot_mwpc<gsl_matrix_complex> Pot_complex = Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix_complex> Pot_complex = 
+            Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
     
     std::cout << "Saving potential matrices" << std::endl;
+    Pot_complex.params_["gA"]  = 1.29;
     for (auto chn : chns)
     {
         Pot_complex.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
 
     // Set correct LECs
-    Pot_complex.LECs_["gA2"]  = 1.29*1.29;
     Pot_complex.LECs_["C1S0"] = C1S0;
     Pot_complex.LECs_["C3S1"] = C3S1;
-    Pot_complex.LECs_["C3P0"] = C3P0;
-    Pot_complex.LECs_["C3P2"] = C3P2;
+    Pot_complex.LECs_["D3P0"] = C3P0;
+    Pot_complex.LECs_["D3P2"] = C3P2;
 
     qs::quantum_channel chn = chns[0];
     for (int i = 0; i < (int)chns.size(); i++)

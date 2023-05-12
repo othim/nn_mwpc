@@ -178,7 +178,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("C3S1");
 
         // Construct potential
-        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+        Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
                 number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_);
         Pot_ext_ = nullptr;
 
@@ -212,7 +212,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("D3P2");
 
         // Construct potential
-        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+        Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
                 number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
         Pot_ext_ = nullptr;
 
@@ -266,7 +266,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("D3P2");
 
         // Construct potential
-        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+        Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
                 number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
         Pot_ext_ = nullptr;
 
@@ -292,7 +292,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         chns_ = get_channels(states, print);   
         Pot_ = nullptr;
         
-        Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, 
+        Pot_ext_ = new Potential_ext<gsl_matrix>(p_grid_, number_of_p_points_, cutoff_, 
                 &nijm_correct_arg);
         
         std::vector<std::string> terms;
@@ -303,7 +303,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         rel_corr_      = false;
         sharp_cutoff_  = false;
 
-        Pot_ext_aux_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+        Pot_ext_aux_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
                 number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_);
         if (pre_comp_pot_)
         {
@@ -329,7 +329,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         // Construct the quantum scattering channels from the states
         chns_ = get_channels(states, print);   
         Pot_ = nullptr;
-        Pot_ext_ = new Potential_ext(p_grid_, number_of_p_points_, cutoff_, &cdbonn_correct_arg);
+        Pot_ext_ = new Potential_ext<gsl_matrix>(p_grid_, number_of_p_points_, cutoff_, &cdbonn_correct_arg);
         
         // Can't precompute this potential (which is kind of stupid...)
         // Construct the LS_Solver
@@ -355,7 +355,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("Yamaguchi_1S0");
 
         // Construct potential
-        Pot_ = new Potential_mwpc(terms,ang_int_points_,p_grid_,w_grid_,
+        Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
                 number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_,
                 inc_weights_in_pot_,cut_on_shell_);
         Pot_ext_ = nullptr;
@@ -741,7 +741,7 @@ gsl_matrix* nn_mwpc_interface::get_my_potential_matrix(double q_on_shell,
         pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
     } else {
         if (chn.J < J_pot_ext_cut_) {
-            pot_V_mtx = Pot_ext_->get_matrix(q_on_shell, chn);
+            pot_V_mtx = Pot_ext_->get_matrix(q_on_shell, chn,false);
         } else {
             pot_V_mtx = Pot_ext_aux_->get_saved_matrix(q_on_shell, chn, rel_corr_);
         }

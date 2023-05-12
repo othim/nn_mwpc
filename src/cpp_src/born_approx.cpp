@@ -448,19 +448,23 @@ void dwba::make_tests(std::string chn_string)
     std::vector<std::string> terms_1S0;
     terms_1S0.push_back("C1S0");
     
-    Potential_mwpc Pot_1S0 = Potential_mwpc(terms_1S0,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot_1S0 = Potential_mwpc<gsl_matrix>(
+            terms_1S0,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
     
-    Potential_mwpc Pot_1S0_nogrid = Potential_mwpc(terms_1S0,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot_1S0_nogrid = Potential_mwpc<gsl_matrix>(
+            terms_1S0,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     
     
     std::vector<std::string> terms;
     terms.push_back("Yamaguchi_1S0");
-    Potential_mwpc Pot_Yam = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot_Yam = Potential_mwpc<gsl_matrix>(
+            terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
     
-    Potential_mwpc Pot_Yam_nogrid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot_Yam_nogrid = Potential_mwpc<gsl_matrix>(
+            terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     
     std::cout << "Saving potential matrices" << std::endl;
@@ -635,10 +639,10 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
     std::vector<std::string> terms;
     terms.push_back("Yamaguchi_1S0");
-    Potential_mwpc Pot_Yam = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot_Yam = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true,CUT_ON_SHELL);
     
-    Potential_mwpc Pot_Yam_nogrid = Potential_mwpc(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> Pot_Yam_nogrid = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false,CUT_ON_SHELL);
     
     Pot_Yam_nogrid.params_["Yamaguchi_beta"] = beta;
@@ -864,20 +868,20 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     terms.push_back("Yamaguchi_3D-S1");
     terms.push_back("Yamaguchi_3D1");
 
-    Pot_mwpc<gsl_matrix> pot1_real_noweights = 
-            Pot_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> pot1_real_noweights = 
+            Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false, CUT_ON_SHELL);
     
-    Pot_mwpc<gsl_matrix_complex> pot1_complex_weights = 
-            Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix_complex> pot1_complex_weights = 
+            Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true, CUT_ON_SHELL);
     
-    Pot_mwpc<gsl_matrix> pot2_real_noweights = 
-            Pot_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> pot2_real_noweights = 
+            Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false, CUT_ON_SHELL);
     
-    Pot_mwpc<gsl_matrix_complex> pot2_complex_weights = 
-            Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix_complex> pot2_complex_weights = 
+            Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true, CUT_ON_SHELL);
     
     
@@ -968,10 +972,10 @@ void print_from_T_matrix(gsl_matrix_complex* T,int number_of_p_points,
 }
 
 
-void dwba::solve_DWB_from_potentials(Pot_mwpc<gsl_matrix>& pot1_real_noweights,
-    Pot_mwpc<gsl_matrix_complex>& pot1_complex_weights,
-    Pot_mwpc<gsl_matrix>& pot2_real_noweights,
-    Pot_mwpc<gsl_matrix_complex>& pot2_complex_weights, 
+void dwba::solve_DWB_from_potentials(Potential_mwpc<gsl_matrix>& pot1_real_noweights,
+    Potential_mwpc<gsl_matrix_complex>& pot1_complex_weights,
+    Potential_mwpc<gsl_matrix>& pot2_real_noweights,
+    Potential_mwpc<gsl_matrix_complex>& pot2_complex_weights, 
     double number_of_p_points,
     double* p_grid, double* w_grid, bool FINITE_GRID, double Tl, 
     qs::quantum_channel chn, double REL_CORR)
@@ -1234,20 +1238,20 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     std::vector<std::string> terms;
     terms.push_back("Yamaguchi_1S0");
 
-    Pot_mwpc<gsl_matrix> pot1_real_noweights = 
-            Pot_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> pot1_real_noweights = 
+            Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false, CUT_ON_SHELL);
     
-    Pot_mwpc<gsl_matrix_complex> pot1_complex_weights = 
-            Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix_complex> pot1_complex_weights = 
+            Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true, CUT_ON_SHELL);
     
-    Pot_mwpc<gsl_matrix> pot2_real_noweights = 
-            Pot_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix> pot2_real_noweights = 
+            Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,false, CUT_ON_SHELL);
     
-    Pot_mwpc<gsl_matrix_complex> pot2_complex_weights = 
-            Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
+    Potential_mwpc<gsl_matrix_complex> pot2_complex_weights = 
+            Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, false,true, CUT_ON_SHELL);
     
     // ---------------------------------

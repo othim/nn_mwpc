@@ -38,7 +38,7 @@
 //#define ENABLE_DEBUG
 
 template <class gsl_m>
-class Pot_mwpc : public potential<gsl_m>
+class Potential_mwpc : public potential<gsl_m>
 {
 private:
     // The matrices are saved in a specific channel and the class
@@ -155,9 +155,9 @@ public:
     /* 
       Constructor
     */
-    Pot_mwpc(){} // Dummy default constructor
+    Potential_mwpc(){} // Dummy default constructor
 
-    Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
+    Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
@@ -167,7 +167,7 @@ public:
     /* 
       Destructor
     */ 
-    ~Pot_mwpc();
+    ~Potential_mwpc();
     /*
       This function computes matrix elements of the potential. NOTE that this is done with the
       CURRENT values of LECs_, so be sure to set them to the correct values prior

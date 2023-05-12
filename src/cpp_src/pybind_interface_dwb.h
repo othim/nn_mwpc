@@ -16,7 +16,6 @@
 #include <string>
 #include <omp.h>
 
-#include "pot_nn_mwpc.h"
 #include "potential_mwpc.h"
 #include "potential_ext.h"
 #include "quantum_states.h"
@@ -79,7 +78,7 @@ private:
     LS_Solver* LS_Solver_;
 
     // This map stores the constructed potentials
-    std::unordered_map<std::string, Pot_mwpc<gsl_matrix_complex>*> potentials_;
+    std::unordered_map<std::string, Potential_mwpc<gsl_matrix_complex>*> potentials_;
 
     // This vector contains all the namses of the defined potentials
     std::vector<std::string> potential_names_;
@@ -117,7 +116,7 @@ private:
      * potential_names_
      *
      */
-    Pot_mwpc<gsl_matrix_complex>* load_pre_def_pot(
+    Potential_mwpc<gsl_matrix_complex>* load_pre_def_pot(
             std::string pre_def_name, double lam_SFR);
 
 public:

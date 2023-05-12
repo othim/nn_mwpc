@@ -24,21 +24,22 @@
 template <class gsl_m>
 class potential
 {
-private:
-
-
 public:
 
     potential();
-    ~potential();
+    virtual ~potential() = 0;
 
-    virtual gsl_m* get_matrix(double q_on_shell, qs::quantum_channel chn);
+    virtual gsl_m* get_matrix(double q_on_shell, qs::quantum_channel chn, 
+            bool rel_correction) = 0;
     
-    virtual gsl_m* get_matrix_on_onshell(qs::quantum_channel chn);
+    virtual gsl_m* get_matrix_no_onshell(qs::quantum_channel chn,
+            bool rel_correction) = 0;
 
-    virtual gsl_m* get_saved_matrix(double q_on_shell, qs::quantum_channel chn);
+    virtual gsl_m* get_saved_matrix(double q_on_shell, qs::quantum_channel chn,
+            bool rel_correction) = 0;
 
-    virtual void populate_save_mtx();
+    virtual void populate_saved_mtx(qs::quantum_channel chn, bool rel_correction)
+         = 0;
 
-    virtual void print_LECs_and_params_info();
+    virtual void print_LECs_and_params_info() = 0;
 };

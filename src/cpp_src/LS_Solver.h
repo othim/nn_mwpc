@@ -19,7 +19,6 @@
 #ifndef LS_SOLVER_H
 #define LS_SOLVER_H
 
-#include "pot_nn_mwpc.h"
 #include "gsl_matrix.h"
 #include "gsl_sf_trig.h"
 #include "gsl_blas.h"
@@ -39,7 +38,6 @@
 class LS_Solver
 {
 private:
-    Potential_mwpc* pot_V_;
 
     double* p_grid_;
     double* w_grid_;

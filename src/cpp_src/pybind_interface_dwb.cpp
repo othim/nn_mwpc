@@ -337,9 +337,9 @@ void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_na
         std::string pre_def_name, double lam_SFR)
 {
     // Make a new potential of this type
-    Pot_mwpc<gsl_matrix_complex>* pot = load_pre_def_pot(pre_def_name, 
+    Potential_mwpc<gsl_matrix_complex>* pot = load_pre_def_pot(pre_def_name, 
             lam_SFR);
-    
+    std::cout << "Loaded pre def potential" << std::endl;
     // Insert the potential in the list of potentials
     potentials_.insert( std::make_pair(potential_name,pot) );
 
@@ -594,7 +594,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::
     return T_arr;
 }
 
-Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
+Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         load_pre_def_pot(std::string pre_def_name, double lam_SFR)
 {
     if (pre_def_name == "Yamaguchi_1S0")
@@ -610,8 +610,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         bool inc_weights_in_pot = true; // This is always true
         
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_);
@@ -634,8 +634,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         bool inc_weights_in_pot = true; // This is always true
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_);
@@ -654,8 +654,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         bool inc_weights_in_pot = true; // This is always true
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_);
@@ -671,8 +671,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         bool inc_weights_in_pot = true; // This is always true
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_);
@@ -713,8 +713,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         bool inc_weights_in_pot = true; // This is always true
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_);
@@ -728,14 +728,18 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         terms.push_back("C3S1");
         
         bool inc_weights_in_pot = true; // This is always true
-
+        std::string loop_reg    = "DR";
+        
+        std::cout << "Creating WPC_LO potential" << std::endl;
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
-                cut_on_shell_);
+                cut_on_shell_,loop_reg,lam_SFR);
+;
 
+        std::cout << "Done creating WPC_LO potential" << std::endl;
         return pot_complex_weights;
     } else if (pre_def_name == "WPC_NLO_DR")
     {
@@ -763,8 +767,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         std::string loop_reg    = "DR";
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
@@ -796,8 +800,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         std::string loop_reg    = "SFR";
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
@@ -838,8 +842,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         std::string loop_reg    = "DR";
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg, lam_SFR);
@@ -880,8 +884,8 @@ Pot_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         std::string loop_reg    = "SFR";
 
         // Make the potential complex
-        Pot_mwpc<gsl_matrix_complex>* pot_complex_weights = 
-                new Pot_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg, lam_SFR);

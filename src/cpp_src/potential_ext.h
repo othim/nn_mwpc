@@ -19,6 +19,7 @@
 #include <iostream>
 #include <cmath>
 #include "gsl_pow_int.h"
+#include "potential.h"
 
 template <class gsl_m>
 class Potential_ext : public potential<gsl_m>
@@ -36,18 +37,33 @@ private:
 
 public:
 
-    Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr));
+    Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
+            void (*f)(double qi,double qo, bool coupled, int S, int J, int T, 
+                int Tz,  double* V_arr));
+    
     ~Potential_ext();
+    
     /*
      * This function returns the potential matrix
      */
-    gsl_matrix* get_matrix(double q_on_shell, qs::quantum_channel chn);
+    gsl_matrix* get_matrix(double q_on_shell, qs::quantum_channel chn,
+            bool rel_correction);
     
     /*
      * This function returns the potneital matrix without an 
      * on-shell point.
      */
-    gsl_matrix*  get_matrix_no_onshell(qs::quantum_channel chn);
+    gsl_matrix*  get_matrix_no_onshell(qs::quantum_channel chn, 
+            bool rel_correction);
+    
+    /*
+     * These functions are trivial in this class.
+     */
+    void populate_saved_mtx(qs::quantum_channel chn, bool rel_correction);
+    gsl_m* get_saved_matrix(double q_on_shell, qs::quantum_channel chn,
+            bool rel_correction);
+    
+    void print_LECs_and_params_info();
 };
 
 

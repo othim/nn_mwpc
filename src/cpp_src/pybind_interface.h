@@ -17,7 +17,6 @@
 #include <string>
 #include <omp.h>
 
-#include "pot_nn_mwpc.h"
 #include "quantum_states.h"
 #include "LS_Solver.h"
 #include "gsl_sf_legendre.h" 
@@ -25,6 +24,7 @@
 #include "scattering.h"
 #include "physics_helpers.h"
 #include "potential_ext.h"
+#include "potential_mwpc.h"
 
 /* This class will be acessed from python through the bindings in pybind11.
  * The pybind code will be written in sucha a way that C++ will always have
@@ -70,12 +70,12 @@ private:
     double finite_grid_max_;
     // Objects 
     
-    Potential_mwpc* Pot_;
-    Potential_ext* Pot_ext_;
+    Potential_mwpc<gsl_matrix>* Pot_;
+    Potential_ext<gsl_matrix>* Pot_ext_;
 
     // This potential is taking over the Pot_ext_ in prtial waves with
     // J >= J_pot_ext_cut_.
-    Potential_mwpc* Pot_ext_aux_;
+    Potential_mwpc<gsl_matrix>* Pot_ext_aux_;
     int J_pot_ext_cut_;
 
     LS_Solver* LS_Solver_;

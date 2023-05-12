@@ -37,7 +37,37 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
     nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
 }
-Potential_ext::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
+
+
+
+/* These declarations are neccessary to be able to have the declarations
+ * in a separate .cpp file.
+ */
+
+template Potential_ext<gsl_matrix>::Potential_ext(double* p_grid, int p_grid_length, 
+        double cutoff_Lambda, 
+        void (*f)(double qi,double qo, bool coupled, int S, int J, int T, 
+            int Tz, double* V_arr));
+
+template Potential_ext<gsl_matrix>::~Potential_ext();
+
+template gsl_matrix* Potential_ext<gsl_matrix>::get_matrix(
+        double q_on_shell, qs::quantum_channel chn, bool rel_correction);
+
+template gsl_matrix* Potential_ext<gsl_matrix>::get_matrix_no_onshell(
+        qs::quantum_channel chn, bool rel_correction);
+
+
+template void Potential_ext<gsl_matrix>::populate_saved_mtx(qs::quantum_channel chn, 
+        bool rel_correction);
+
+template gsl_matrix* Potential_ext<gsl_matrix>::get_saved_matrix(double q_on_shell, 
+        qs::quantum_channel chn, bool rel_correction);
+
+template void Potential_ext<gsl_matrix>::print_LECs_and_params_info();
+
+template <class gsl_m>
+Potential_ext<gsl_m>::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
         void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr))
 {
     // Set the function opinter to the correct function
@@ -47,12 +77,14 @@ Potential_ext::Potential_ext(double* p_grid, int p_grid_length, double cutoff_La
     mom_grid_size_ = p_grid_length;
     cutoff_Lambda_ = cutoff_Lambda;
 }
-
-Potential_ext::~Potential_ext()
+template <class gsl_m>
+Potential_ext<gsl_m>::~Potential_ext()
 {
 }
 
-gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn)
+template <class gsl_m>
+gsl_matrix* Potential_ext<gsl_m>::get_matrix(double q_on_shell, 
+        qs::quantum_channel chn, bool rel_correction)
 {
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
@@ -156,7 +188,9 @@ gsl_matrix* Potential_ext::get_matrix(double q_on_shell, qs::quantum_channel chn
    return matrix_data;
 }
     
-gsl_matrix* Potential_ext::get_matrix_no_onshell(qs::quantum_channel chn)
+template <class gsl_m>
+gsl_matrix* Potential_ext<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
+        bool rel_correction)
 {
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix_no_onshell()" << std::endl;
@@ -232,4 +266,23 @@ gsl_matrix* Potential_ext::get_matrix_no_onshell(qs::quantum_channel chn)
       }
    }
    return matrix_data;
+}
+ 
+template <class gsl_m>
+void Potential_ext<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, 
+        bool rel_correction)
+{
+}
+
+template <class gsl_m>
+gsl_m* Potential_ext<gsl_m>::get_saved_matrix(double q_on_shell, 
+        qs::quantum_channel chn, bool rel_correction)
+{
+    return get_matrix(q_on_shell, chn, rel_correction);
+}
+
+template <class gsl_m>
+void Potential_ext<gsl_m>::print_LECs_and_params_info()
+{
+    std::cout << "Potential_ext do not have any LECs or params." << std::endl;
 }

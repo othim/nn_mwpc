@@ -125,7 +125,7 @@ obs: $(NN_MWPC_FILES) compute_obs.o
 tmi: $(NN_MWPC_FILES) test_mwpc_dwb_interface.o
 	$(CC) $(CFLAGS2) -o tmi $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) test_mwpc_dwb_interface.o $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
-FILES_SO = pybind_interface.o compute_obs.o Term.o pot_nn_mwpc.o\
+FILES_SO = pybind_interface.o compute_obs.o Term.o potential.o\
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o potential_ext.o \
 		   born_approx.o pybind_interface_dwb.o potential_mwpc.o
 
@@ -174,6 +174,6 @@ pybind_interface_dwb.o: pybind_interface_dwb.h
 potential_mwpc.o: potential_mwpc.h
 	$(CC) $(CFLAGS) $(FLAGS) -c potential_mwpc.cpp
 clean:
-	rm obs nn_mwpc.so pybind_interface.o compute_obs.o pot_nn_mwpc.o \
+	rm obs nn_mwpc.so pybind_interface.o compute_obs.o potential.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
 	   	potential_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o *.tmp

@@ -44,6 +44,9 @@ int main(int argc, char** argv)
         nn_mwpc_dwb_interface(scale_,J_max_chn_,cutoff_, 
             cut_pow_,sharp_cutoff_,rel_corr_,number_of_p_points_, finite_grid_,
             cut_on_shell_,print_);
+    
+    std::cout << "Constructed object" << std::endl;
+    
     /*
      * ***************
      * LO   

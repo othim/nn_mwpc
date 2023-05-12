@@ -3,46 +3,49 @@
 /* These declarations are neccessary to be able to have the declarations
  * in a separate .cpp file.
  */
-template void Pot_mwpc<gsl_matrix>::populate_saved_mtx(qs::quantum_channel chn, 
+template void Potential_mwpc<gsl_matrix>::populate_saved_mtx(qs::quantum_channel chn, 
         bool rel_correction);
 
-template gsl_matrix* Pot_mwpc<gsl_matrix>::get_saved_matrix(double q_on_shell,qs::quantum_channel chn, 
+template gsl_matrix* Potential_mwpc<gsl_matrix>::get_saved_matrix(double q_on_shell,qs::quantum_channel chn, 
         bool rel_correction);
 
-template gsl_matrix* Pot_mwpc<gsl_matrix>::get_matrix(double q_on_shell,qs::quantum_channel chn, 
+template gsl_matrix* Potential_mwpc<gsl_matrix>::get_matrix(double q_on_shell,qs::quantum_channel chn, 
         bool rel_correction);
 
-template Pot_mwpc<gsl_matrix>::~Pot_mwpc();
-
-template Pot_mwpc<gsl_matrix>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
-   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
-   std::string loop_reg, double lam_SFR);
-
-template void Pot_mwpc<gsl_matrix_complex>::populate_saved_mtx(qs::quantum_channel chn, 
-        bool rel_correction);
-
-template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_saved_matrix(double q_on_shell,qs::quantum_channel chn, 
-        bool rel_correction);
-
-template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_matrix(double q_on_shell,qs::quantum_channel chn, 
-        bool rel_correction);
-    
-template gsl_matrix_complex* Pot_mwpc<gsl_matrix_complex>::get_matrix_no_onshell(
+template gsl_matrix* Potential_mwpc<gsl_matrix>::get_matrix_no_onshell(
         qs::quantum_channel chn, bool rel_correction);
 
-template Pot_mwpc<gsl_matrix_complex>::~Pot_mwpc();
+template Potential_mwpc<gsl_matrix>::~Potential_mwpc();
 
-template Pot_mwpc<gsl_matrix_complex>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
+template Potential_mwpc<gsl_matrix>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
    bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
    std::string loop_reg, double lam_SFR);
 
-template void Pot_mwpc<gsl_matrix_complex>::print_LECs_and_params_info();
-template void Pot_mwpc<gsl_matrix>::print_LECs_and_params_info();
+template void Potential_mwpc<gsl_matrix_complex>::populate_saved_mtx(qs::quantum_channel chn, 
+        bool rel_correction);
+
+template gsl_matrix_complex* Potential_mwpc<gsl_matrix_complex>::get_saved_matrix(double q_on_shell,qs::quantum_channel chn, 
+        bool rel_correction);
+
+template gsl_matrix_complex* Potential_mwpc<gsl_matrix_complex>::get_matrix(double q_on_shell,qs::quantum_channel chn, 
+        bool rel_correction);
+    
+template gsl_matrix_complex* Potential_mwpc<gsl_matrix_complex>::get_matrix_no_onshell(
+        qs::quantum_channel chn, bool rel_correction);
+
+template Potential_mwpc<gsl_matrix_complex>::~Potential_mwpc();
+
+template Potential_mwpc<gsl_matrix_complex>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
+   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   std::string loop_reg, double lam_SFR);
+
+template void Potential_mwpc<gsl_matrix_complex>::print_LECs_and_params_info();
+template void Potential_mwpc<gsl_matrix>::print_LECs_and_params_info();
 
 template <class gsl_m>
-Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
+Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
    bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
    std::string loop_reg, double lam_SFR)
@@ -175,7 +178,7 @@ Pot_mwpc<gsl_m>::Pot_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA
 
 // Destructor
 template <class gsl_m>
-Pot_mwpc<gsl_m>::~Pot_mwpc()
+Potential_mwpc<gsl_m>::~Potential_mwpc()
 {
    // Free all memory allocations
    gsl_integration_fixed_free(int_ang_);
@@ -208,7 +211,7 @@ Pot_mwpc<gsl_m>::~Pot_mwpc()
    the constraint J+L+T = odd 
 */
 template <class gsl_m>
-int Pot_mwpc<gsl_m>::isoFac(int L,int S)
+int Potential_mwpc<gsl_m>::isoFac(int L,int S)
 {
    int T = ((1-L-S) & 1); // L+S+T=odd
    int res = -3*(1-T) + T;
@@ -218,14 +221,14 @@ int Pot_mwpc<gsl_m>::isoFac(int L,int S)
 
 
 template <class gsl_m>
-double Pot_mwpc<gsl_m>::calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz)
+double Potential_mwpc<gsl_m>::calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz)
 {
    // TODO implement
    return 0;
 }
 
 template <class gsl_m>
-double Pot_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int l, 
+double Potential_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int l, 
         std::vector<double> v_alpha_arr)
 {
    #ifdef ENABLE_DEBUG
@@ -259,7 +262,7 @@ double Pot_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int l,
 */
 
 template <class gsl_m>
-void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, 
+void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, 
         qs::quantum_channel chn, double* V_arr)
 {
     bool coupled = chn.coupled;
@@ -389,7 +392,7 @@ void Pot_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
    respective term in the potential.
 */
 template <class gsl_m>
-void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, 
+void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, 
         std::string spin_struct,
         bool isovector, std::vector<double>& v_alpha_arr,double* V_arr)
 {
@@ -605,7 +608,7 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     } 
     else
     {
-        std::cout << "Unknown <spin_struct> passed to function <pwa> in Pot_mwpc object." 
+        std::cout << "Unknown <spin_struct> passed to function <pwa> in Potential_mwpc object." 
             << std::endl;
     }
     
@@ -649,7 +652,7 @@ void Pot_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
 */
 
 template <class gsl_m>
-gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,bool rel_correction)
+gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,bool rel_correction)
 {
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
@@ -754,7 +757,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel chn,boo
 }
 
 template <class gsl_m>
-void Pot_mwpc<gsl_m>::clear_saved_matrices()
+void Potential_mwpc<gsl_m>::clear_saved_matrices()
 {
    #ifdef ENABLE_DEBUG
       std::cerr << "clear_saved_matrices()" << std::endl;
@@ -779,7 +782,7 @@ void Pot_mwpc<gsl_m>::clear_saved_matrices()
    This function popolates the saved matrices in the given channel.
 */
 template <class gsl_m>
-void Pot_mwpc<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, bool rel_correction)
+void Potential_mwpc<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, bool rel_correction)
 {
    #ifdef ENABLE_DEBUG
       std::cerr << "populate_saved_mtx()" << std::endl;
@@ -837,7 +840,7 @@ void Pot_mwpc<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, bool rel_corre
 
 
 template <class gsl_m>
-gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction)
+gsl_m* Potential_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel chn, bool rel_correction)
 {
    unsigned int J = chn.J;
    unsigned int S = chn.S;
@@ -1013,7 +1016,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_channel 
 
 
 template <class gsl_m>
-gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn, 
+gsl_m* Potential_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn, 
         bool rel_correction)
 {
    #ifdef ENABLE_DEBUG
@@ -1026,7 +1029,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
    // In the construction of the saved matrix the desired on-shell momentum 
    // that the matrix element will be evaluated on are unknown. These matrix elements needs
    // to be computed at runtime
-   gsl_m* matrix_data;
+   gsl_m* matrix_data = nullptr;
    if (chn.coupled) {
       matrix_data = ph::matrix_alloc((2*mom_grid_size_),(2*mom_grid_size_),matrix_data);
    } else {
@@ -1092,7 +1095,7 @@ gsl_m* Pot_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
 
 
 template <class gsl_m>
-double Pot_mwpc<gsl_m>::get_total_rel_cut_weight_factor(double p_in, int j, 
+double Potential_mwpc<gsl_m>::get_total_rel_cut_weight_factor(double p_in, int j, 
         double p_out, int i, double mu, bool rel_correction)
 {
      // Compute relativistic factors
@@ -1170,7 +1173,7 @@ double Pot_mwpc<gsl_m>::get_total_rel_cut_weight_factor(double p_in, int j,
 }
 
 template <class gsl_m>
-void Pot_mwpc<gsl_m>::print_LECs_and_params_info()
+void Potential_mwpc<gsl_m>::print_LECs_and_params_info()
 {
     std::cout << std::endl << 
         "#####################################################################"
