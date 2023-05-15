@@ -81,9 +81,10 @@ int main(int argc, char** argv)
     double D3P1 = -0.3409e-8;
     double D3P2 = -0.2011e-8;
     double D3S1 = -0.408e-8;
-    double D_SD = 0.238e-8;
+    double D_SD = -0.238e-8;
 
     gA   = 1.29;
+    //gA   = 1.276;
 
     // Set parameters before saving!
     params = {gA};
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
     D3P1 = -0.3409e-8;
     D3P2 = -0.2011e-8;
     D3S1 = -0.408e-8;
-    D_SD = 0.238e-8;
+    D_SD = -0.238e-8;
 
     gA   = 1.29;
 

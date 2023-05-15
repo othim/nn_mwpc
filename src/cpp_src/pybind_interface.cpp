@@ -72,6 +72,10 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("compute_binding_energy", 
                 &nn_mwpc_dwb_interface::compute_binding_energy,
                 py::return_value_policy::copy)
+        
+        .def("solve_DWBA_T_PC", 
+                &nn_mwpc_dwb_interface::solve_DWBA_T_PC,
+                py::return_value_policy::copy)
 
         .def("create_new_potential", 
                 &nn_mwpc_dwb_interface::create_new_potential,
@@ -104,6 +108,8 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("get_chn_len", &nn_mwpc_dwb_interface::get_chn_len, 
                 py::return_value_policy::copy)
         .def("get_chn_LS_term", &nn_mwpc_dwb_interface::get_chn_LS_term, 
+                py::return_value_policy::copy)
+        .def("get_chn_coupled", &nn_mwpc_dwb_interface::get_chn_coupled, 
                 py::return_value_policy::copy)
         .def("get_gA", &nn_mwpc_dwb_interface::get_gA, py::return_value_policy::copy)
         .def("get_fpi", &nn_mwpc_dwb_interface::get_fpi, py::return_value_policy::copy)

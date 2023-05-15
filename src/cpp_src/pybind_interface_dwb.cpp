@@ -226,8 +226,11 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
     // Solve for TI
     gsl_matrix_complex* TI = 
         LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,V_LO,G0);
-    
-    if (order == 1)
+    if (order == 0)
+    {
+        // Do nothing, since the TI result is correct
+    }
+    else if (order == 1)
     {
         gsl_matrix_complex* T1 = nullptr;
         
@@ -297,6 +300,8 @@ std::vector<std::complex<double>> solve_DWBA_phases_PC(
         const std::string& V_N2LO_name, const std::string& V_N3LO_name)
 {
     // Compute the T-matrix
+    
+    /*
     std::vector<std::complex<double>> T = solve_DWBA_T_PC(
             T_lab, chn_index, order,
             V_LO_name, V_NLO_name,
@@ -317,7 +322,7 @@ std::vector<std::complex<double>> solve_DWBA_phases_PC(
     }
     
     // Return
-    return phases_Stapp;
+    return phases_Stapp;*/
 }
 
 
@@ -484,6 +489,16 @@ std::string nn_mwpc_dwb_interface::get_chn_LS_term(int chn_number)
     }
 
     return quantum_channel_to_string(chns_[chn_number]);
+}
+
+int nn_mwpc_dwb_interface::get_chn_coupled(int chn_number)
+{
+    if (!(chn_number < (int)chns_.size()))
+    {
+        std::string s = "Invalid chhannel number";
+        return -1;
+    }
+    return (int)chns_[chn_number].coupled;
 }
 
 double nn_mwpc_dwb_interface::get_gA()

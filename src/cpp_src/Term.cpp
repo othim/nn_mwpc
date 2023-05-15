@@ -157,7 +157,7 @@ Term::Term(std::string name)
         term_name_ = name;
         spin_structure_ = "none";
         well_def_pw_ = true;
-        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.J = 1;
         LS_well_def_pw_.Li = 0;
         LS_well_def_pw_.Lo = 0; 
         LS_well_def_pw_.S = 1;

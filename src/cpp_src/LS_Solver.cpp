@@ -199,7 +199,7 @@ void print_matrix(gsl_matrix* matrix)
     Converts the phase shifts in the BB convention to the Stapp
     convention. This version does not have a (known) numerical instability.
 */
-Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps)
+Phase_shifts_chn LS_Solver::BB_to_Stapp(Phase_shifts_chn ps)
 {
     Phase_shifts_chn phases;
     /*double diff = ps.delta_m-ps.delta_p;
@@ -368,7 +368,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_R(double T_lab, qs::quantum_channel chn
         phase_shifts = BB_phases_from_R_coup(R_mm,R_pp,R_mp,rho);
         
         // Convert to Stapp convention
-        phase_shifts = BB_to_Stapp(phase_shifts);
+        phase_shifts = LS_Solver::BB_to_Stapp(phase_shifts);
         
     } else 
     {
@@ -796,7 +796,7 @@ Phase_shifts_chn LS_Solver::solve_in_chn_T(double T_lab, qs::quantum_channel chn
         phase_shifts.delta_m = GSL_REAL(delta_m);
         phase_shifts.delta_uncoupled = 0;
 
-        phase_shifts = BB_to_Stapp(phase_shifts);
+        phase_shifts = LS_Solver::BB_to_Stapp(phase_shifts);
 
     } else 
     {

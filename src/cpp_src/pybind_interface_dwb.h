@@ -297,6 +297,7 @@ public:
     int    get_momentum_grid_points();
     int    get_chn_len();
     std::string get_chn_LS_term(int chn_number);
+    int    get_chn_coupled(int chn_number);
 
     double get_gA();
     double get_fpi();
