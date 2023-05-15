@@ -19,7 +19,8 @@ void compute_spectrum(std::string name, std::string pot_name,
 
 int main(int argc, char** argv)
 {
-
+    std::cout << "\033[1;31mbold FAILED\033[0m\n" << std::endl;
+    std::cout << "\033[1;32mbold OK\033[0m\n" << std::endl;
     // ************************************************************************
     // ****** CONSTANTS TO CHANGE *********************************************
     // ************************************************************************

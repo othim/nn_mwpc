@@ -124,6 +124,8 @@ public:
     
     static std::complex<double>* BB_phases_from_R_uncoup(
             std::complex<double> T);
+
+    static Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps);
 };
 
 #endif

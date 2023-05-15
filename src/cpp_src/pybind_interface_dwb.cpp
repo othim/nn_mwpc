@@ -289,6 +289,49 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
 
     return T_arr;
 }
+
+
+std::vector<std::complex<double>> solve_DWBA_phases_PC(
+        double T_lab, int chn_index, int order,
+        const std::string& V_LO_name, const std::string& V_NLO_name,
+        const std::string& V_N2LO_name, const std::string& V_N3LO_name)
+{
+    // Compute the T-matrix
+    std::vector<std::complex<double>> T = solve_DWBA_T_PC(
+            T_lab, chn_index, order,
+            V_LO_name, V_NLO_name,
+            V_N2LO_name, V_N3LO_name);
+    
+    // Convert to (complex) phase shifts
+
+    std::vector<complex<double>> phases_Stapp;
+    if (chns_[i].coupled)
+    {
+        std::complex<double>* phases = nullptr;
+        phases = LS_Solver::BB_phases_from_T_coup(T[0],T[1],T[2]);
+
+
+    } else 
+    {
+        
+    }
+    
+    // Return
+    return phases_Stapp;
+}
+
+
+void solve_DWBA_T_save_chn_PC(double T_lab, int order, int chn_index,
+        const std::string& V_LO_name, const std::string& V_NLO_name,
+        const std::string& V_N2LO_name, const std::string& V_N3LO_name)
+{
+    // Compute the T-matrix
+    
+    // Save it in the correct channel
+}
+
+
+
 /*
  * ************************************************************
  * Functions to compute other things than scattering properties

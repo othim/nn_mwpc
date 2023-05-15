@@ -113,7 +113,7 @@ int main(int argc, char** argv)
     std::cout << "Constructing quantum states..." << std::endl;
     
     // When checking agains Andreas code Jmax=8
-    int J_max = 14;
+    int J_max = 8;
     int J_min = 0;
     int Tz_min = 0;
     int Tz_max = 0;
@@ -423,7 +423,7 @@ void check_observable(std::vector<qs::quantum_channel> chns,unsigned int number_
    
     Pot.params_["gA"]  = constants::gA; // Set correct LEC
     for (auto chn : chns)
-    {
+    {   
         Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
   

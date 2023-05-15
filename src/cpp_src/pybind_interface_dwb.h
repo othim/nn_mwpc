@@ -228,19 +228,30 @@ public:
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
     
+    /*
+     * This function does the same as above, but convert the answer 
+     * to phase shifts in the Stapp convention.
+     */   
     std::vector<std::complex<double>> solve_DWBA_phases_PC(
             double T_lab, int chn_index, int order,
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
-    
-    void solve_DWBA_T_save_chn_PC(double T_lab, int order,
+    /*
+     * Function that does the same as 'solve_DWBA_T_PC()' but saves the 
+     * T-matrix in the saved data.
+     */
+    void solve_DWBA_T_save_chn_PC(double T_lab, int order, int chn_index,
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    /*
+     * Computes observables by adding the contributions from all channels 
+     * that have a saved T-matrix.
+     */
+    std::complex<double> observable_from_saved_T(std::string obs, double theta);
     
-    std::complex<double> observable_from_saved_T(double T_lab, int order,
-            const std::string& V_LO_name, const std::string& V_NLO_name,
-            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
-    
+
+
+
 
     /*
      * ************************************************************

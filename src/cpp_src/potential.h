@@ -17,7 +17,7 @@
 #include <iostream>
 #include <cmath>
 #include "gsl_pow_int.h"
-
+#include "Term.h"
 
 
 
@@ -42,4 +42,5 @@ public:
          = 0;
 
     virtual void print_LECs_and_params_info() = 0;
+
 };
