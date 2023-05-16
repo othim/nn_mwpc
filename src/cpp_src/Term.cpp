@@ -1047,7 +1047,7 @@ std::vector<double> Term::W_T_2pi_nu_3(double qi, double qo,
     {
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
-        tmp[i] = Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w, loop_reg, 
+        tmp[i] = Term::W_T_2pi_nu_3(q, gA, c4, mpi, fpi, mN, w, loop_reg, 
                 lam_SFR);
     }
 	return tmp;
@@ -1089,7 +1089,7 @@ std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo,
     {
         q      = Term::get_q(qi,qo,z[i]);
         w      = Term::w_f(q,mpi);
-        tmp[i] = -q*q*Term::W_T_2pi_nu_3(q, c4, gA, mpi, fpi, mN, w, loop_reg,
+        tmp[i] = -q*q*Term::W_T_2pi_nu_3(q, gA, c4, mpi, fpi, mN, w, loop_reg,
                 lam_SFR);
     }
 	return tmp;

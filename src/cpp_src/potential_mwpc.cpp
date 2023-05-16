@@ -498,7 +498,6 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
             {
                 A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
             }
-
             V_uncoupled_S0 = 0;
             V_uncoupled_S1 = 2.0*qo*qi*(1.0/(2*J+1))*(A_P - A_M);
         } 
@@ -512,7 +511,7 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
             if (J_int>0)
             {
                 double A_M2 = 0;
-                if (J>1)
+                if (J_int>1)
                 {
                     A_M2 = compute_A_integral(qi,qo,J-2,0,v_alpha_arr);
                 }  
