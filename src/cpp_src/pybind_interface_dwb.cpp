@@ -203,6 +203,10 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
     gsl_matrix_complex* V_LO = 
         potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
     
+    //gsl_matrix_complex* V_LO = 
+    //    potentials_[V_LO_name]->get_matrix(q_on_shell, chn, rel_corr_);
+    
+    
     // Load the higher order corrections if neccessary
     gsl_matrix_complex* V_NLO  = nullptr; 
     gsl_matrix_complex* V_N2LO = nullptr;

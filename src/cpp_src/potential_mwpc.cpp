@@ -81,6 +81,7 @@ Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned i
    LEC_names_.push_back("D3S1");
    LEC_names_.push_back("D1P1");
    LEC_names_.push_back("D3P0");
+   LEC_names_.push_back("D3P1");
    LEC_names_.push_back("D3P2");
    LEC_names_.push_back("D_SD");
    LEC_names_.push_back("D_DS");
@@ -362,7 +363,7 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
                    V_coupled_pp += 
                        terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
                }
-            }
+            } 
 
             //std::cout << "Final: " << V_coupled_mm << " " << V_coupled_pp << " " << V_coupled_mp <<
             //    V_coupled_pm << " " << V_uncoupled_S0 << " " << V_uncoupled_S1 << std::endl; 
@@ -447,7 +448,7 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
 
             V_uncoupled_S0 = 2.0*A_0;
             V_uncoupled_S1 = 2.0*A_0;
@@ -455,11 +456,11 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         
         if (coupled || J_int == 0)
         {
-            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
             V_coupled_pp = 2.0*A_P;
             if (J_int > 0)
             {
-                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
                 V_coupled_mm = 2.0*A_M;
                 V_coupled_mp = 0.0;
                 V_coupled_pm = 0.0;
@@ -470,18 +471,18 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
             V_uncoupled_S0 = -6.0*A_0;
             V_uncoupled_S1 = 2.0*A_0;
         } 
         
         if (coupled || J_int == 0)
         {
-            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
             V_coupled_pp = 2.0*A_P;
             if (J_int>0)
             {
-                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
                 V_coupled_mm = 2.0*A_M;
                 V_coupled_mp = 0.0;
                 V_coupled_pm = 0.0;
@@ -492,11 +493,11 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
             double A_M = 0;
             if (J_int>0)
             {
-                A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
             }
             V_uncoupled_S0 = 0;
             V_uncoupled_S1 = 2.0*qo*qi*(1.0/(2*J+1))*(A_P - A_M);
@@ -504,8 +505,8 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         
         if (coupled || J_int == 0)
         {
-            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
-            double A_P2 = compute_A_integral(qi,qo,J+2,0,v_alpha_arr);
+            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
+            double A_P2 = compute_A_integral(qi,qo,J_int+2,0,v_alpha_arr);
             
             V_coupled_pp = 2.0*qo*qi*((J+2)/(2*J+3))*(A_P2 - A_0);
             if (J_int>0)
@@ -513,7 +514,7 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
                 double A_M2 = 0;
                 if (J_int>1)
                 {
-                    A_M2 = compute_A_integral(qi,qo,J-2,0,v_alpha_arr);
+                    A_M2 = compute_A_integral(qi,qo,J_int-2,0,v_alpha_arr);
                 }  
                 V_coupled_mm = 2.0*qo*qi*((J-1)/(2*J-1))*(A_M2 - A_0);
                 V_coupled_mp = 0.0;
@@ -527,13 +528,13 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         // channel
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
-            double A_1 = compute_A_integral(qi,qo,J,1,v_alpha_arr);
-            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
+            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
+            double A_1 = compute_A_integral(qi,qo,J_int,1,v_alpha_arr);
+            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
             double A_M = 0;
             if (J_int>0)
             {
-                A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
             }
 
             V_uncoupled_S0 = 2.0 * (-(qo*qo+qi*qi)*A_0 + 2.0*qo*qi*A_1);
@@ -546,13 +547,13 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         // V_coupled_mm matrix element.
         if (coupled || J_int == 0)
         {
-            double A_P = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
-            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
+            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
+            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
             
             V_coupled_pp = (2.0/(2.0*J+1.0)) * (-(qo*qo+qi*qi)*A_P + 2.0*qo*qi*A_0);
             if (J_int>0)
             {
-                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
+                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
 
                 V_coupled_mm = (2.0/(2.0*J+1.0)) * ((qo*qo+qi*qi)*A_M - 2*qo*qi*A_0);
                 V_coupled_mp = (4.0*sqrt(J*(J+1.0))/(2.0*J+1.0)) * 
@@ -566,14 +567,14 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J,0,v_alpha_arr);
-            double A_2 = compute_A_integral(qi,qo,J,2,v_alpha_arr);
+            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
+            double A_2 = compute_A_integral(qi,qo,J_int,2,v_alpha_arr);
             double A_M_1 = 0;
             if (J_int>0)
             {
-                A_M_1 = compute_A_integral(qi,qo,J-1,1,v_alpha_arr);
+                A_M_1 = compute_A_integral(qi,qo,J_int-1,1,v_alpha_arr);
             }
-            double A_P_1 = compute_A_integral(qi,qo,J+1,1,v_alpha_arr);
+            double A_P_1 = compute_A_integral(qi,qo,J_int+1,1,v_alpha_arr);
             
             V_uncoupled_S0 = 2.0*qo*qo*qi*qi*(A_2-A_0);
             V_uncoupled_S1 = 2.0*qo*qo*qi*qi*(-A_0 + ((J-1.0)/(2.0*J+1.0))*
@@ -582,16 +583,16 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         
         if (coupled || J_int == 0)
         {
-            double A_1   = compute_A_integral(qi,qo,J,1,v_alpha_arr);
-            double A_P   = compute_A_integral(qi,qo,J+1,0,v_alpha_arr);
-            double A_P_2 = compute_A_integral(qi,qo,J+1,2,v_alpha_arr);
+            double A_1   = compute_A_integral(qi,qo,J_int,1,v_alpha_arr);
+            double A_P   = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
+            double A_P_2 = compute_A_integral(qi,qo,J_int+1,2,v_alpha_arr);
 
             V_coupled_pp = 2.0*qo*qo*qi*qi*( ((2.0*J+3)/(2.0*J+1))*A_P -
                         ((2.0)/(2.0*J+1))*A_1 - A_P_2);
             if (J_int>0)
             {
-                double A_M = compute_A_integral(qi,qo,J-1,0,v_alpha_arr);
-                double A_M_2 = compute_A_integral(qi,qo,J-1,2,v_alpha_arr);
+                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
+                double A_M_2 = compute_A_integral(qi,qo,J_int-1,2,v_alpha_arr);
                 
                 V_coupled_mm = 2.0*qo*qo*qi*qi*( ((2.0*J-1)/(2.0*J+1))*A_M +
                         ((2.0)/(2.0*J+1))*A_1 - A_M_2);
