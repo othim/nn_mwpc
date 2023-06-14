@@ -658,9 +658,27 @@ double Term::mom_Yamaguchi_3D1(double qi, double qo,
 }
 
 /*
+ * ****************************************************************************
+ * ****************************************************************************
+ * 
  * nu=2 (N2LO) Chiral two-pion exchange contributions in dimensional
- * regularization. As eq. 4.9-4.12 in M&E Phys. Rept 503 (2011)
+ * regularization as well as SFR As eq. 4.9-4.12 in M&E Phys. Rept 503 (2011)
+ *
+ * The only difference between DR and SFR is the loop functions and this is 
+ * controlled by the argument 'loop_reg' which can be 'DR' or 'SFR' and the 
+ * SFR regulator needs to be provided (in MeV).
+ * 
+ * ****************************************************************************
+ * ****************************************************************************
  */
+
+
+/*
+ * ****************************************************************************
+ * Help function to compute loop function, momentum transfer etc.
+ * ****************************************************************************
+ */
+
 double Term::get_q(double qi, double qo, double z)
 {
     return std::sqrt(qi*qi + qo*qo - 2*qi*qo*z);
@@ -754,7 +772,17 @@ double Term::A_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
 
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * END Help functions
+ * ****************************************************************************
+ */
+
+/*
+ * ****************************************************************************
+ * Here come the potential terms
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::V_T_2pi_nu_2(double qi, double qo, 
         double* z, int z_len,
@@ -785,7 +813,10 @@ double Term::V_T_2pi_nu_2(double q, double gA, double mpi, double fpi,
         (64.0*M_PI*M_PI*std::pow(fpi,4));
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::V_S_2pi_nu_2(double qi, double qo, 
         double* z, int z_len,
@@ -808,7 +839,10 @@ std::vector<double> Term::V_S_2pi_nu_2(double qi, double qo,
 	return tmp;
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::W_C_2pi_nu_2(double qi, double qo, 
         double* z, int z_len,
@@ -845,6 +879,11 @@ double Term::W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
             (384.0*M_PI*M_PI*std::pow(fpi,4)))*fac;
 }
 
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
+
 std::vector<double> Term::W_T_1pi_nu_2(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
@@ -865,15 +904,17 @@ std::vector<double> Term::W_T_1pi_nu_2(double qi, double qo,
     }
 	return tmp;
 }
-//*****************************************************************************
 
 /*
+ * ****************************************************************************
+ * ****************************************************************************
+ * 
  * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
- * regularization. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
+ * regularization and SFR. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
+ * 
+ * ****************************************************************************
+ * ****************************************************************************
  */
-
-
-//*****************************************************************************
 
 std::vector<double> Term::V_C_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -919,7 +960,10 @@ double Term::V_C_2pi_nu_3(double q, double gA, double c1, double c3,
     return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR));
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::W_C_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -960,7 +1004,10 @@ double Term::W_C_2pi_nu_3(double q, double gA, double mpi, double fpi,
     return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR));
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
         
 std::vector<double> Term::V_T_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -996,7 +1043,10 @@ double Term::V_T_2pi_nu_3(double q, double gA, double mpi, double fpi,
         (512.0*M_PI*mN*std::pow(fpi,4));
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::V_S_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -1024,7 +1074,10 @@ std::vector<double> Term::V_S_2pi_nu_3(double qi, double qo,
 	return tmp;
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::W_T_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -1065,7 +1118,10 @@ double Term::W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fpi
     return tmp2*tmp1;
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -1093,7 +1149,10 @@ std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo,
 	return tmp;
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::V_LS_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -1129,7 +1188,10 @@ double Term::V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
         (32.0*M_PI*mN*std::pow(fpi,4));
 }
 
-//*****************************************************************************
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
 
 std::vector<double> Term::W_LS_2pi_nu_3(double qi, double qo, 
         double* z, int z_len,
@@ -1161,4 +1223,141 @@ double Term::W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
     
     return (gA2*(1.0-gA2)*w*w*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
         (32.0*M_PI*mN*std::pow(fpi,4));
+}
+
+/*
+ * ****************************************************************************
+ * END nu=3 (N3LO) chiral two-pion exchange contributions.
+ * ****************************************************************************
+ */
+
+
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ *
+ * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
+ * regularization and SFR. These loop function do not include the relativistic
+ * corrections proportional to (1/M_N). The irreducible 2pi exchange are 
+ * subtracted using the convention to have the M/E inside the integral sign.
+ *
+ * The equations are as eq. (C1) and eq. (C2) in 
+ * PHYSICAL REVIEW C 91, 014002 (2015).
+ *
+ * ****************************************************************************
+ * ****************************************************************************
+ */
+
+
+std::vector<double> Term::V_C_2pi_nu_3_no_rel(double qi, double qo, 
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+{
+    // Get the constants
+    double gA  = params["gA"];
+    double c1  = LECs["c1"];
+    double c3  = LECs["c3"];
+
+    double mpi = constants::mpi;
+    double fpi = constants::fpi;
+    double mN  = ph::get_mN(chn.Tz);
+    
+    // Compute the function for all angles z = cos <qi,qo>
+    std::vector<double> tmp(z_len);
+    double q,w,w_t;
+    for (int i = 0; i < (int)z_len; i++)
+    {
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
+        w_t    = Term::w_tilde_f(q,mpi);
+        tmp[i] = Term::V_C_2pi_nu_3_no_rel(q, gA, c1, c3, mpi, fpi, mN, w, w_t, 
+                loop_reg, lam_SFR);
+    }
+	return tmp;
+}  
+
+double Term::V_C_2pi_nu_3_no_rel(double q, double gA, double c1, double c3, 
+        double mpi, double fpi, double mN, double w, double w_t,
+        std::string loop_reg, double lam_SFR)
+{
+    double gA2 = gA*gA;
+
+    double tmp2 = 2.0*mpi*mpi*(2.0*c1-c3) - q*q*c3;
+    
+    double tmp3 = (3.0*gA2)/(16.0*M_PI*std::pow(fpi,4));
+
+    return tmp3*(-tmp2*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR));
+}
+
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
+
+std::vector<double> Term::W_T_2pi_nu_3_no_rel(double qi, double qo, 
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+{
+    double gA  = params["gA"];
+    double c4  = params["c4"];
+
+    double mpi = constants::mpi;
+    double fpi = constants::fpi;
+    double mN  = ph::get_mN(chn.Tz);
+    
+
+    std::vector<double> tmp(z_len);
+    double q,w;
+    for (int i = 0; i < (int)z_len; i++)
+    {
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
+        tmp[i] = Term::W_T_2pi_nu_3_no_rel(q, gA, c4, mpi, fpi, mN, w, loop_reg, 
+                lam_SFR);
+    }
+	return tmp;
+}
+
+double Term::W_T_2pi_nu_3_no_rel(double q, double gA, double c4, double mpi, double fpi,
+        double mN, double w, std::string loop_reg, double lam_SFR)
+{
+    double gA2 = gA*gA;
+
+    return (-gA2*c4*w*w*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
+        (32.0*M_PI*std::pow(fpi,4));
+}
+
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ */
+
+std::vector<double> Term::W_S_2pi_nu_3_np_rel(double qi, double qo, 
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+{
+    double gA  = params["gA"];
+    double c4  = params["c4"];
+
+    double mpi = constants::mpi;
+    double fpi = constants::fpi;
+    double mN  = ph::get_mN(chn.Tz);
+    
+
+    std::vector<double> tmp(z_len);
+    double q,w;
+    for (int i = 0; i < (int)z_len; i++)
+    {
+        q      = Term::get_q(qi,qo,z[i]);
+        w      = Term::w_f(q,mpi);
+        tmp[i] = -q*q*Term::W_T_2pi_nu_3_no_rel(q, gA, c4, mpi, fpi, mN, w, loop_reg,
+                lam_SFR);
+    }
+	return tmp;
 }

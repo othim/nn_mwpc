@@ -249,7 +249,11 @@ public:
 
     /*
      * nu=2 (N2LO) Chiral two-pion exchange contributions in dimensional
-     * regularization. As eq. 4.9-4.12 in M&E Phys. Rep. 503 (2011)
+     * regularization as well as SFR. As eq. 4.9-4.12 in M&E Phys. Rep. 503 (2011)
+     *
+     * The only difference between DR and SFR is the loop functions and this is 
+     * controlled by the argument 'loop_reg' which can be 'DR' or 'SFR' and the 
+     * SFR regulator needs to be provided (in MeV).
      *
      * This is also the same expressions as in eg.
      * E. Epelbaum et al. Nuc. Phys. A 671 (2000) which is also in DR.
@@ -298,11 +302,16 @@ public:
             std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
-    /*
-     * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
-     * regularization. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
-     */
-
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ * 
+ * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
+ * regularization and SFR. As eq. 4.13-4.20 in M&E Phys. Rep. 503 (2011).
+ * 
+ * ****************************************************************************
+ * ****************************************************************************
+ */
     
     static std::vector<double> V_C_2pi_nu_3(double qi, double qo, 
             double* z, int z_len,
@@ -391,6 +400,49 @@ public:
     static double W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi, 
             double mN, double w,
             std::string loop_reg, double lam_SFR);
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ *
+ * nu=3 (N3LO) chiral two-pion exchange contributions in dimensional
+ * regularization and SFR. These loop function do not include the relativistic
+ * corrections proportional to (1/M_N). The irreducible 2pi exchange are 
+ * subtracted using the convention to have the M/E inside the integral sign.
+ *
+ * The equations are as eq. (C1) and eq. (C2) in 
+ * PHYSICAL REVIEW C 91, 014002 (2015).
+ *
+ * ****************************************************************************
+ * ****************************************************************************
+ */
+
+    static std::vector<double> V_C_2pi_nu_3_no_rel(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+
+    static double V_C_2pi_nu_3_no_rel(double q, double gA, double c1, double c3, 
+            double mpi, double fpi, double mN, double w, double w_t,
+            std::string loop_reg, double lam_SFR);
+
+
+    static std::vector<double> W_T_2pi_nu_3_no_rel(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+
+    static double W_T_2pi_nu_3_no_rel(double q, double gA, double c4, 
+            double mpi, double fpi,
+            double mN, double w, std::string loop_reg, double lam_SFR);
+
+    static std::vector<double> W_S_2pi_nu_3_np_rel(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+
 };
 
 #endif
