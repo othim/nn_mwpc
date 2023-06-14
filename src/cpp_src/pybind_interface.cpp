@@ -73,6 +73,10 @@ PYBIND11_MODULE(nn_mwpc, m)
                 &nn_mwpc_dwb_interface::compute_binding_energy,
                 py::return_value_policy::copy)
         
+        .def("solve_DWBA_T_PC_full", 
+                &nn_mwpc_dwb_interface::solve_DWBA_T_PC_full,
+                py::return_value_policy::copy)
+        
         .def("solve_DWBA_T_PC", 
                 &nn_mwpc_dwb_interface::solve_DWBA_T_PC,
                 py::return_value_policy::copy)

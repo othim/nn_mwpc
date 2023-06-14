@@ -223,6 +223,15 @@ public:
      * Units of the T-matrix is MeV^{-2} and the normalization conventions 
      * are that there is as given for the LS-Solver in the README.
      */
+    std::vector<std::complex<double>> solve_DWBA_T_PC_full(
+            double T_lab, int chn_index, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+    /*
+     * Same as above but just the T-matrix at order=order is returned, not
+     * the whole sum.
+     */
     std::vector<std::complex<double>> solve_DWBA_T_PC(
             double T_lab, int chn_index, int order,
             const std::string& V_LO_name, const std::string& V_NLO_name,
