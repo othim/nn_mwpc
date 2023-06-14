@@ -114,6 +114,34 @@ Term::Term(std::string name)
         my_v_alpha = &Term::W_LS_2pi_nu_3; 
         params_in_term_.push_back("gA");
         isovector_ = true;
+    } else if (name == "V_C_2pi_nu_3_no_rel")
+    {
+        term_name_ = name;
+        spin_structure_ = "C";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::V_C_2pi_nu_3_no_rel; 
+        params_in_term_.push_back("gA");
+        lecs_in_term_.push_back("c1");
+        lecs_in_term_.push_back("c3");
+        isovector_ = false;
+    } else if (name == "W_T_2pi_nu_3_no_rel")
+    {
+        term_name_ = name;
+        spin_structure_ = "T";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_T_2pi_nu_3_no_rel; 
+        params_in_term_.push_back("gA");
+        lecs_in_term_.push_back("c4");
+        isovector_ = true;
+    } else if (name == "W_S_2pi_nu_3_no_rel")
+    {
+        term_name_ = name;
+        spin_structure_ = "S";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::W_S_2pi_nu_3_no_rel; 
+        params_in_term_.push_back("gA");
+        lecs_in_term_.push_back("c4");
+        isovector_ = true;
     } else if (name == "C1S0")
     {
         term_name_ = name;
@@ -1086,7 +1114,7 @@ std::vector<double> Term::W_T_2pi_nu_3(double qi, double qo,
         qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
-    double c4  = params["c4"];
+    double c4  = LECs["c4"];
 
     double mpi = constants::mpi;
     double fpi = constants::fpi;
@@ -1130,7 +1158,7 @@ std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo,
         qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
-    double c4  = params["c4"];
+    double c4  = LECs["c4"];
 
     double mpi = constants::mpi;
     double fpi = constants::fpi;
@@ -1303,7 +1331,7 @@ std::vector<double> Term::W_T_2pi_nu_3_no_rel(double qi, double qo,
         qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
-    double c4  = params["c4"];
+    double c4  = LECs["c4"];
 
     double mpi = constants::mpi;
     double fpi = constants::fpi;
@@ -1322,8 +1350,8 @@ std::vector<double> Term::W_T_2pi_nu_3_no_rel(double qi, double qo,
 	return tmp;
 }
 
-double Term::W_T_2pi_nu_3_no_rel(double q, double gA, double c4, double mpi, double fpi,
-        double mN, double w, std::string loop_reg, double lam_SFR)
+double Term::W_T_2pi_nu_3_no_rel(double q, double gA, double c4, double mpi, 
+        double fpi, double mN, double w, std::string loop_reg, double lam_SFR)
 {
     double gA2 = gA*gA;
 
@@ -1336,14 +1364,14 @@ double Term::W_T_2pi_nu_3_no_rel(double q, double gA, double c4, double mpi, dou
  * ****************************************************************************
  */
 
-std::vector<double> Term::W_S_2pi_nu_3_np_rel(double qi, double qo, 
+std::vector<double> Term::W_S_2pi_nu_3_no_rel(double qi, double qo, 
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
         qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
 {
     double gA  = params["gA"];
-    double c4  = params["c4"];
+    double c4  = LECs["c4"];
 
     double mpi = constants::mpi;
     double fpi = constants::fpi;

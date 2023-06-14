@@ -437,7 +437,7 @@ public:
             double mpi, double fpi,
             double mN, double w, std::string loop_reg, double lam_SFR);
 
-    static std::vector<double> W_S_2pi_nu_3_np_rel(double qi, double qo, 
+    static std::vector<double> W_S_2pi_nu_3_no_rel(double qi, double qo, 
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
