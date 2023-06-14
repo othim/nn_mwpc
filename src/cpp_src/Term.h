@@ -443,6 +443,83 @@ public:
             std::unordered_map<std::string,double>& params,
             qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 
+/*
+ * ****************************************************************************
+ * ****************************************************************************
+ *
+ * nu=3 (N3LO) chiral two-pion exchange relativistivc contributions in 
+ * dimensional regularization and SFR. These contributions need to be added 
+ * to the expressions in eq. (4.13)-(4.20) in M&E Phys. Rep. 503 (2011).
+ *
+ * These functions are as (4.21)-(4.24) in M&E Phys. Rep. 503 (2011) to convert
+ * the expressions (4.13)-(4.20) from the Kaiser to the M&E 
+ * convention for the subtraction of the iterated one-pion exchange.
+
+ * ****************************************************************************
+ * ****************************************************************************
+ */
+
+    static std::vector<double> V_C_2pi_nu_3_to_EM(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+    
+    static double V_C_2pi_nu_3_to_EM(double q, double gA,
+            double mpi, double fpi, double mN, double w, double w_t,
+            std::string loop_reg, double lam_SFR);
+
+
+
+    static std::vector<double> W_C_2pi_nu_3_to_EM(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+    
+    static double W_C_2pi_nu_3_to_EM(double q, double gA, double mpi, double fpi, 
+            double mN, double w, double w_t, std::string loop_reg, 
+            double lam_SFR);
+
+
+    
+    static std::vector<double> V_T_2pi_nu_3_to_EM(double qi, double qo, 
+        double* z, int z_len,
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+    
+    static double V_T_2pi_nu_3_to_EM(double q, double gA, double mpi, double fpi, 
+            double mN, double w, double w_t, std::string loop_reg, 
+            double lam_SFR);
+
+
+
+    static std::vector<double> V_S_2pi_nu_3_to_EM(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+
+    
+    
+    static std::vector<double> W_T_2pi_nu_3_to_EM(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+    
+    static double W_T_2pi_nu_3_to_EM(double q, double gA, double mpi, 
+            double fpi, double mN, double w, std::string loop_reg, 
+            double lam_SFR);
+
+
+
+    static std::vector<double> W_S_2pi_nu_3_to_EM(double qi, double qo, 
+            double* z, int z_len,
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
 };
 
 #endif
