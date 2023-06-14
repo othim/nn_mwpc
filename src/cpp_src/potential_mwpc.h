@@ -126,6 +126,9 @@ private:
    int isoFac(int L, int S);
 public:
    
+   double get_rel_cut(double p_in,
+           double p_out, double mu, bool rel_correction);
+   
     /*
       Some class variables that ideally should be private with getters and setters, but in the
       interest of computation time they are public for the time beeing. (The user of this 

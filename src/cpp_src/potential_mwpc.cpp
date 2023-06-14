@@ -44,6 +44,12 @@ template Potential_mwpc<gsl_matrix_complex>::Potential_mwpc(std::vector<std::str
 template void Potential_mwpc<gsl_matrix_complex>::print_LECs_and_params_info();
 template void Potential_mwpc<gsl_matrix>::print_LECs_and_params_info();
 
+template double Potential_mwpc<gsl_matrix>::get_rel_cut(double p_in, 
+        double p_out, double mu, bool rel_correction);
+
+template double Potential_mwpc<gsl_matrix_complex>::get_rel_cut(double p_in, 
+        double p_out, double mu, bool rel_correction);
+
 template <class gsl_m>
 Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
@@ -1093,6 +1099,27 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
    return matrix_data;
 }
 
+template <class gsl_m>
+double Potential_mwpc<gsl_m>::get_rel_cut(double p_in, 
+        double p_out, double mu, bool rel_correction)
+{
+     // Compute relativistic factors
+     double rel_fac = 1.0;
+     if (rel_correction)
+     {
+        double E_rel_in = sqrt(4*mu*mu+p_in*p_in);
+        double E_rel_out = sqrt(4*mu*mu+p_out*p_out);
+        double rel_factor_in = sqrt(2*mu/E_rel_in);
+        double rel_factor_out = sqrt(2*mu/E_rel_out);
+        rel_fac = rel_factor_in*rel_factor_out;
+     }
+
+     // Compute the cutoff factor
+     double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*
+            exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
+
+     return cutoff_regulator*rel_fac;
+}
 
 template <class gsl_m>
 double Potential_mwpc<gsl_m>::get_total_rel_cut_weight_factor(double p_in, int j, 

@@ -917,7 +917,6 @@ double Term::V_C_2pi_nu_3(double q, double gA, double c1, double c3,
     double tmp3 = (3.0*gA2)/(16.0*M_PI*std::pow(fpi,4));
 
     return tmp3*(tmp1-tmp2*w_t*w_t*Term::A_gen(q,mpi,loop_reg,lam_SFR));
-
 }
 
 //*****************************************************************************
@@ -1064,7 +1063,6 @@ double Term::W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fpi
         (32.0*M_PI*std::pow(fpi,4));
     
     return tmp2*tmp1;
-
 }
 
 //*****************************************************************************
@@ -1161,6 +1159,6 @@ double Term::W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
 {
     double gA2 = std::pow(gA,2);
     
-    return (gA2*(1-gA2)*w*w*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
+    return (gA2*(1.0-gA2)*w*w*Term::A_gen(q,mpi,loop_reg,lam_SFR))/
         (32.0*M_PI*mN*std::pow(fpi,4));
 }
