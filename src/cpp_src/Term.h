@@ -194,6 +194,9 @@ public:
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params);
 
+    static double mom_F1S0(double qi, double qo, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params);
 
 
 

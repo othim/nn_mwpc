@@ -374,6 +374,18 @@ Term::Term(std::string name)
         isovector_ = false;
         my_v_alpha_well_def_pw = &Term::mom_E_FP;
         lecs_in_term_.push_back("E_PF");
+    } else if (name == "F1S0")
+    {
+        term_name_ = name;
+        spin_structure_ = "none";
+        well_def_pw_ = true;
+        LS_well_def_pw_.J = 0;
+        LS_well_def_pw_.Li = 0;
+        LS_well_def_pw_.Lo = 0;
+        LS_well_def_pw_.S = 0;
+        isovector_ = false;
+        my_v_alpha_well_def_pw = &Term::mom_F1S0;
+        lecs_in_term_.push_back("F1S0");
     } else if (name == "Yamaguchi_1S0")
     {
         term_name_ = name;
@@ -656,6 +668,13 @@ double Term::mom_E_FP(double qi, double qo,
 
 {
     return LECs["E_PF"]*qo*qi*(qo*qo); 
+}
+
+double Term::mom_F1S0(double qi, double qo, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params)
+{
+    return LECs["F1S0"]*qi*qi*qo*qo*(qi*qi+qo*qo); // If momentum dependent, multiply here
 }
 
 /*
