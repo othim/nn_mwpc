@@ -243,7 +243,6 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
     } 
     else if (order == 3)
     {
-        
         T_res = dwba::pw_T_DWBA_PC_N3LO(TI, G0, V_NLO, V_N2LO, V_N3LO);
         gsl_matrix_complex_free(V_NLO);
         gsl_matrix_complex_free(V_N2LO);
@@ -930,6 +929,56 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         terms.push_back("E3P2");
         terms.push_back("E_PF");
         terms.push_back("E_FP");
+
+
+        bool inc_weights_in_pot = true; // This is always true
+        std::string loop_reg    = "DR";
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg,lam_SFR);
+    
+        return pot_complex_weights;
+    } else if (pre_def_name == "MWPC_N3LO_SP")
+    {
+        std::cout << "Adding MWPC_N3LO_SP" << std::endl;
+        // Choose terms in potential
+        std::vector<std::string> terms;
+
+        // Subleading TPE without reativistic corrections, i.e. all terms
+        // proportional to 1/M_N are excluded
+        terms.push_back("V_C_2pi_nu_3_no_rel");
+        terms.push_back("W_T_2pi_nu_3_no_rel");
+        terms.push_back("W_S_2pi_nu_3_no_rel");
+        
+        // TODO: Maybe add 1pi correction here
+
+        // LO pert corr
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        
+        // NLO pert corr
+        terms.push_back("D1S0");
+
+        // N2LO pert corr
+        terms.push_back("D3S1");
+        terms.push_back("D_SD");
+        terms.push_back("D_DS");
+        terms.push_back("D1P1");
+        terms.push_back("D3P1");
+        terms.push_back("E1S0");
+        terms.push_back("E3P0");
+        terms.push_back("E3P2");
+        terms.push_back("E_PF");
+        terms.push_back("E_FP");
+
+        // N3LO contacts
+        terms.push_back("F1S0");
 
 
         bool inc_weights_in_pot = true; // This is always true

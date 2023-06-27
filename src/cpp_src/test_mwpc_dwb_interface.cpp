@@ -25,8 +25,8 @@ int main(int argc, char** argv)
     // ****** CONSTANTS TO CHANGE *********************************************
     // ************************************************************************
     double scale_              = 100; // Scale of momenutm grid MeV (100)
-    int number_of_p_points_    = 60; // Number of momentum-grid points (60)
-    int ang_int_points_        = 76; // Number of points in angular integration
+    int number_of_p_points_    = 100; // Number of momentum-grid points (60)
+    int ang_int_points_        = 96; // Number of points in angular integration
     int J_max_in_pot_          = 50; // Maximum J that is stored for L-polynomials
     int J_max_chn_             = 2;
     double cutoff_             = 500; // Cutoff in LS-equation
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     
     std::string name = "LO";
     std::string pre_def_name = "WPC_LO";
-    compute_spectrum(name,pre_def_name,LECs,params, obj);
+    //compute_spectrum(name,pre_def_name,LECs,params, obj);
     
     /*
      * ***************
@@ -92,6 +92,30 @@ int main(int argc, char** argv)
     LECs = {C1S0,C3S1,D1P1,D1S0,D3P0,D3P1,D3P2,D3S1,D_SD};
     
     name = "NLO";
+    pre_def_name = "WPC_NLO_SFR";
+    //compute_spectrum(name,pre_def_name,LECs,params, obj);
+    
+    //C1S0 = -0.150533e-2;
+    C1S0 = -0.0015062256361672;
+    C3S1 = -0.0018431235715802;
+    
+    D1P1 = 0.849e-8;
+    D1S0 = 1.6926e-8;
+    D3P0 = 1.3085e-8;
+    D3P1 = -0.3409e-8;
+    D3P2 = -0.2011e-8;
+    D3S1 = -0.0000000021789842;
+    D_SD = -0.0000000026342609;
+
+    gA   = 1.29;
+    //gA   = 1.276;
+
+    // Set parameters before saving!
+    params = {gA};
+    // LECs need to be set after saving!
+    LECs = {C1S0,C3S1,D1P1,D1S0,D3P0,D3P1,D3P2,D3S1,D_SD};
+    
+    name = "NLO2";
     pre_def_name = "WPC_NLO_SFR";
     compute_spectrum(name,pre_def_name,LECs,params, obj);
 
@@ -123,8 +147,14 @@ int main(int argc, char** argv)
     LECs = {C1S0,C3S1,D1P1,D1S0,D3P0,D3P1,D3P2,D3S1,D_SD,c1,c3,c4};
     name = "N2LO";
     pre_def_name = "WPC_N2LO_SFR";
-    compute_spectrum(name,pre_def_name,LECs,params, obj);
+    //compute_spectrum(name,pre_def_name,LECs,params, obj);
+    
+    //std::vector<std::complex<double>> T = obj.solve_DWBA_T_PC(25.0,0,2,"LO","NLO","NLO2","");
 
+    //for (auto t : T)
+    //{
+    //    std::cout << std::real(t) << "," << std::imag(t) << std::endl;
+    //}
     /*for (int q=1; q<300;q++)
     {
         std::cout << Term::L_DR((double)q,constants::mpi) << ", ";
@@ -153,7 +183,9 @@ void compute_spectrum(std::string name, std::string pot_name, std::vector<double
     std::vector<double> res = obj.compute_binding_energy(chn_number, true, name);
     std::cout << name << std::endl;
     for (auto a : res)
-    {   if (a<0) {
+    {   
+        if (a<0) 
+        {
             std::cout << a << std::endl;
         }
     }

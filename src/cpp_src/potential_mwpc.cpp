@@ -96,6 +96,7 @@ Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned i
    LEC_names_.push_back("E3P2");
    LEC_names_.push_back("E_PF");
    LEC_names_.push_back("E_FP");
+   LEC_names_.push_back("F1S0");
    LEC_names_.push_back("c1");
    LEC_names_.push_back("c3");
    LEC_names_.push_back("c4");
