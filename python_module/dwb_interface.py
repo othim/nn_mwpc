@@ -132,36 +132,37 @@ def d3_phase_shift(T,p_on,mu):
 
 def phase_shift_pert_NLO(T0,T1,p_on,mu):
     
+    
     d1 = d_phase_shift(T0,p_on,mu)*T1
-    #print(d_phase_shift(T0,p_on,mu).imag)
-    #print(T1.imag)
-    #print(d1.imag)
+    #print(d_phase_shift(T0,p_on,mu))
+    #print(T1)
+    #print(d1)
     #print("\n\n")
     return d1
 
 def phase_shift_pert_N2LO(T0,T1,T2,p_on,mu):
     
     tmp1 = d_phase_shift(T0,p_on,mu)*T2 
-    tmp2 = d2_phase_shift(T0,p_on,mu)*T1/2.0
-    print(f'tmp1 : {tmp1}, tmp2 : {tmp2}')
-    print(f'T1={T1}, T2={T2}')
-    print(d2_phase_shift(1,1,1))
+    tmp2 = d2_phase_shift(T0,p_on,mu)*T1**2/2.0
     d2 = tmp1 + tmp2
 
-
     return d2
 
-def phase_shift_pert_N2LO(T0,T1,T2,p_on,mu):
+#def phase_shift_pert_N2LO(T0,T1,T2,p_on,mu):
+#    
+#    tmp1 = d_phase_shift(T0,p_on,mu)*T2 
+#    d1 = phase_shift_pert_NLO(T0,T1,p_on,mu)
+#    d2 = tmp1 - 1j*d1**2
+#
+#    return d2
     
-    tmp1 = d_phase_shift(T0,p_on,mu)*T2 
-    d1 = phase_shift_pert_NLO(T0,T1,p_on,mu)
-    d2 = tmp1 - 1j*d1**2
-    print(f'tmp1 : {tmp1}, d1 : {d1}')
-    print(f'T1={d2}')
-
-
-    return d2
+def phase_shift_pert_N3LO(T0,T1,T2,T3,p_on,mu):
     
+    tmp1 = d_phase_shift(T0,p_on,mu)*T3
+    tmp2 = d2_phase_shift(T0,p_on,mu)*T1*T2
+    tmp3 = d3_phase_shift(T0,p_on,mu)*T1**3/6
+
+    return tmp1 + tmp2 + tmp3
 
 
 def blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB):

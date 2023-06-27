@@ -7,6 +7,7 @@
 
 (cd src/cpp_src; make -j so PY_BIND=-DPYBIND)
 #(cd src/cpp_src; make -j so PY_BIND=-DPYBIND FLAGS=-DNIJM_CONST)
+#(cd src/cpp_src; make -j so PY_BIND=-DPYBIND FLAGS=-DANDREAS_CONST)
 
 rm nn_mwpc.so
 
