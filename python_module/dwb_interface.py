@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import nn_mwpc
-
+import sys
 
 
 def get_pwa93_phase_shifts(chn):
@@ -189,4 +189,168 @@ def phase_shifts_Stapp(T11,T12,T22,p_on,mu):
     return np.array([delta_minus, delta_plus, epsilon])
 
 
+#
+# This part of the code contains functions to compute phase shifts
+# perturbatively in coupled channels in the Stapp convention.
+#
 
+#
+# Define some functions
+#
+
+def f11(eps,d):
+    return np.cos(2*eps)*np.exp(2*1j*d)
+
+def f12(eps,d1,d2):
+    return 1j*np.sin(2*eps)*np.exp(1j*(d1+d2))
+
+#
+# Derivatives f11
+# 
+
+# 1:st order
+
+def deps_f11(eps,d):
+    return -2*np.sin(2*eps)*np.exp(2*1j*d)
+
+def dd_f11(eps,d):
+    return 2*1j*np.cos(2*eps)*np.exp(2*1j*d)
+
+
+# 2:nd order
+
+def deps2_f11(eps,d):
+    return -4*np.cos(2*eps)*np.exp(2*1j*d)
+
+def dd_deps_f11(eps,d):
+    return -4*1j*np.sin(2*eps)*np.exp(2*1j*d)
+
+def dd2_f11(eps,d):
+    return -4*np.cos(2*eps)*np.exp(2*1j*d)
+
+# 3:rd order
+
+def deps3_f11(eps,d):
+    return 8*np.sin(2*eps)*np.exp(2*1j*d)
+
+def dd2_deps_f11(eps,d):
+    return 8*np.sin(2*eps)*np.exp(2*1j*d)
+
+def dd_deps2_f11(eps,d):
+    return -8*1j*np.cos(2*eps)*np.exp(2*1j*d)
+
+def dd3_f11(eps,d):
+    return -8*1j*np.cos(2*eps)*np.exp(2*1j*d)
+
+
+#
+# Derivatives f11
+# 
+
+# 1:st order
+
+def deps_f12(eps,d1,d2):
+    return 2*1j*np.cos(2*eps)*np.exp(1j*(d1+d2))
+
+def dd_f12(eps,d1,d2):
+    return -np.sin(2*eps)*np.exp(1j*(d1+d2))
+
+# 2:nd order
+
+def deps2_f12(eps,d1,d2):
+    return -4*1j*np.sin(2*eps)*np.exp(1j*(d1+d2))
+
+def dd_deps_f12(eps,d1,d2):
+    return -2*np.cos(2*eps)*np.exp(1j*(d1+d2))
+
+def dd2_f12(eps,d1,d2):
+    return -1j*np.sin(2*eps)*np.exp(1j*(d1+d2))
+
+# 3:rd order
+
+def deps3_f12(eps,d1,d2):
+    return -8*1j*np.cos(2*eps)*np.exp(1j*(d1+d2))
+
+def dd2_deps_f12(eps,d1,d2):
+    return -2*1j*np.cos(2*eps)*np.exp(1j*(d1+d2))
+
+def dd_deps2_f12(eps,d1,d2):
+    return 4*1j*np.sin(2*eps)*np.exp(1j*(d1+d2))
+
+def dd3_f12(eps,d1,d2):
+    return np.sin(2*eps)*np.exp(1j*(d1+d2))
+
+
+
+
+#
+# Define some more complicated functions that relates the 
+# 
+
+
+def g2_11(eps_0,d_0,eps_1,d_1):
+    
+    return (1/2)*(deps2_f11(eps_0,d_0)*eps_1**2 +  dd2_f11(eps_0,d_0)*d_1**2)+\
+            dd_deps_f11(eps_1,d_0)*d_1*eps_1
+
+def g3_11(eps_0,d_0,eps_1,d_1,eps_2,d_2):
+
+    return deps2_f11(eps_0,d_0)*eps_1*eps_2 + dd_deps_f11(eps_0,d_0)*\
+            (eps_1*d_2+eps_2*d_1) + dd2_f11(eps_0,d_0)*d_1*d_2 +\
+            (1/6)*deps3_f11(eps_0,d_0)*eps_1**3 +\
+            (1/2)*dd_deps2_f11(eps_0,d_0)*eps_1**2*d_1+\
+            (1/2)*dd2_deps_f11(eps_0,d_0)*eps_1*d_1**2+\
+            (1/6)*dd3_f_11(eps_0,d_0)*d_1**3
+
+
+def g2_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1):
+
+    return  (1/2)*deps2_f12(eps_0,d1_0,d2_0)*eps_1**2+\
+            (1/2)*dd2_f12(eps_0,d1_0,d2_0)*d1_1**2+\
+            (1/2)*dd2_f12(eps_0,d1_0,d2_0)*d2_1**2+\
+            dd_deps_f12(eps_0,d1_0,d2_0)*eps_1*d1_1+\
+            dd_deps_f12(eps_0,d1_0,d2_0)*eps_1*d2_1+\
+            dd2_f12(eps_0,d1_0,d2_0)*d1_1*d2_1
+
+def g3_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,eps_2,d1_2,d2_2):
+
+    return  deps2_f12(eps_0,d1_0,d2_0)*eps_1*eps_2+\
+            dd2_f12(eps_0,d1_0,d2_0)*d1_1*d1_2+\
+            dd2_f12(eps_0,d1_0,d2_0)*d2_1*d2_2+\
+            deps_dd_f12(eps_0,d1_0,d2_0)*(eps_1*d1_2+eps_2*d1_1)+\
+            deps_dd_f12(eps_0,d1_0,d2_0)*(eps_1*d2_2+eps_2*d2_1)+\
+            dd2_f12(eps_0,d1_0,d2_0)*(d1_1*d2_2+d1_2*d2_1)+\
+            (1/6)*deps3_f12(eps_0,d1_0,d2_0)*eps_1**3+\
+            (1/6)*dd3_f12(eps_0,d1_0,d2_0)*d1_1**3+\
+            (1/6)*dd3_f12(eps_0,d1_0,d2_0)*d2_1**3
+        
+
+def get_derivative_matrix(eps_0,d1_0,d2_0):
+     return np.array([[deps_f11(eps_0,d1_0), dd_f11(eps_0,d1_0),0],\
+            [deps_f12(eps_0,d1_0,d2_0),dd_f12(eps_0,d1_0,d2_0),dd_f12(eps_0,d1_0,d2_0)],\
+            [deps_f11(eps_0,d2_0),0,dd_f11(eps_0,d2_0)]])
+
+
+def phase_shift_pert_coup_NLO_S(S11,S12,S22,eps_0,d1_0,d2_0):
+    # Set up S
+    S = np.array([S11,S12,S22])
+
+    # Set up matrix
+    A = get_derivative_matrix(eps_0,d1_0,d2_0)
+    #print(S.shape)
+    #print(A.shape)
+    # Invert system to get phase shift corrections
+    if np.linalg.cond(A) < 1/sys.float_info.epsilon:
+        d = np.linalg.inv(A)@S
+    else:
+        print("Error, matrix singular. Returning 0")
+        d = np.array([0,0,0])
+
+    return d
+    
+
+def phase_shift_pert_coup_NLO_T(T11,T12,T22,eps_0,d1_0,d2_0):
+
+    # Convert T to S
+
+    # Call S
