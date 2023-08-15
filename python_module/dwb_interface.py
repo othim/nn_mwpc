@@ -175,7 +175,44 @@ def blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB):
 
     return delta_minus, delta_plus, epsilon
     
-def phase_shifts_Stapp(T11,T12,T22,p_on,mu):
+def blattToStapp_corr(delta_m_BB,delta_p_BB,twoeps_BB):
+    
+    if (np.abs(delta_m_BB.imag) > 1e-12 or np.abs(delta_p_BB.imag) > 1e-12 or np.abs(twoeps_BB.imag) > 1e-12):
+        print("Error,phases are complex")
+        return np.NAN,np.NAN,np.NAN
+    
+    delta_m_BB = delta_m_BB.real
+    delta_p_BB = delta_p_BB.real
+    twoeps_BB  = twoeps_BB.real
+
+    eps_BB = twoeps_BB/2.0
+
+    cos2eps = np.cos(eps_BB)**2
+    cos_2dp = np.cos(2*delta_p_BB)
+    sin_2dp = np.sin(2*delta_p_BB)
+    cos_2dm = np.cos(2*delta_m_BB)
+    sin_2dm = np.sin(2*delta_m_BB)
+
+    aR = cos2eps*cos_2dm + (1-cos2eps)*cos_2dp
+    aI = cos2eps*sin_2dm + (1-cos2eps)*sin_2dp
+
+    delta_m = 0.5*np.arctan2(aI,aR)
+    
+    aR = cos2eps*cos_2dp + (1-cos2eps)*cos_2dm
+    aI = cos2eps*sin_2dp + (1-cos2eps)*sin_2dm
+    delta_p = 0.5*np.arctan2(aI,aR)
+
+    tmp  = 0.5*np.sin(2.0*eps_BB)
+    aR   = tmp*(cos_2dm - cos_2dp)
+    aI   = tmp*(sin_2dm - sin_2dp)
+    tmp2 = (delta_p+delta_m)
+    eps  = 0.5*np.arcsin(aI*np.cos(tmp2)-aR*np.sin(tmp2))
+
+    return delta_m, delta_p, eps
+
+
+
+def phase_shifts_Stapp(T11,T12,T22,p_on,mu,CORR_CONV):
     fac = 2*np.pi*1j*mu*p_on
 
     # Blatt-Biedenharn (BB) convention
@@ -183,11 +220,32 @@ def phase_shifts_Stapp(T11,T12,T22,p_on,mu):
     delta_plus_BB  = -0.5*1j*np.log(1 - fac*(T11+T22)/2 + fac*(T12)/np.sin(twoEpsilonJ_BB))
     delta_minus_BB = -0.5*1j*np.log(1 - fac*(T11+T22)/2 - fac*(T12)/np.sin(twoEpsilonJ_BB))
  
-    
-    delta_minus, delta_plus, epsilon = blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB)
-    
+    if (CORR_CONV):
+        delta_minus, delta_plus, epsilon = blattToStapp_corr(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB)
+    else:
+        delta_minus, delta_plus, epsilon = blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB)
+
     return np.array([delta_minus, delta_plus, epsilon])
 
+def cont_phase_shift_3S_D1(pm,pp,eps):
+    # Make phase shift continous
+    # Assume that the phase shift at infinity is zero
+    # and that it varies continously
+
+    n_pm = np.copy(pm)
+    n_pp = np.copy(pp)
+    n_eps = np.copy(eps)
+
+    for i in range(1,len(pm)):
+        # If we have a 180 degree discontinuity
+        if (np.abs(pm[i]-pm[i-1])>150):
+            # Add 180 degrees to all phases up until this point
+            n_pm[0:i] = n_pm[0:i]+180
+
+            # Change sign to the epsilon
+            n_eps[0:i] = -n_eps[0:i]
+
+    return n_pm, n_pp, n_eps
 
 #
 # This part of the code contains functions to compute phase shifts
@@ -331,7 +389,7 @@ def get_derivative_matrix(eps_0,d1_0,d2_0):
             [deps_f11(eps_0,d2_0),0,dd_f11(eps_0,d2_0)]])
 
 
-def phase_shift_pert_coup_NLO_S(S11,S12,S22,eps_0,d1_0,d2_0):
+def phase_shift_pert_coup_N2_3LO_S(S11,S12,S22,eps_0,d1_0,d2_0):
     # Set up S
     S = np.array([S11,S12,S22])
 
@@ -346,11 +404,16 @@ def phase_shift_pert_coup_NLO_S(S11,S12,S22,eps_0,d1_0,d2_0):
         print("Error, matrix singular. Returning 0")
         d = np.array([0,0,0])
 
-    return d
+    return np.array([d[1],d[2],d[0]])
     
 
-def phase_shift_pert_coup_NLO_T(T11,T12,T22,eps_0,d1_0,d2_0):
+def phase_shift_pert_coup_N2_3LO_T(T11,T12,T22,mu,p_on,eps_0,d1_0,d2_0):
 
     # Convert T to S
-
+    fac = 2*np.pi*1j*mu*p_on
+    S11 = -fac*T11
+    S12 = -fac*T12
+    S22 = -fac*T22
     # Call S
+    return phase_shift_pert_coup_N2_3LO_S(S11,S12,S22,eps_0,d1_0,d2_0)
+
