@@ -358,7 +358,7 @@ def g3_11(eps_0,d_0,eps_1,d_1,eps_2,d_2):
             (1/6)*deps3_f11(eps_0,d_0)*eps_1**3 +\
             (1/2)*dd_deps2_f11(eps_0,d_0)*eps_1**2*d_1+\
             (1/2)*dd2_deps_f11(eps_0,d_0)*eps_1*d_1**2+\
-            (1/6)*dd3_f_11(eps_0,d_0)*d_1**3
+            (1/6)*dd3_f11(eps_0,d_0)*d_1**3
 
 
 def g2_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1):
@@ -375,19 +375,37 @@ def g3_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,eps_2,d1_2,d2_2):
     return  deps2_f12(eps_0,d1_0,d2_0)*eps_1*eps_2+\
             dd2_f12(eps_0,d1_0,d2_0)*d1_1*d1_2+\
             dd2_f12(eps_0,d1_0,d2_0)*d2_1*d2_2+\
-            deps_dd_f12(eps_0,d1_0,d2_0)*(eps_1*d1_2+eps_2*d1_1)+\
-            deps_dd_f12(eps_0,d1_0,d2_0)*(eps_1*d2_2+eps_2*d2_1)+\
+            dd_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d1_2+eps_2*d1_1)+\
+            dd_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d2_2+eps_2*d2_1)+\
             dd2_f12(eps_0,d1_0,d2_0)*(d1_1*d2_2+d1_2*d2_1)+\
+            (1/2)*dd_deps2_f12(eps_0,d1_0,d2_0)*(eps_1**2*d1_1)+\
+            (1/2)*dd_deps2_f12(eps_0,d1_0,d2_0)*(eps_1**2*d2_1)+\
+            (1/2)*dd2_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d1_1**2)+\
+            (1/2)*dd3_f12(eps_0,d1_0,d2_0)*(d2_1*d1_1**2)+\
+            (1/2)*dd2_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d2_1**2)+\
+            (1/2)*dd3_f12(eps_0,d1_0,d2_0)*(d1_1*d2_1**2)+\
             (1/6)*deps3_f12(eps_0,d1_0,d2_0)*eps_1**3+\
             (1/6)*dd3_f12(eps_0,d1_0,d2_0)*d1_1**3+\
             (1/6)*dd3_f12(eps_0,d1_0,d2_0)*d2_1**3
-        
+'''
+def g3_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,eps_2,d1_2,d2_2):
+
+    return  deps2_f12(eps_0,d1_0,d2_0)*eps_1*eps_2+\
+            dd2_f12(eps_0,d1_0,d2_0)*d1_1*d1_2+\
+            dd2_f12(eps_0,d1_0,d2_0)*d2_1*d2_2+\
+            dd_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d1_2+eps_2*d1_1)+\
+            dd_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d2_2+eps_2*d2_1)+\
+            dd2_f12(eps_0,d1_0,d2_0)*(d1_1*d2_2+d1_2*d2_1)
+'''   
 
 def get_derivative_matrix(eps_0,d1_0,d2_0):
      return np.array([[deps_f11(eps_0,d1_0), dd_f11(eps_0,d1_0),0],\
             [deps_f12(eps_0,d1_0,d2_0),dd_f12(eps_0,d1_0,d2_0),dd_f12(eps_0,d1_0,d2_0)],\
             [deps_f11(eps_0,d2_0),0,dd_f11(eps_0,d2_0)]])
 
+
+# These two functions are simplified, for the case where the NLO contribution
+# vanishes
 
 def phase_shift_pert_coup_N2_3LO_S(S11,S12,S22,eps_0,d1_0,d2_0):
     # Set up S
@@ -417,3 +435,71 @@ def phase_shift_pert_coup_N2_3LO_T(T11,T12,T22,mu,p_on,eps_0,d1_0,d2_0):
     # Call S
     return phase_shift_pert_coup_N2_3LO_S(S11,S12,S22,eps_0,d1_0,d2_0)
 
+
+# These two are the full expressions
+
+def phase_shift_pert_coup_N2LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1):
+    # Set up S
+    S = np.array([S11-g2_11(eps_0,d1_0,eps_1,d1_1),\
+            S12-g2_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1),\
+            S22-g2_11(eps_0,d2_0,eps_1,d2_1)])
+
+    # Set up matrix
+    A = get_derivative_matrix(eps_0,d1_0,d2_0)
+    #print(S.shape)
+    #print(A.shape)
+    # Invert system to get phase shift corrections
+    if np.linalg.cond(A) < 1/sys.float_info.epsilon:
+        d = np.linalg.inv(A)@S
+    else:
+        print("Error, matrix singular. Returning 0")
+        d = np.array([0,0,0])
+
+    return np.array([d[1],d[2],d[0]])
+
+
+def phase_shift_pert_coup_N2LO_T(T11,T12,T22,mu,p_on,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1):
+
+    # Convert T to S
+    fac = 2*np.pi*1j*mu*p_on
+    S11 = -fac*T11
+    S12 = -fac*T12
+    S22 = -fac*T22
+    # Call S
+    return phase_shift_pert_coup_N2LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1)
+
+def phase_shift_pert_coup_N3LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,\
+        eps_2,d1_2,d2_2):
+    # Set up S
+    print(f'In function')
+    g3 = g3_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,eps_2,d1_2,d2_2)
+    print(g3)
+    S = np.array([S11-g3_11(eps_0,d1_0,eps_1,d1_1,eps_2,d1_2),\
+            S12-g3,\
+            S22-g3_11(eps_0,d2_0,eps_1,d2_1,eps_2,d2_2)])
+
+    # Set up matrix
+    A = get_derivative_matrix(eps_0,d1_0,d2_0)
+    #print(S.shape)
+    #print(A.shape)
+    # Invert system to get phase shift corrections
+    if np.linalg.cond(A) < 1/sys.float_info.epsilon:
+        d = np.linalg.inv(A)@S
+    else:
+        print("Error, matrix singular. Returning 0")
+        d = np.array([0,0,0])
+
+    return np.array([d[1],d[2],d[0]])
+
+
+def phase_shift_pert_coup_N3LO_T(T11,T12,T22,mu,p_on,eps_0,d1_0,d2_0,eps_1,d1_1,
+        d2_1,eps_2,d1_2,d2_2):
+
+    # Convert T to S
+    fac = 2*np.pi*1j*mu*p_on
+    S11 = -fac*T11
+    S12 = -fac*T12
+    S22 = -fac*T22
+    # Call S
+    return phase_shift_pert_coup_N3LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,
+            d1_1,d2_1,eps_2,d1_2,d2_2)
