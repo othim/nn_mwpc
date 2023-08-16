@@ -223,6 +223,117 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
         potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
     gsl_matrix_complex* TI = 
         LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,V_LO,G0);
+
+    
+    // Solve for TI
+    gsl_matrix_complex* T_res = nullptr; 
+    if (order == 0)
+    {
+        T_res = TI;
+    }
+    else if (order == 1)
+    {
+        T_res = dwba::pw_T_DWBA_PC_NLO(TI, G0, V_NLO);
+        gsl_matrix_complex_free(V_NLO);
+    }
+    else if (order == 2)
+    {   
+        T_res = dwba::pw_T_DWBA_PC_N2LO(TI, G0, V_NLO, V_N2LO);
+        gsl_matrix_complex_free(V_NLO);
+        gsl_matrix_complex_free(V_N2LO);
+    } 
+    else if (order == 3)
+    {
+        T_res = dwba::pw_T_DWBA_PC_N3LO(TI, G0, V_NLO, V_N2LO, V_N3LO);
+        gsl_matrix_complex_free(V_NLO);
+        gsl_matrix_complex_free(V_N2LO);
+        gsl_matrix_complex_free(V_N3LO);
+    }
+    else
+    {
+        std::cout << "Error, 'order' must be <=3." << std::endl;
+    }
+    
+    // Get the on-shell values
+    std::vector<std::complex<double>> T_arr = 
+            get_on_shell_from_matrix(T_res);
+    
+    if (order==0)
+    {
+        gsl_matrix_complex_free(T_res);
+    } else {
+        gsl_matrix_complex_free(T_res);
+        gsl_matrix_complex_free(TI);
+    }
+
+    gsl_matrix_complex_free(G0);
+    gsl_matrix_complex_free(V_LO);
+
+    return T_arr;
+}
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
+        double T_lab, int chn_index, int order,
+        const std::string& V_LO_name, const std::string& V_NLO_name="none",
+        const std::string& V_N2LO_name="none", const std::string& V_N3LO_name="none")
+{
+    qs::quantum_channel chn = chns_[0];
+    if (chn_index>chns_.size()-1)
+    {
+        std::cout << "Error, too large channel index, returning 0." << std::endl;
+        std::vector<std::complex<double>> T_arr;
+        T_arr.push_back(std::complex<double>(0,0));
+        return T_arr;
+    } else
+    {
+        chn = chns_[chn_index];
+    }
+
+    // Get on-shell momentum and reduced mass
+    double q_on_shell,mu;
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    
+    // Get G0 vector matrix
+    gsl_vector_complex* prop_vec = 
+        LS_Solver_->setup_G0_vector_complex(q_on_shell,chn.coupled,mu);
+    // Make it to a diagonal matrix
+    gsl_matrix_complex* G0 = 
+        gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    ph::matrix_from_vector(G0,prop_vec);
+    gsl_vector_complex_free(prop_vec);
+    
+    
+    // Load the higher order corrections if neccessary
+    gsl_matrix_complex* V_NLO  = nullptr; 
+    gsl_matrix_complex* V_N2LO = nullptr;
+    gsl_matrix_complex* V_N3LO = nullptr;
+    
+    if (order>0)
+    {
+        V_NLO = potentials_[V_NLO_name]->
+            get_saved_matrix(q_on_shell, chn, rel_corr_);
+    }
+    if (order>1)
+    {
+        V_N2LO = potentials_[V_N2LO_name]->
+            get_saved_matrix(q_on_shell, chn, rel_corr_);
+    }
+    if (order>2)
+    {
+        V_N3LO = potentials_[V_N3LO_name]->
+            get_saved_matrix(q_on_shell, chn, rel_corr_);
+    }
+    
+    // LO
+    gsl_matrix_complex* V_LO = 
+        potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
+    gsl_matrix_complex* TI = 
+        LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,V_LO,G0);
+
+    // ****
+    // OBS
+    // ****
+    gsl_matrix_complex_set_zero(TI);
     
     // Solve for TI
     gsl_matrix_complex* T_res = nullptr; 

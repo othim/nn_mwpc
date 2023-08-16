@@ -149,7 +149,7 @@ gsl_matrix_complex* dwba::pw_T_DWBA_PC_NLO(gsl_matrix_complex* T_I,
 
     // Make multiplication
     ph::mult3(omega_m_dagger,V_NLO,omega_p,T_NLO);
-
+    
     // Remove all temporary matrices
     gsl_matrix_complex_free(omega_p);
     gsl_matrix_complex_free(omega_m_dagger);

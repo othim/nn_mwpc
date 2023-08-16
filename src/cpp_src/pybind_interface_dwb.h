@@ -238,6 +238,16 @@ public:
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
     
     /*
+     * Same as above the LO T-matrix is zero since the LO potential is zero.
+     * Note that this means that the V_LO_name potential does not do anything 
+     * in this function.
+     */
+    std::vector<std::complex<double>> solve_BA_T_PC(
+            double T_lab, int chn_index, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+    /*
      * This function does the same as above, but convert the answer 
      * to phase shifts in the Stapp convention.
      */   
