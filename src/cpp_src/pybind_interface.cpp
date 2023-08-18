@@ -444,6 +444,7 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
     if (std::abs(angle-90.0) < 0.001) {
         angle = 90.001;
     }
+    // S = 1-2*i*rho_T*T
     double rho_T = M_PI*q_on_shell*mu; // In the convention used
     
     std::vector<std::complex<double> > saclay_amplitudes;

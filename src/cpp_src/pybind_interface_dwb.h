@@ -88,6 +88,13 @@ private:
     std::vector<qs::quantum_channel> chns_;
     double energy_saved_;
 
+    // Saves T-matrix elements. This vector of values conrrespond to the 
+    // vector of channels.
+    std::vector<std::vector<std::complex<double>> > saved_T_LO_;
+    std::vector<std::vector<std::complex<double>> > saved_T_NLO_;
+    std::vector<std::vector<std::complex<double>> > saved_T_N2LO_;
+    std::vector<std::vector<std::complex<double>> > saved_T_N3LO_;
+
 
 private:
     /*
@@ -212,7 +219,7 @@ public:
      * order     : the chiral order (0 = LO, 1 = NLO, 2=N2LO, 3=N3LO)
      * V_NxLO    : potential name for each order. Note that you just need to 
      *             define the orders that are used. The others are set by
-     *             defaultarguments
+     *             default arguments
      *
      * Returns:
      * --------
@@ -248,28 +255,27 @@ public:
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
     
     /*
-     * This function does the same as above, but convert the answer 
-     * to phase shifts in the Stapp convention.
-     */   
-    std::vector<std::complex<double>> solve_DWBA_phases_PC(
-            double T_lab, int chn_index, int order,
-            const std::string& V_LO_name, const std::string& V_NLO_name,
-            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
-    /*
      * Function that does the same as 'solve_DWBA_T_PC()' but saves the 
      * T-matrix in the saved data.
      */
-    void solve_DWBA_T_save_chn_PC(double T_lab, int order, int chn_index,
+    void solve_save_DWBA_T_chn_PC(double T_lab, int order, int chn_index,
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    /*
+     * Function that saves a T-matrix that is given. This can be used if one 
+     * wants to compute the T-matrix in python and then send it back to C++
+     * for further computation.
+     */
+    void save_DWBA_T_chn_PC(int order, int chn_index,
+            std::complex<double> T11, std::complex<double> T12,
+            std::complex<double> T22);
     /*
      * Computes observables by adding the contributions from all channels 
      * that have a saved T-matrix.
      */
-    std::complex<double> observable_from_saved_T(std::string obs, double theta);
+    std::complex<double> observable_from_saved_T(const std::string& obs_name, 
+            double theta, int order);
     
-
-
 
 
     /*
@@ -285,6 +291,7 @@ public:
      */
     std::vector<double> compute_binding_energy(int chn_number, 
             bool rel_corr, const std::string& V_name);
+    
     
     /*
      * *********************************************

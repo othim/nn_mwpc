@@ -71,6 +71,22 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
 
     // Construct a LS_Solver
     LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+    
+    
+    // Initialize all the saved T-matrix elements to zero
+    std::vector<std::complex<double>> T_arr_0;
+    T_arr_0.push_back(std::complex<double>(0.0,0.0));
+    T_arr_0.push_back(std::complex<double>(0.0,0.0));
+    T_arr_0.push_back(std::complex<double>(0.0,0.0));
+    T_arr_0.push_back(std::complex<double>(0.0,0.0));
+    
+    for (auto chn : chns_)
+    {
+        saved_T_LO_.push_back  (T_arr_0);
+        saved_T_NLO_.push_back (T_arr_0);
+        saved_T_N2LO_.push_back(T_arr_0);
+        saved_T_N3LO_.push_back(T_arr_0);
+    }
 }
 
 
@@ -523,54 +539,147 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC_full(
 }
 
 
-std::vector<std::complex<double>> solve_DWBA_phases_PC(
-        double T_lab, int chn_index, int order,
-        const std::string& V_LO_name, const std::string& V_NLO_name,
-        const std::string& V_N2LO_name, const std::string& V_N3LO_name)
-{
-    // Compute the T-matrix
-    
-    /*
-    std::vector<std::complex<double>> T = solve_DWBA_T_PC(
-            T_lab, chn_index, order,
-            V_LO_name, V_NLO_name,
-            V_N2LO_name, V_N3LO_name);
-    
-    // Convert to (complex) phase shifts
-
-    std::vector<complex<double>> phases_Stapp;
-    if (chns_[i].coupled)
-    {
-        std::complex<double>* phases = nullptr;
-        phases = LS_Solver::BB_phases_from_T_coup(T[0],T[1],T[2]);
-
-
-    } else 
-    {
-        
-    }
-    
-    // Return
-    return phases_Stapp;*/
-}
-
-
-void solve_DWBA_T_save_chn_PC(double T_lab, int order, int chn_index,
+void solve_save_DWBA_T_save_chn_PC(double T_lab, int order, int chn_index,
         const std::string& V_LO_name, const std::string& V_NLO_name,
         const std::string& V_N2LO_name, const std::string& V_N3LO_name)
 {
     // Compute the T-matrix
     
     // Save it in the correct channel
+    // save_DWBA_chn_PC(...)
 }
 
 
+void save_DWBA_T_chn_PC(int order, int chn_index,
+        std::complex<double> T11, std::complex<double> T12,
+        std::complex<double> T22, std::complex<double> T_uncoup)
+{
+     
+
+}
+
+std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
+        const std::string& obs_name, double theta, int order)
+{
+    if (order > 3 || order < 0)
+    {
+        std::cerr << "Error: order out of bounds, returning 0." << std::endl;
+        return (std::complex<double>)0.0;
+    }
+
+    double mu, q_on_shell;
+    LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
+    
+    // Construct the vector of on-shell-T matrix
+    std::vector<std::complex<double>*> T_vec;
+
+    // Compute the factor
+    const std::complex<double> imag_u(0.0,1.0);
+    std::complex<double> fac = -2.0*mu*imag_u*M_PI;
+
+    int chn_index = 0;
+    for (auto chn : chns_)
+    {
+        // Init values to zero
+        std::complex<double>* T = new std::complex<double>[3];
+        T[0] = (std::complex<double>)0.0;
+        T[1] = (std::complex<double>)0.0;
+        T[2] = (std::complex<double>)0.0;
+
+        if (order>=0)
+        {
+            if (chn.coupled)
+            {
+                T[0] += fac*saved_T_LO_[chn_index][0];
+                T[1] += fac*saved_T_LO_[chn_index][1];
+                T[2] += fac*saved_T_LO_[chn_index][2];
+            } else
+            {   
+                // To match the different saving format conventions
+                T[0] += fac*saved_T_LO_[chn_index][3];
+            }
+        }
+        if (order >= 1)
+        {
+            if (chn.coupled)
+            {
+                T[0] += fac*saved_T_NLO_[chn_index][0];
+                T[1] += fac*saved_T_NLO_[chn_index][1];
+                T[2] += fac*saved_T_NLO_[chn_index][2];
+            } else
+            {   
+                // To match the different saving format conventions
+                T[0] += fac*saved_T_NLO_[chn_index][3];
+            }
+        }
+        if (order >= 2)
+        {
+            if (chn.coupled)
+            {
+                T[0] += fac*saved_T_N2LO_[chn_index][0];
+                T[1] += fac*saved_T_N2LO_[chn_index][1];
+                T[2] += fac*saved_T_N2LO_[chn_index][2];
+            } else
+            {   
+                // To match the different saving format conventions
+                T[0] += fac*saved_T_N2LO_[chn_index][3];
+            }
+        }
+        if (order >= 3)
+        {
+            if (chn.coupled)
+            {
+                T[0] += fac*saved_T_N3LO_[chn_index][0];
+                T[1] += fac*saved_T_N3LO_[chn_index][1];
+                T[2] += fac*saved_T_N3LO_[chn_index][2];
+            } else
+            {   
+                // To match the different saving format conventions
+                T[0] += fac*saved_T_N3LO_[chn_index][3];
+            }
+        }
+
+        T_vec.push_back(&T[0]);
+        chn_index++;
+    }
+
+    // Compute saclay amplitudes 
+    std::vector<std::complex<double> > saclay_amplitudes;
+
+    // S = 1-2*i*rho_T*T
+    double rho_T = M_PI*q_on_shell*mu; // In the convention used
+    
+    saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, T_vec, 
+            theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+    
+    // Compute the observable from the amplitudes
+    double obs_value;
+    // The A 00kk is an observable that is defined in terms of other vectors
+    // than the n,l,m. That is why the _lab function is used.
+    if (obs_name == "A 00kk") {
+        obs_value = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, 
+                obs_name, theta*M_PI/180.0);
+    } else {
+        obs_value = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_name);
+    }
+
+    // Delete the vector of on-shell T
+    while (!T_vec.empty())
+    {
+        delete T_vec.back();
+        T_vec.pop_back();
+    }
+
+    return obs_value;
+}
 
 /*
  * ************************************************************
  * Functions to compute other things than scattering properties
  * ************************************************************
  */
+
+
 
 
 /*
@@ -654,7 +763,6 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     
     // 3S-D1
     chn = chns_[3];
-    V_arr[6];
     potentials_[potential_name]->calc_element_V_arr(qi,qo,chn,&V_arr[0]);
     
     std::cout << "V_arr in " << quantum_channel_to_string(chn) << std::endl;

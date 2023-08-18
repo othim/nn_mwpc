@@ -39,7 +39,9 @@ namespace sc
     are general spin projections. The amplitude, f, is related to the
     T-matrix as f = -(2 pi)^2 \mu T(on shell). See Taylor.
 */
-std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,std::vector<Phase_shifts_chn> phase_shifts_vec, int s, int mo, int mi, double cos_theta, double q_on_shell,double rho_T,int l_max);
+std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,
+        std::vector<Phase_shifts_chn> phase_shifts_vec, int s, int mo, int mi, 
+        double cos_theta, double q_on_shell,double rho_T,int l_max);
 
 /*
     This function is the same as get_M_matrix_p but computes the M-matrix directly from 
@@ -48,7 +50,9 @@ std::complex<double> get_M_matrix_p(std::vector<qs::quantum_channel> chns_vec,st
     The T-matrix elements are in the form [Tmm, Tmp, Tpp] if coupled and if uncoupled only Tmm
     is non-zero.
 */
-std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, int s, int mo, int mi, double cos_theta,int l_max);
+std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
+        std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell, 
+        int s, int mo, int mi, double cos_theta,int l_max);
 
 
 /*
@@ -58,8 +62,29 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,st
     This is done by first computing all relevant M-matrix elements and then 
     forming the amplitudes as certain combinations of them.
 */
-std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell,double rho_T, int l_max);
+std::vector<std::complex<double> > compute_Saclay_amplitudes(
+        std::vector<qs::quantum_channel> chns_vec, 
+        std::vector<Phase_shifts_chn> phase_shifts_vec, 
+        double theta, double q_on_shell,double rho_T, int l_max);
+
+/*
+ * Same function as above but the T-matrix elements is an argument
+ * instead of the phase shifts.
+ */
+std::vector<std::complex<double> > compute_Saclay_amplitudes(
+        std::vector<qs::quantum_channel> chns_vec, 
+        std::vector<std::complex<double>*> T_on_shell_vec, 
+        double theta, double q_on_shell,double rho_T, int l_max);
+
+/*
+ * Helper function for computing the saclay amplitudes given
+ * the different M-matrix elements
+ */
+std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
+        std::complex<double> M_pp, std::complex<double> M_00,
+        std::complex<double> M_pm, std::complex<double> M_s,
+        std::complex<double> M_p0, std::complex<double> M_0p,double theta);
+
 /*
     This function computes observables from Saclay amplitudes.
     The observables are specified as follows.
@@ -85,7 +110,8 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
 
     q_on_shell in the on shell momentum in MeV
 */
-double compute_observable(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs);
+double compute_observable(std::vector<std::complex<double> > sac_amp, 
+        double q_on_shell, std::string obs);
 
 /*
  * This function computes the observables that are defined in the lab frame.

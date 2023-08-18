@@ -148,7 +148,8 @@ std::vector<lo_li> get_ls(int J, int S, bool coupled)
 }
 
 std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell,int s, int mo, int mi, double cos_theta,int l_max)
+    std::vector<std::complex<double>*> T_on_shell_vec, double q_on_shell,
+    int s, int mo, int mi, double cos_theta,int l_max)
 { 
     const std::complex<double> imag_u(0.0,1.0);  
     // Move to some constructor-ish
@@ -293,6 +294,37 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
     std::complex<double> M_0p = 
         get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
     
+    return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta);   
+}
+
+std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
+    std::vector<std::complex<double>*> T_on_shell_vec, double theta, double q_on_shell, double rho_T, int l_max)
+{
+    //std::cout << "S l " << l_max << std::endl;
+    // Compute M-matrix elements
+    std::complex<double> M_pp = 
+        get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)1,(int)1,std::cos(theta),l_max);
+    std::complex<double> M_00 = 
+        get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)0,(int)0,std::cos(theta),l_max);
+    std::complex<double> M_pm = 
+        get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)1,(int)-1,std::cos(theta),l_max);
+    std::complex<double> M_s =
+        get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)0,(int)0,(int)0,std::cos(theta),l_max);
+    std::complex<double> M_p0 = 
+        get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)1,(int)0,std::cos(theta),l_max);
+    std::complex<double> M_0p = 
+        get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)0,(int)1,std::cos(theta),l_max);
+    
+    return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta);   
+}
+
+
+
+std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
+        std::complex<double> M_pp, std::complex<double> M_00,
+        std::complex<double> M_pm, std::complex<double> M_s,
+        std::complex<double> M_p0, std::complex<double> M_0p,double theta)
+{
     // Compute Saclay amplitudes as in eq 2.14 in 
     // Formalism of nucleon-nucleon elastic scattering experiments. 
     // Journal de Physique, 1978, 39 (1), pp.1-32.
@@ -321,6 +353,7 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
     sac_amp.push_back(e*fac);
     return sac_amp;
 }
+
 
 
 double compute_observable(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs)
