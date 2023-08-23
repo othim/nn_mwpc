@@ -258,7 +258,8 @@ public:
      * Function that does the same as 'solve_DWBA_T_PC()' but saves the 
      * T-matrix in the saved data.
      */
-    void solve_save_DWBA_T_chn_PC(double T_lab, int order, int chn_index,
+    void solve_save_T_chn_PC(double T_lab, std::vector<int> chn_index_LO,
+            std::vector<int> orders, 
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
     /*
@@ -266,9 +267,9 @@ public:
      * wants to compute the T-matrix in python and then send it back to C++
      * for further computation.
      */
-    void save_DWBA_T_chn_PC(int order, int chn_index,
+    void save_DWBA_T_chn_PC(double Tlab,int order, int chn_index,
             std::complex<double> T11, std::complex<double> T12,
-            std::complex<double> T22);
+            std::complex<double> T22, std::complex<double> T_uncoup);
     /*
      * Computes observables by adding the contributions from all channels 
      * that have a saved T-matrix.
@@ -276,7 +277,12 @@ public:
     std::complex<double> observable_from_saved_T(const std::string& obs_name, 
             double theta, int order);
     
-
+    /*
+     * Function that saves the on-shell T-matrix element t in the correct saved
+     * array.
+     */
+    void save_order(int order,int chn_index, 
+            std::vector<std::complex<double>> t);
 
     /*
      * ************************************************************

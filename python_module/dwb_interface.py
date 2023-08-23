@@ -471,9 +471,8 @@ def phase_shift_pert_coup_N2LO_T(T11,T12,T22,mu,p_on,eps_0,d1_0,d2_0,eps_1,d1_1,
 def phase_shift_pert_coup_N3LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,\
         eps_2,d1_2,d2_2):
     # Set up S
-    print(f'In function')
     g3 = g3_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,eps_2,d1_2,d2_2)
-    print(g3)
+    
     S = np.array([S11-g3_11(eps_0,d1_0,eps_1,d1_1,eps_2,d1_2),\
             S12-g3,\
             S22-g3_11(eps_0,d2_0,eps_1,d2_1,eps_2,d2_2)])

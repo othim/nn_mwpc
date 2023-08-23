@@ -539,23 +539,93 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC_full(
 }
 
 
-void solve_save_DWBA_T_save_chn_PC(double T_lab, int order, int chn_index,
+void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab, 
+        std::vector<int> chn_index_LO, std::vector<int> orders,
         const std::string& V_LO_name, const std::string& V_NLO_name,
         const std::string& V_N2LO_name, const std::string& V_N3LO_name)
 {
-    // Compute the T-matrix
-    
-    // Save it in the correct channel
-    // save_DWBA_chn_PC(...)
+    // Solve in specified channels and orders and save the result
+    energy_saved_ = T_lab;
+
+    #pragma omp parallel
+    {
+        omp_set_num_threads(8);
+        #pragma omp for
+        for (auto order : orders)
+        {
+            int tid = omp_get_thread_num();
+            std::cout << "Hello from thread: " << tid << std::endl;
+            //std::cout << "order=" << order << std::endl;
+            for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
+            {
+                //std::cout << "chn_index=" << chn_index << std::endl;
+                // If a LO channel
+                std::vector<std::complex<double>> t;
+                if ( std::find(chn_index_LO.begin(), chn_index_LO.end(), chn_index) 
+                        != chn_index_LO.end())
+                {
+                    t = solve_DWBA_T_PC(T_lab,chn_index,order,V_LO_name,V_NLO_name,
+                            V_N2LO_name,V_N3LO_name);
+                
+                } else
+                {
+                    t = solve_BA_T_PC(T_lab,chn_index,order,V_LO_name,V_LO_name,
+                            V_NLO_name,V_N2LO_name);
+                
+                }
+                // Save the the saved on-shell T-arrays
+                save_order(order,chn_index,t);
+            }
+        }
+    }
 }
 
 
-void save_DWBA_T_chn_PC(int order, int chn_index,
+void nn_mwpc_dwb_interface::save_DWBA_T_chn_PC(double Tlab,int order, int chn_index,
         std::complex<double> T11, std::complex<double> T12,
         std::complex<double> T22, std::complex<double> T_uncoup)
 {
-     
+    energy_saved_ = Tlab;
+    // Construct T-element
+    std::vector<std::complex<double>> t;
+    t.push_back(T11);
+    t.push_back(T12);
+    t.push_back(T22);
+    t.push_back(T_uncoup);
+    
+    save_order(order,chn_index,t);
+}
 
+void nn_mwpc_dwb_interface::save_order(
+        int order, int chn_index, std::vector<std::complex<double>> t)
+{
+    // Check if sizes are initialized correctly
+    if (chns_.size() != saved_T_LO_.size() 
+            || chns_.size() != saved_T_NLO_.size()
+            || chns_.size() != saved_T_N2LO_.size() 
+            || chns_.size() != saved_T_N3LO_.size())
+    {
+        std::cerr << "Error, something is wrong with one of the save vectors."
+            << std::endl;
+    }
+
+    // Set the correct saved T-value
+    if (order == 0)
+    {
+        saved_T_LO_[chn_index] = t;
+    } else if (order == 1 )
+    {
+        saved_T_NLO_[chn_index] = t;
+    } else if (order == 2)
+    {
+        saved_T_N2LO_[chn_index] = t;
+    } else if (order == 3)
+    {
+        saved_T_N3LO_[chn_index] = t;
+    } else
+    {
+        std::cerr << "Error, order is out of bounds." << std::endl;   
+    }
 }
 
 std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
@@ -568,6 +638,8 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
     }
 
     double mu, q_on_shell;
+    //std::cout << "Energy saved:" << energy_saved_ << std::endl;
+
     LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
     
     // Construct the vector of on-shell-T matrix
@@ -575,7 +647,8 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
 
     // Compute the factor
     const std::complex<double> imag_u(0.0,1.0);
-    std::complex<double> fac = -2.0*mu*imag_u*M_PI;
+    
+    std::complex<double> fac = -2.0*mu*imag_u*M_PI*q_on_shell;
 
     int chn_index = 0;
     for (auto chn : chns_)
@@ -638,6 +711,9 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
                 T[0] += fac*saved_T_N3LO_[chn_index][3];
             }
         }
+        
+        //std::cout << "Setting T: " << T[0] << "," << T[1] << "," << T[2] << 
+        //    std::endl;
 
         T_vec.push_back(&T[0]);
         chn_index++;
@@ -652,6 +728,15 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
     saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, T_vec, 
             theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
     
+    // Print saclay amplitudes
+    /*
+    std::cout << "Amplitudes:" << std::endl;
+    for (auto s : saclay_amplitudes)
+    {
+        std::cout << std::real(s) << "," << std::imag(s) << std::endl;
+    }
+    */
+
     // Compute the observable from the amplitudes
     double obs_value;
     // The A 00kk is an observable that is defined in terms of other vectors
@@ -739,6 +824,7 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
 
     // Added to check that the potential is pw decomposed correctly
     
+    /*
     double qi = 200;
     double qo = 200;
 
@@ -746,6 +832,7 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     qs::quantum_channel chn = chns_[0];
     double V_arr[6];
     potentials_[potential_name]->calc_element_V_arr(qi,qo,chn,&V_arr[0]);
+    
     
     std::cout << "V_arr in " << quantum_channel_to_string(chn) << std::endl;
     std::cout << "qi = " << qi << std::endl;
@@ -778,7 +865,7 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
         std::cout << V_arr[i]*rel_cut << "   ";
     }
     std::cout << "\n\n";
-
+    */
 }
 
 void nn_mwpc_dwb_interface::set_LECs_in_potential(const std::string& potential_name, 

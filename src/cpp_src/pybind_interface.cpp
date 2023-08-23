@@ -84,6 +84,18 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("solve_BA_T_PC", 
                 &nn_mwpc_dwb_interface::solve_BA_T_PC,
                 py::return_value_policy::copy)
+        
+        .def("solve_save_T_chn_PC", 
+                &nn_mwpc_dwb_interface::solve_save_T_chn_PC,
+                py::return_value_policy::copy)
+        
+        .def("save_DWBA_T_chn_PC", 
+                &nn_mwpc_dwb_interface::save_DWBA_T_chn_PC,
+                py::return_value_policy::copy)
+        
+        .def("observable_from_saved_T", 
+                &nn_mwpc_dwb_interface::observable_from_saved_T,
+                py::return_value_policy::copy)
 
         .def("create_new_potential", 
                 &nn_mwpc_dwb_interface::create_new_potential,

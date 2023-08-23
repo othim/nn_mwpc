@@ -300,7 +300,18 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
 std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
     std::vector<std::complex<double>*> T_on_shell_vec, double theta, double q_on_shell, double rho_T, int l_max)
 {
-    //std::cout << "S l " << l_max << std::endl;
+    /*
+    std::cout << "T on shell vec" << std::endl;
+
+    for (auto c : T_on_shell_vec)
+    {   
+        for(int i=0; i<3; i++) {
+            std::cout << std::real(c[i]) << "," << std::imag(c[i]) << "   ";
+        }
+        std::cout << std::endl;
+    }
+    */
+
     // Compute M-matrix elements
     std::complex<double> M_pp = 
         get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)1,(int)1,std::cos(theta),l_max);
@@ -314,7 +325,12 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
         get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)1,(int)0,std::cos(theta),l_max);
     std::complex<double> M_0p = 
         get_M_matrix_T(chns_vec,T_on_shell_vec,q_on_shell,(int)1,(int)0,(int)1,std::cos(theta),l_max);
-    
+    /*    
+    std::cout << std::endl << "M elements" << std::endl;
+    std::cout << std::real(M_pp) << "," << std::imag(M_pp) << std::endl;
+    std::cout << std::real(M_00) << "," << std::imag(M_00) << std::endl;
+    */
+
     return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta);   
 }
 
