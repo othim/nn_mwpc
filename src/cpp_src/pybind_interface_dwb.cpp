@@ -549,13 +549,12 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
 
     #pragma omp parallel
     {
-        omp_set_num_threads(8);
-        #pragma omp for
         for (auto order : orders)
         {
-            int tid = omp_get_thread_num();
-            std::cout << "Hello from thread: " << tid << std::endl;
+            //int tid = omp_get_thread_num();
+            //std::cout << "Hello from thread: " << tid << std::endl;
             //std::cout << "order=" << order << std::endl;
+            #pragma omp for
             for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
             {
                 //std::cout << "chn_index=" << chn_index << std::endl;
@@ -896,9 +895,16 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
         const std::string& potential_name)
 {
     // Save potential in all channels
-    for (auto chn : chns_)
+
+    #pragma omp parallel
     {
-        potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
+        #pragma omp for
+        for (int i = 0; i < chns_.size(); i++)
+        {
+            qs::quantum_channel chn = chns_[i];
+            potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
+            std::cout << "Saved channel: " << i << std::endl;
+        }
     }
 }
 

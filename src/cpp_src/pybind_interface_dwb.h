@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <omp.h>
+#include <algorithm>
 
 #include "potential_mwpc.h"
 #include "potential_ext.h"
