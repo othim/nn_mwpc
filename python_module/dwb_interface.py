@@ -176,9 +176,12 @@ def blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB):
     return delta_minus, delta_plus, epsilon
     
 def blattToStapp_corr(delta_m_BB,delta_p_BB,twoeps_BB):
-    
-    if (np.abs(delta_m_BB.imag) > 1e-12 or np.abs(delta_p_BB.imag) > 1e-12 or np.abs(twoeps_BB.imag) > 1e-12):
-        print("Error,phases are complex")
+    tol = 1e-5
+    if (np.abs(delta_m_BB.imag) > tol or np.abs(delta_p_BB.imag) > tol or np.abs(twoeps_BB.imag) > tol):
+        print("Error in blattToStapp_corr,phases are complex:")
+        print(np.abs(delta_m_BB.imag))
+        print(np.abs(delta_p_BB.imag))
+        print(np.abs(twoeps_BB.imag))
         return np.NAN,np.NAN,np.NAN
     
     delta_m_BB = delta_m_BB.real

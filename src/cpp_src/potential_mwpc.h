@@ -101,7 +101,8 @@ private:
       This method computes the \mathcal{A}-integrals (see Erkelenz). The method takes an
       array of v_alpha-values (see Erkelenz) to speed up the computation.
    */
-   double compute_A_integral(double qi, double qo, int J,int l, std::vector<double> v_alpha_arr);
+   double compute_A_integral(double qi, double qo, int J,int l, 
+           std::vector<double> v_alpha_arr);
    
    /*
       This method performs a partial-wave-decomposition (partial-wave-analysis) of the 

@@ -606,7 +606,7 @@ gsl_vector_complex* LS_Solver::setup_G0_vector_complex(double q_on_shell, bool c
     // In some cases it is 2/pi when that is a factor in
     // the partial wave momentum base normalization.
     // For now, the code is written without this factor, it will affect the 
-    // rho value when raltiong the T/R matrix to the S-matrix/phase-shifts.
+    // rho value when relating the T/R matrix to the S-matrix/phase-shifts.
     gsl_vector_complex* D_vector;
     double q2_on_shell = q_on_shell*q_on_shell;
 
