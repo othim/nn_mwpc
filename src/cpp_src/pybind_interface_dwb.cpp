@@ -122,7 +122,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_chn(
     
     // Get the on-shell values
     std::vector<std::complex<double>> T_arr = 
-            get_on_shell_from_matrix(T_DWBA);
+            ph::get_on_shell_from_matrix(T_DWBA,number_of_p_points_);
     
     // Return the on-shell values
     return T_arr;
@@ -158,7 +158,7 @@ std::vector<std::complex<double>>
     
     // Get the on-shell values
     std::vector<std::complex<double>> T_arr = 
-            get_on_shell_from_matrix(T_sum);
+            ph::get_on_shell_from_matrix(T_sum,number_of_p_points_);
 
     // Return the on-shell values
     return T_arr;
@@ -272,7 +272,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
     
     // Get the on-shell values
     std::vector<std::complex<double>> T_arr = 
-            get_on_shell_from_matrix(T_res);
+            ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
     
     if (order==0)
     {
@@ -382,7 +382,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
     
     // Get the on-shell values
     std::vector<std::complex<double>> T_arr = 
-            get_on_shell_from_matrix(T_res);
+            ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
     
     if (order==0)
     {
@@ -472,9 +472,9 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC_full(
         T1 = dwba::pw_T_DWBA_PC_NLO(TI, G0, V_NLO);
         
         std::vector<std::complex<double>> T_vec_I = 
-                get_on_shell_from_matrix(TI);
+                ph::get_on_shell_from_matrix(TI,number_of_p_points_);
         std::vector<std::complex<double>> T_vec_1 = 
-                get_on_shell_from_matrix(T1);
+                ph::get_on_shell_from_matrix(T1,number_of_p_points_);
         
         std::cout << "T from C++" << std::endl;
         std::cout << std::real(T_vec_I[3]) << std::endl;
@@ -528,7 +528,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC_full(
     
     // Get the on-shell values
     std::vector<std::complex<double>> T_arr = 
-            get_on_shell_from_matrix(TI);
+            ph::get_on_shell_from_matrix(TI,number_of_p_points_);
     
     gsl_matrix_complex_free(TI);
     gsl_matrix_complex_free(G0);
@@ -1096,34 +1096,6 @@ void nn_mwpc_dwb_interface::get_G0_and_potentials(double T_lab,
     *G0  = G0_loc;
     *VI  = VI_loc;
     *VII = VII_loc;
-}
-
-std::vector<std::complex<double>> nn_mwpc_dwb_interface::
-    get_on_shell_from_matrix(gsl_matrix_complex* M)
-{
-    gsl_complex T_mm,T_pm,T_pp,T_uncoup;
-    // If coupled channel
-    if ((int)M->size1==(int)(2*number_of_p_points_+2))
-    {
-        T_mm = gsl_matrix_complex_get(M,number_of_p_points_,number_of_p_points_);
-        T_pm = gsl_matrix_complex_get(M,2*number_of_p_points_+1,number_of_p_points_);
-        T_pp = gsl_matrix_complex_get(M,2*number_of_p_points_+1,2*number_of_p_points_+1);
-        T_uncoup = gsl_complex_rect(0.0,0.0);
-
-    } else
-    {
-        T_uncoup = gsl_matrix_complex_get(M,number_of_p_points_,number_of_p_points_);
-        T_mm = gsl_complex_rect(0.0,0.0);
-        T_pm = gsl_complex_rect(0.0,0.0);
-        T_pp = gsl_complex_rect(0.0,0.0);
-    
-    }
-    std::vector<std::complex<double>> T_arr;
-    T_arr.push_back(std::complex<double>(GSL_REAL(T_mm),GSL_IMAG(T_mm)));
-    T_arr.push_back(std::complex<double>(GSL_REAL(T_pm),GSL_IMAG(T_pm)));
-    T_arr.push_back(std::complex<double>(GSL_REAL(T_pp),GSL_IMAG(T_pp)));
-    T_arr.push_back(std::complex<double>(GSL_REAL(T_uncoup),GSL_IMAG(T_uncoup)));
-    return T_arr;
 }
 
 Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::

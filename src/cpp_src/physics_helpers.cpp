@@ -629,3 +629,31 @@ double ph::get_mN(int Tz)
         return -1;
     }
 }
+
+std::vector<std::complex<double>> 
+    ph::get_on_shell_from_matrix(gsl_matrix_complex* M,int number_of_p_points)
+{
+    gsl_complex T_mm,T_pm,T_pp,T_uncoup;
+    // If coupled channel
+    if ((int)M->size1==(int)(2*number_of_p_points+2))
+    {
+        T_mm = gsl_matrix_complex_get(M,number_of_p_points,number_of_p_points);
+        T_pm = gsl_matrix_complex_get(M,2*number_of_p_points+1,number_of_p_points);
+        T_pp = gsl_matrix_complex_get(M,2*number_of_p_points+1,2*number_of_p_points+1);
+        T_uncoup = gsl_complex_rect(0.0,0.0);
+
+    } else
+    {
+        T_uncoup = gsl_matrix_complex_get(M,number_of_p_points,number_of_p_points);
+        T_mm = gsl_complex_rect(0.0,0.0);
+        T_pm = gsl_complex_rect(0.0,0.0);
+        T_pp = gsl_complex_rect(0.0,0.0);
+    
+    }
+    std::vector<std::complex<double>> T_arr;
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_mm),GSL_IMAG(T_mm)));
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_pm),GSL_IMAG(T_pm)));
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_pp),GSL_IMAG(T_pp)));
+    T_arr.push_back(std::complex<double>(GSL_REAL(T_uncoup),GSL_IMAG(T_uncoup)));
+    return T_arr;
+}

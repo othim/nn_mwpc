@@ -15,6 +15,7 @@
 #include "gsl_eigen.h"
 #include "gsl_blas.h"
 #include <stdio.h>
+#include <complex>
 
 namespace ph {
 /*
@@ -204,6 +205,18 @@ void matrix_scale(gsl_matrix_complex* m1, const double scale);
 void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec);
 
 double get_mN(int Tz);
+
+/*
+ *
+ * Method that takes out the on-shell values
+ *
+ * Returns:
+ * std::vector with four elements: [T[0,0],T[1,0],T[1,1],Tuncoup], where the 
+ * indices are over the 2x2 on-shell T-matrix. Tuncoup is the uncoupled 
+ * on-shell T-matrix element.
+ */
+std::vector<std::complex<double>> 
+    get_on_shell_from_matrix(gsl_matrix_complex* M,int number_of_p_points);
 }
 #endif
 

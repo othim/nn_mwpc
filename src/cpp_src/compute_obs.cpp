@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 120; // Number of momentum-grid points
+    unsigned int number_of_p_points = 600; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     
     // Do precomputations
@@ -1555,14 +1555,15 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
 {
     std::cout << "Testing how the T matrix elements look" << std::endl << std::endl;
     
-    //std::cout << " These tests are done with the finite p-mesh" << std::endl;
-    //std::clock_t start, end;   
-    
     // Make grid
     double* p_grid;
     double* w_grid;
-    double Lambda = 500.0;
-    bool FINITE_GRID = true;
+    double Lambda    = 500.0;
+    bool FINITE_GRID = false;
+    int cut_pow      = 6;
+    bool rel_corr    = true;
+    bool sharp_cutoff = true;
+
     if (FINITE_GRID)
     {
         ph::gauss_legendre_finite_mesh(number_of_p_points,0,
@@ -1571,11 +1572,12 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     {
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
     }
-    int cut_pow = 6;
+    
     double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
     double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
     double C3P0 = 0.0;
     double C3P2 = 0.0;    
+    
     // Choose terms in LO WPC potential
     std::vector<std::string> terms;
     terms.push_back("W_T_1pi_nu_0");
@@ -1584,59 +1586,120 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     terms.push_back("D3P0");
     terms.push_back("D3P2");
 
-    Potential_mwpc<gsl_matrix> Pot = Potential_mwpc<gsl_matrix>(terms,ang_int_points,p_grid,w_grid,
-            number_of_p_points,J_max_in_pot,Lambda, cut_pow, false);
+    bool inc_grid_weights_in_pot = false;
+    bool cut_on_shell            = true;
+    std::string loop_reg         = "DR";
+    double lam_SFR               = 700.0;
+
+    // Create the real potential without weights
+    // *****************************************
+    Potential_mwpc<gsl_matrix> pot_real = Potential_mwpc<gsl_matrix>(terms,
+            ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, sharp_cutoff,
+            inc_grid_weights_in_pot,cut_on_shell,loop_reg,lam_SFR);
     
     std::cout << "Saving potential matrices" << std::endl;
-    Pot.params_["gA"]  = 1.29;
+    pot_real.params_["gA"]  = 1.29;
     for (auto chn : chns)
     {
-        Pot.populate_saved_mtx(chn,true); // Realtivistic factor on
+        pot_real.populate_saved_mtx(chn,true); // Realtivistic factor on
     }
-
     // Set correct LECs
-    Pot.LECs_["C1S0"] = C1S0;
-    Pot.LECs_["C3S1"] = C3S1;
-    Pot.LECs_["D3P0"] = C3P0;
-    Pot.LECs_["D3P2"] = C3P2;
+    pot_real.LECs_["C1S0"] = C1S0;
+    pot_real.LECs_["C3S1"] = C3S1;
+    pot_real.LECs_["D3P0"] = C3P0;
+    pot_real.LECs_["D3P2"] = C3P2;
+    // ******************************************
+    
+    // Create complex potential with weights
+    // *************************************
+    inc_grid_weights_in_pot = true;
+    cut_on_shell            = true;
+    loop_reg                = "DR";
+    lam_SFR                 = 700.0;
+    
+    Potential_mwpc<gsl_matrix_complex> pot_complex_weights = 
+        Potential_mwpc<gsl_matrix_complex>(terms,
+            ang_int_points,p_grid,w_grid,
+            number_of_p_points,J_max_in_pot,Lambda, cut_pow, sharp_cutoff,
+            inc_grid_weights_in_pot,cut_on_shell,loop_reg,lam_SFR);
+    
+    std::cout << "Saving potential matrices" << std::endl;
+    pot_complex_weights.params_["gA"]  = 1.29;
+    for (auto chn : chns)
+    {
+        pot_complex_weights.populate_saved_mtx(chn,true); // Realtivistic factor on
+    }
+    // Set correct LECs
+    pot_complex_weights.LECs_["C1S0"] = C1S0;
+    pot_complex_weights.LECs_["C3S1"] = C3S1;
+    pot_complex_weights.LECs_["D3P0"] = C3P0;
+    pot_complex_weights.LECs_["D3P2"] = C3P2;
 
+    // **************************************
 
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
    
     double q_on_shell;
     double mu;
     //double rho_T
-    qs::quantum_channel chn = chns[0];
-    for (int i = 0; i < (int)chns.size(); i++)
-    {
-        chn = chns[i];
-        if (quantum_channel_to_string(chn) == chn_string) {
-            break;
-        }
-    }
-    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) << std::endl;
+    qs::quantum_channel chn = chns[3];
+
+    std::cout << "Computing in chn: " << quantum_channel_to_string(chn) 
+        << std::endl;
+    
     if (chn.coupled) {
-        std::cout  << "E (MeV) |  uncoup | dm | dp | epsilon (all in deg)" << std::endl;
+        std::cout  << "E (MeV) |  uncoup | dm | dp | epsilon (all in deg)" 
+            << std::endl;
     } else {
         std::cout  << "E (MeV) |  uncoup (deg)" << std::endl;
     }
-    for (int i = 50; i < 100; i+=1) 
+
+    for (int i = 50; i < 51; i+=1) 
     {
         double Tl = (double)(i+1);
         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
-        gsl_matrix* pot_V_mtx = Pot.get_saved_matrix(q_on_shell, chn, true);
+        
+        // Solve for the T-matrix using the complex potential with weights
+        // ********************************************************************
+        
+        gsl_vector_complex* prop_vec = 
+            solver.setup_G0_vector_complex(q_on_shell,chn.coupled,mu);
+        // Make it to a diagonal matrix
+        gsl_matrix_complex* G0 = 
+            gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+        ph::matrix_from_vector(G0,prop_vec);
+        gsl_vector_complex_free(prop_vec);
+        
+        gsl_matrix_complex* V_LO = 
+            pot_complex_weights.get_saved_matrix(q_on_shell, chn, rel_corr);
+
+
+        gsl_matrix_complex* T_cw = 
+            solver.solve_in_chn_T_fullT_weights(Tl,chn,V_LO,G0);
+        
+        std::vector<std::complex<double>> T_cw_on =
+            ph::get_on_shell_from_matrix(T_cw,number_of_p_points);
+        
+        // ********************************************************************
+        
+
+        // Solve for phase shifts using R-matrix and T-matrix
+        // ********************************************************************
+        gsl_matrix* pot_V_mtx = pot_real.get_saved_matrix(q_on_shell, chn, rel_corr);
         
         // Solve for the T-matrix
         Phase_shifts_chn phases_T = solver.solve_in_chn_T(Tl,chn,pot_V_mtx);
 
         // Solve fot the R-matrix
         Phase_shifts_chn phases_R = solver.solve_in_chn_R(Tl,chn,pot_V_mtx);
+        // ********************************************************************
         
+
         // Solve for the T matrix and take the matrix elemets directly
-        std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, pot_V_mtx);
-        double* R_elem = solver.solve_in_chn_R_Relem(Tl, chn, pot_V_mtx);
-        std::complex<double>* Tel_from_Rel = solver.T_matrix_from_R_matrix
-            (R_elem[0], R_elem[1], R_elem[2], mu, q_on_shell);
+        std::complex<double>* T_elem = solver.solve_in_chn_T_Telem(Tl, chn, 
+                pot_V_mtx);
+        
 
         std::vector<Phase_shifts_chn> phases;
         phases.push_back(phases_T);
@@ -1667,25 +1730,36 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         const std::complex<double> imag_u(0.0,1.0);
         // Since I convert to the 2/pi convention earlier
         std::complex<double> fac = -imag_u*4.0*mu*q_on_shell; 
-        for (int k=0; k < 3; k++)
+        std::complex<double> fac2 = -imag_u*2.0*M_PI*mu*q_on_shell; 
+
+        for (int k=0; k < 4; k++)
         {
-            std::cout << "S_T: " << S_T[k] << "  " << std::endl;
-            std::cout << "S_R: " << S_R[k] << "  " << std::endl;
-            std::cout << "T_dir: " << fac*T_elem[k] << "  " << std::endl;
-            std::cout << "T_phase: " << T_elem_vec[0][k] << "  " << std::endl;
+            std::cout << std::setprecision(16);
+            if (k<3)
+            {
+                std::cout << "S_T: " << S_T[k] << "  " << std::endl;
+                std::cout << "S_R: " << S_R[k] << "  " << std::endl;
+            }
+            if (k<3){
+                std::cout << "T_dir:     " << fac*T_elem[k] << "  " << std::endl;
+                std::cout << "T_phase:   " << T_elem_vec[0][k] << "  " << std::endl;
+            } else
+            {
+                std::cout << "T_dir:     " << fac2*T_elem[k] << "  " << std::endl;
+                std::cout << "T_phase:   " << T_elem_vec[0][0] << "  " << std::endl;
+            }
+            std::cout << "T_complex: " << fac2*T_cw_on[k] << "  " << std::endl;
+            
             std::cout << "-----" << std::endl;
         }
 
-        std::cout << "Telem: " <<  fac*T_elem[0] << "   " << fac*T_elem[1] << 
-            "   " << fac*T_elem[2] << std::endl;
-        std::cout << "Tel from R: " <<  fac*Tel_from_Rel[0] << "   " << fac*Tel_from_Rel[1] << 
-            "   " << fac*Tel_from_Rel[2] << std::endl;
-        std::cout << "Relem: " <<  R_elem[0] << "   " << R_elem[1] << 
-            "   " << R_elem[2] << std::endl;
         delete[] S_T;
         delete[] S_R;
         delete[] T_elem;
         gsl_matrix_free(pot_V_mtx);
+        gsl_matrix_complex_free(V_LO);
+        gsl_matrix_complex_free(T_cw);
+        gsl_matrix_complex_free(G0);
     } 
 }
 
