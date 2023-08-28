@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     // ---------------------------------
     double scale = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points = 76; // Number of points in angular integration
-    unsigned int number_of_p_points = 600; // Number of momentum-grid points
+    unsigned int number_of_p_points = 120; // Number of momentum-grid points
     unsigned int J_max_in_pot = 50; // Maximum J that is stored for L-polynomials
     
     // Do precomputations
@@ -1558,11 +1558,11 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     // Make grid
     double* p_grid;
     double* w_grid;
-    double Lambda    = 500.0;
-    bool FINITE_GRID = false;
-    int cut_pow      = 6;
-    bool rel_corr    = true;
-    bool sharp_cutoff = true;
+    double Lambda    = 2500.0;
+    bool FINITE_GRID = true;
+    int cut_pow      = 4;
+    bool rel_corr    = false;
+    bool sharp_cutoff = false;
 
     if (FINITE_GRID)
     {
@@ -1573,8 +1573,10 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
     }
     
-    double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
-    double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    //double C1S0	= -0.1/100.0; // contact term C1S0 for lambda = 450 [MeV]
+    double C1S0	= -7.17989322e-04; // contact term C1S0 for lambda = 450 [MeV]
+    //double C3S1	= -0.13/100.0; // contact term C3S1 for lambda = 450 [MeV]
+    double C3S1 = 3.58531954e-04;
     double C3P0 = 0.0;
     double C3P2 = 0.0;    
     
@@ -1599,10 +1601,10 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
             inc_grid_weights_in_pot,cut_on_shell,loop_reg,lam_SFR);
     
     std::cout << "Saving potential matrices" << std::endl;
-    pot_real.params_["gA"]  = 1.29;
+    pot_real.params_["gA"]  = 1.275;
     for (auto chn : chns)
     {
-        pot_real.populate_saved_mtx(chn,true); // Realtivistic factor on
+        pot_real.populate_saved_mtx(chn,rel_corr); // Realtivistic factor on
     }
     // Set correct LECs
     pot_real.LECs_["C1S0"] = C1S0;
@@ -1625,10 +1627,10 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
             inc_grid_weights_in_pot,cut_on_shell,loop_reg,lam_SFR);
     
     std::cout << "Saving potential matrices" << std::endl;
-    pot_complex_weights.params_["gA"]  = 1.29;
+    pot_complex_weights.params_["gA"]  = 1.275;
     for (auto chn : chns)
     {
-        pot_complex_weights.populate_saved_mtx(chn,true); // Realtivistic factor on
+        pot_complex_weights.populate_saved_mtx(chn,rel_corr); // Realtivistic factor on
     }
     // Set correct LECs
     pot_complex_weights.LECs_["C1S0"] = C1S0;
@@ -1655,7 +1657,7 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
         std::cout  << "E (MeV) |  uncoup (deg)" << std::endl;
     }
 
-    for (int i = 50; i < 51; i+=1) 
+    for (int i = 49; i < 50; i+=1) 
     {
         double Tl = (double)(i+1);
         LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
@@ -1752,7 +1754,7 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
             
             std::cout << "-----" << std::endl;
         }
-
+        
         delete[] S_T;
         delete[] S_R;
         delete[] T_elem;
