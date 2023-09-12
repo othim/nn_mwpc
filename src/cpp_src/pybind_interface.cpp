@@ -114,6 +114,15 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("print_potential_names", 
                 &nn_mwpc_dwb_interface::print_potential_names,
                 py::return_value_policy::copy)
+        .def("get_V_matrix", 
+                &nn_mwpc_dwb_interface::get_V_matrix,
+                py::return_value_policy::copy)
+        .def("get_G0_matrix", 
+                &nn_mwpc_dwb_interface::get_G0_matrix,
+                py::return_value_policy::copy)
+        .def("get_DWBA_T_matrix", 
+                &nn_mwpc_dwb_interface::get_DWBA_T_matrix,
+                py::return_value_policy::copy)
 
         
 

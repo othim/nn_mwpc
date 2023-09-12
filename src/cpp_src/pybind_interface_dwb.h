@@ -64,6 +64,7 @@ private:
     int cut_pow_;
     bool sharp_cutoff_;
     bool cut_on_shell_;
+    bool print_;
     double* p_grid_;
     double* w_grid_;
 
@@ -225,11 +226,24 @@ public:
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
     
+
     /*
      * Same as above but just the T-matrix at order=order is returned, not
      * the whole sum.
      */
     std::vector<std::complex<double>> solve_DWBA_T_PC(
+            double T_lab, int chn_index, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+
+    gsl_matrix_complex* solve_DWBA_T_PC_gsl_matrix(
+            double T_lab, int chn_index, int order,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, 
+            const std::string& V_N3LO_name);
+    
+    std::vector<std::complex<double>> get_DWBA_T_matrix(
             double T_lab, int chn_index, int order,
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
@@ -275,10 +289,22 @@ public:
             std::vector<std::complex<double>> t);
 
     /*
+     * Functions to get the potential, propagator and LO T-matrices
+     */
+
+
+    /*
+     * This function returns the whole T-matrix at the given order.
+     */
+    
+    
+    /*
      * ************************************************************
      * Functions to compute other things than scattering properties
      * ************************************************************
      */
+    std::vector<std::complex<double>> get_G0_matrix(double T_lab,
+            int chn_index);
 
 
     /*
@@ -307,6 +333,12 @@ public:
     void save_potential_decomposition(const std::string& potential_name);
 
     void print_potential_names();
+    
+    /*
+     * Returns that potential matrix in the given channel
+     */
+    std::vector<std::complex<double>> get_V_matrix(double T_lab, int chn_index,
+            const std::string& potential_name);
     
     /*
      * **********************************

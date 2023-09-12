@@ -28,7 +28,7 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     finite_grid_        = finite_grid;
     finite_grid_max_    = 0.0; // Just default value
     cut_on_shell_       = cut_on_shell;
-    
+    print_              = print;  
     // For the quantum states
     int J_max           = J_max_chn;
     int J_min           = 0;
@@ -56,17 +56,17 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     }
     
     // Construct the quantum states
-    if (print) {
+    if (print_) {
         std::cout << "Constructing quantum states..." << std::endl;
     }
     std::vector<qs::quantum_NN_state> states = 
-        get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
+        get_states_NN(J_max, J_min, Tz_min, Tz_max, print_);
      
     // Construct the quantum scattering channels from the states
-    if (print) {
+    if (print_) {
         std::cout << "Contruction scattering channels..." << std::endl;
     }
-    chns_ = get_channels(states, print);   
+    chns_ = get_channels(states, print_);   
     
 
     // Construct a LS_Solver
@@ -182,22 +182,13 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_exact_pot_sum_T(
     }
 }
 
-std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
+gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
         double T_lab, int chn_index, int order,
         const std::string& V_LO_name, const std::string& V_NLO_name="none",
         const std::string& V_N2LO_name="none", const std::string& V_N3LO_name="none")
 {
-    qs::quantum_channel chn = chns_[0];
-    if (chn_index>chns_.size()-1)
-    {
-        std::cout << "Error, too large channel index, returning 0." << std::endl;
-        std::vector<std::complex<double>> T_arr;
-        T_arr.push_back(std::complex<double>(0,0));
-        return T_arr;
-    } else
-    {
-        chn = chns_[chn_index];
-    }
+    qs::quantum_channel chn = chns_[chn_index];
+
 
     // Get on-shell momentum and reduced mass
     double q_on_shell,mu;
@@ -269,24 +260,81 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
     {
         std::cout << "Error, 'order' must be <=3." << std::endl;
     }
+
+    if (order!=0)
+    {
+        gsl_matrix_complex_free(TI);
+    }
+    gsl_matrix_complex_free(G0);
+    gsl_matrix_complex_free(V_LO);
+
+    return T_res;
+}
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC(
+        double T_lab, int chn_index, int order,
+        const std::string& V_LO_name, const std::string& V_NLO_name="none",
+        const std::string& V_N2LO_name="none", const std::string& V_N3LO_name="none")
+{
+    qs::quantum_channel chn = chns_[0];
+    if (chn_index>chns_.size()-1)
+    {
+        std::cout << "Error, too large channel index, returning 0." << std::endl;
+        std::vector<std::complex<double>> T_arr;
+        T_arr.push_back(std::complex<double>(0,0));
+        return T_arr;
+    } else
+    {
+        chn = chns_[chn_index];
+    }
+    
+    // Get the T_res matrix
+    gsl_matrix_complex* T_res = solve_DWBA_T_PC_gsl_matrix(
+        T_lab, chn_index, order,
+        V_LO_name, V_NLO_name,
+        V_N2LO_name, V_N3LO_name);
     
     // Get the on-shell values
     std::vector<std::complex<double>> T_arr = 
             ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
     
-    if (order==0)
-    {
-        gsl_matrix_complex_free(T_res);
-    } else {
-        gsl_matrix_complex_free(T_res);
-        gsl_matrix_complex_free(TI);
-    }
-
-    gsl_matrix_complex_free(G0);
-    gsl_matrix_complex_free(V_LO);
+    gsl_matrix_complex_free(T_res);
 
     return T_arr;
 }
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::get_DWBA_T_matrix(
+        double T_lab, int chn_index, int order,
+        const std::string& V_LO_name, const std::string& V_NLO_name,
+        const std::string& V_N2LO_name, const std::string& V_N3LO_name)
+{
+    qs::quantum_channel chn = chns_[0];
+    if (chn_index>chns_.size()-1)
+    {
+        std::cout << "Error, too large channel index, returning 0." << std::endl;
+        std::vector<std::complex<double>> T_arr;
+        T_arr.push_back(std::complex<double>(0,0));
+        return T_arr;
+    } else
+    {
+        chn = chns_[chn_index];
+    }
+    
+    // Get the T_res matrix
+    gsl_matrix_complex* T_res = solve_DWBA_T_PC_gsl_matrix(
+        T_lab, chn_index, order,
+        V_LO_name, V_NLO_name,
+        V_N2LO_name, V_N3LO_name);
+    
+    // Get the on-shell values
+    std::vector<std::complex<double>> T_arr = 
+            ph::get_complex_vector_from_matrix(T_res);
+    
+    gsl_matrix_complex_free(T_res);
+
+    return T_arr;
+}
+
 
 std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
         double T_lab, int chn_index, int order,
@@ -397,6 +445,33 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
 
     return T_arr;
 }
+
+std::vector<std::complex<double>> 
+        nn_mwpc_dwb_interface::get_G0_matrix(double T_lab, int chn_index)
+{
+    qs::quantum_channel chn = chns_[chn_index];
+    // Get on-shell momentum and reduced mass
+    double q_on_shell,mu;
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    
+    // Get G0 vector matrix
+    gsl_vector_complex* prop_vec = 
+        LS_Solver_->setup_G0_vector_complex(q_on_shell,chn.coupled,mu);
+    // Make it to a diagonal matrix
+    gsl_matrix_complex* G0 = 
+        gsl_matrix_complex_alloc(prop_vec->size,prop_vec->size);
+    ph::matrix_from_vector(G0,prop_vec);
+    gsl_vector_complex_free(prop_vec);
+    
+    // make it into a std::vector in row-major format
+    std::vector<std::complex<double>> vec = 
+        ph::get_complex_vector_from_matrix(G0);
+    
+    gsl_matrix_complex_free(G0);
+
+    return vec;
+}
+
 
 std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC_full(
         double T_lab, int chn_index, int order,
@@ -809,7 +884,9 @@ void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_na
     // Make a new potential of this type
     Potential_mwpc<gsl_matrix_complex>* pot = load_pre_def_pot(pre_def_name, 
             lam_SFR);
-    std::cout << "Loaded pre def potential" << std::endl;
+    if (print_) {
+        std::cout << "Loaded pre def potential" << std::endl;
+    }
     // Insert the potential in the list of potentials
     potentials_.insert( std::make_pair(potential_name,pot) );
 
@@ -903,7 +980,9 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
         {
             qs::quantum_channel chn = chns_[i];
             potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
-            std::cout << "Saved channel: " << i << std::endl;
+            if (print_) {
+                std::cout << "Saved channel: " << i << std::endl;
+            }
         }
     }
 }
@@ -919,6 +998,27 @@ void nn_mwpc_dwb_interface::print_potential_names()
         std::cout << std::endl;
     }
     std::cout << std::endl;
+}
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::get_V_matrix(double T_lab,
+        int chn_index,const std::string& potential_name)
+{   
+    // Get the correct on-shell q
+    qs::quantum_channel chn = chns_[chn_index];
+    double q_on_shell,mu;
+    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    
+    // Get the saved matrix
+    gsl_matrix_complex* V = 
+        potentials_[potential_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
+
+    // Make it into a row-major std::vector
+    std::vector<std::complex<double>> vec = 
+        ph::get_complex_vector_from_matrix(V);
+    
+    gsl_matrix_complex_free(V);
+
+    return vec;
 }
 
 /*
@@ -1228,7 +1328,9 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_N3LO_SP")
     {
-        std::cout << "Adding MWPC_N3LO_SP" << std::endl;
+        if (print_) {
+            std::cout << "Adding MWPC_N3LO_SP" << std::endl;
+        }
         // Choose terms in potential
         std::vector<std::string> terms;
 
@@ -1237,6 +1339,62 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         terms.push_back("V_C_2pi_nu_3_no_rel");
         terms.push_back("W_T_2pi_nu_3_no_rel");
         terms.push_back("W_S_2pi_nu_3_no_rel");
+        
+        // TODO: Maybe add 1pi correction here
+
+        // LO pert corr
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        
+        // NLO pert corr
+        terms.push_back("D1S0");
+
+        // N2LO pert corr
+        terms.push_back("D3S1");
+        terms.push_back("D_SD");
+        terms.push_back("D_DS");
+        terms.push_back("D1P1");
+        terms.push_back("D3P1");
+        terms.push_back("E1S0");
+        terms.push_back("E3P0");
+        terms.push_back("E3P2");
+        terms.push_back("E_PF");
+        terms.push_back("E_FP");
+
+        // N3LO contacts
+        terms.push_back("F1S0");
+
+
+        bool inc_weights_in_pot = true; // This is always true
+        std::string loop_reg    = "DR";
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg,lam_SFR);
+    
+        return pot_complex_weights;
+    } else if (pre_def_name == "MWPC_N3LO_SP_rel")
+    {
+        if (print_) {
+            std::cout << "Adding MWPC_N3LO_SP" << std::endl;
+        }
+        // Choose terms in potential
+        std::vector<std::string> terms;
+
+        // Subleading TPE without reativistic corrections, i.e. all terms
+        // proportional to 1/M_N are excluded
+        terms.push_back("V_C_2pi_nu_3");
+        terms.push_back("W_C_2pi_nu_3");
+        terms.push_back("V_T_2pi_nu_3");
+        terms.push_back("V_S_2pi_nu_3");
+        terms.push_back("W_T_2pi_nu_3");
+        terms.push_back("V_LS_2pi_nu_3");
+        terms.push_back("W_LS_2pi_nu_3");
         
         // TODO: Maybe add 1pi correction here
 
