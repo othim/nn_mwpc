@@ -144,17 +144,9 @@ def phase_shift_pert_N2LO(T0,T1,T2,p_on,mu):
     
     tmp1 = d_phase_shift(T0,p_on,mu)*T2 
     tmp2 = d2_phase_shift(T0,p_on,mu)*T1**2/2.0
-    d2 = tmp1 + tmp2
+    return tmp1 + tmp2
+    #return tmp1
 
-    return d2
-
-#def phase_shift_pert_N2LO(T0,T1,T2,p_on,mu):
-#    
-#    tmp1 = d_phase_shift(T0,p_on,mu)*T2 
-#    d1 = phase_shift_pert_NLO(T0,T1,p_on,mu)
-#    d2 = tmp1 - 1j*d1**2
-#
-#    return d2
     
 def phase_shift_pert_N3LO(T0,T1,T2,T3,p_on,mu):
     
@@ -163,6 +155,7 @@ def phase_shift_pert_N3LO(T0,T1,T2,T3,p_on,mu):
     tmp3 = d3_phase_shift(T0,p_on,mu)*T1**3/6
 
     return tmp1 + tmp2 + tmp3
+    #return tmp1
 
 
 def blattToStapp(delta_minus_BB, delta_plus_BB, twoEpsilonJ_BB):
@@ -305,7 +298,7 @@ def dd3_f11(eps,d):
 
 
 #
-# Derivatives f11
+# Derivatives f12
 # 
 
 # 1:st order
@@ -336,7 +329,7 @@ def dd2_deps_f12(eps,d1,d2):
     return -2*1j*np.cos(2*eps)*np.exp(1j*(d1+d2))
 
 def dd_deps2_f12(eps,d1,d2):
-    return 4*1j*np.sin(2*eps)*np.exp(1j*(d1+d2))
+    return 4*np.sin(2*eps)*np.exp(1j*(d1+d2))
 
 def dd3_f12(eps,d1,d2):
     return np.sin(2*eps)*np.exp(1j*(d1+d2))
@@ -387,19 +380,10 @@ def g3_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,eps_2,d1_2,d2_2):
             (1/2)*dd3_f12(eps_0,d1_0,d2_0)*(d2_1*d1_1**2)+\
             (1/2)*dd2_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d2_1**2)+\
             (1/2)*dd3_f12(eps_0,d1_0,d2_0)*(d1_1*d2_1**2)+\
+            dd2_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d1_1*d2_1)+\
             (1/6)*deps3_f12(eps_0,d1_0,d2_0)*eps_1**3+\
             (1/6)*dd3_f12(eps_0,d1_0,d2_0)*d1_1**3+\
             (1/6)*dd3_f12(eps_0,d1_0,d2_0)*d2_1**3
-'''
-def g3_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,eps_2,d1_2,d2_2):
-
-    return  deps2_f12(eps_0,d1_0,d2_0)*eps_1*eps_2+\
-            dd2_f12(eps_0,d1_0,d2_0)*d1_1*d1_2+\
-            dd2_f12(eps_0,d1_0,d2_0)*d2_1*d2_2+\
-            dd_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d1_2+eps_2*d1_1)+\
-            dd_deps_f12(eps_0,d1_0,d2_0)*(eps_1*d2_2+eps_2*d2_1)+\
-            dd2_f12(eps_0,d1_0,d2_0)*(d1_1*d2_2+d1_2*d2_1)
-'''   
 
 def get_derivative_matrix(eps_0,d1_0,d2_0):
      return np.array([[deps_f11(eps_0,d1_0), dd_f11(eps_0,d1_0),0],\
@@ -447,6 +431,8 @@ def phase_shift_pert_coup_N2LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1):
             S12-g2_12(eps_0,d1_0,d2_0,eps_1,d1_1,d2_1),\
             S22-g2_11(eps_0,d2_0,eps_1,d2_1)])
 
+    #S = np.array([S11,S12,S22])
+    
     # Set up matrix
     A = get_derivative_matrix(eps_0,d1_0,d2_0)
     #print(S.shape)
@@ -479,6 +465,8 @@ def phase_shift_pert_coup_N3LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1,\
     S = np.array([S11-g3_11(eps_0,d1_0,eps_1,d1_1,eps_2,d1_2),\
             S12-g3,\
             S22-g3_11(eps_0,d2_0,eps_1,d2_1,eps_2,d2_2)])
+    
+    #S = np.array([S11,S12,S22])
 
     # Set up matrix
     A = get_derivative_matrix(eps_0,d1_0,d2_0)
