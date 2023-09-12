@@ -657,3 +657,20 @@ std::vector<std::complex<double>>
     T_arr.push_back(std::complex<double>(GSL_REAL(T_uncoup),GSL_IMAG(T_uncoup)));
     return T_arr;
 }
+
+std::vector<std::complex<double>> 
+            ph::get_complex_vector_from_matrix(gsl_matrix_complex* M)
+{
+    // Allocate vector
+    std::vector<std::complex<double>> return_vec;
+
+    for (int i=0; i < M->size1; i++)
+    {
+        for (int j=0; j < M->size2; j++)
+        {
+            gsl_complex el = gsl_matrix_complex_get(M,i,j);
+            return_vec.push_back(std::complex<double>(GSL_REAL(el),GSL_IMAG(el)));
+        }
+    }
+    return return_vec;
+}
