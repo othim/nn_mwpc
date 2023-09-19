@@ -16,6 +16,8 @@
 
 /__pycache__
 
+python_module/__pycache__/
+
 /nn_mwpc.egg-info
 
 nn_mwpc_install_hash.txt
@@ -23,3 +25,5 @@ nn_mwpc_install_hash.txt
 nn_mwpc.so
 
 /python_module/figures
+
+data/out_*
