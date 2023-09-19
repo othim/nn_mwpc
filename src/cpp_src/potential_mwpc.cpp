@@ -1118,7 +1118,7 @@ double Potential_mwpc<gsl_m>::get_rel_cut(double p_in,
      // Compute the cutoff factor
      double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,cut_pow_))*
             exp(-gsl_pow_uint(p_out/cutoff_Lambda_,cut_pow_));
-
+     //std::cout << cutoff_regulator << ", " << rel_fac << std::endl;
      return cutoff_regulator*rel_fac;
 }
 

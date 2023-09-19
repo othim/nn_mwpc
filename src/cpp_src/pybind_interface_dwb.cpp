@@ -900,10 +900,11 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
 
     // Added to check that the potential is pw decomposed correctly
     
-    /*
-    double qi = 200;
-    double qo = 200;
+    
+    double qi = 20;
+    double qo = 20;
 
+    
     // 1S0
     qs::quantum_channel chn = chns_[0];
     double V_arr[6];
@@ -919,10 +920,34 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     for (int i=0;i<6;i++)
     {
         double mu = ph::get_mN(0)/2.0;
-        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,true);
+        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
+        //std::cout << "relcut: " << rel_cut << std::endl;
+        //std::cout << "relcut: " << V_arr[i]*rel_cut << "   ";
+        std::cout << V_arr[i] << "   ";
+    }
+    std::cout << "\n\n";
+    
+    //  3D2
+    
+    chn = chns_[6];
+    V_arr[6];
+    potentials_[potential_name]->calc_element_V_arr(qi,qo,chn,&V_arr[0]);
+    
+    
+    std::cout << "V_arr in " << quantum_channel_to_string(chn) << std::endl;
+    std::cout << "qi = " << qi << std::endl;
+    std::cout << "qo = " << qo << std::endl;
+
+    std::cout << "[V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]" << std::endl;
+    std::cout << std::setprecision(16);
+    for (int i=0;i<6;i++)
+    {
+        double mu = ph::get_mN(0)/2.0;
+        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
         std::cout << V_arr[i]*rel_cut << "   ";
     }
     std::cout << "\n\n";
+    
     
     // 3S-D1
     chn = chns_[3];
@@ -937,11 +962,10 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     for (int i=0;i<6;i++)
     {
         double mu = ph::get_mN(0)/2.0;
-        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,true);
-        std::cout << V_arr[i]*rel_cut << "   ";
+        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
+         std::cout << V_arr[i]*rel_cut << "   ";
     }
     std::cout << "\n\n";
-    */
 }
 
 void nn_mwpc_dwb_interface::set_LECs_in_potential(const std::string& potential_name, 
@@ -1378,7 +1402,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 cut_on_shell_,loop_reg,lam_SFR);
     
         return pot_complex_weights;
-    } else if (pre_def_name == "MWPC_N3LO_SP_rel")
+    } else if (pre_def_name == "MWPC_N3LO_SP_REL")
     {
         if (print_) {
             std::cout << "Adding MWPC_N3LO_SP" << std::endl;

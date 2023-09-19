@@ -1145,6 +1145,7 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
     
     double Lambda = 500.0;
     double C1S0	= -0.1/100.0; 
+    //double C1S0	= 0.0; 
     double C3S1	= -0.13/100.0;
     double C3P0 = 0.0;
     double C3P2 = 0.0;    
@@ -1225,6 +1226,9 @@ bool check_observable_LO_WPC(std::vector<qs::quantum_channel> chns, unsigned int
             gsl_matrix_free(pot_V_mtx);
         }
 
+        //gsl_matrix* pot = Pot.get_matrix(10.0, chns[0],false);
+        //std::cout << gsl_matrix_get(pot,number_of_p_points-1,number_of_p_points);
+        
         double rho_T = M_PI*q_on_shell*mu; // In the convention used
 
         double max_err  = 0;

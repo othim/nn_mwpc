@@ -539,7 +539,7 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z, int z_le
     double lec = params["gA"];
     std::vector<double> tmp(z_len);
     double q2;
-    
+    //std::cout << "lec:" << lec << std::endl;   
     for (int i = 0; i < (int)z_len; i++)
     {
         q2 = qi*qi + qo*qo - 2*qi*qo*z[i];
@@ -838,6 +838,7 @@ double Term::A_DR(double q, double mpi)
 
 double Term::L_gen(double q, double mpi, std::string loop_reg, double lam_SFR)
 {
+    //return 0.0;
     if (loop_reg == "DR")
     {
         return Term::L_DR(q,mpi);
