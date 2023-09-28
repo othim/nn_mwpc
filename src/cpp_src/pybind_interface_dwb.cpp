@@ -11,8 +11,9 @@
 
 nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
         int J_max_chn, double cutoff, int cut_pow, 
-        bool sharp_cutoff, bool rel_corr,
-        int number_of_p_points, bool finite_grid, bool cut_on_shell, bool print)
+        bool sharp_cutoff, double sharp_cutoff_add, bool rel_corr,
+        int number_of_p_points, bool finite_grid, double finite_grid_add, 
+        bool cut_on_shell, bool print)
 {
     // ************************************************************************
     // ****** CONSTANTS TO CHANGE *********************************************
@@ -24,8 +25,10 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     cutoff_             = cutoff; // Cutoff in LS-equation
     cut_pow_            = cut_pow;
     sharp_cutoff_       = sharp_cutoff;
+    sharp_cutoff_add_   = sharp_cutoff_add;
     rel_corr_           = rel_corr;
     finite_grid_        = finite_grid;
+    finite_grid_add_    = finite_grid_add;
     finite_grid_max_    = 0.0; // Just default value
     cut_on_shell_       = cut_on_shell;
     print_              = print;  
@@ -49,8 +52,7 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     {
         // Make GL-grid that is finite. Since we use a sharp cutoff this grid 
         // is fine
-        double sharp_cut_add = 300.0;
-        finite_grid_max_ = cutoff_+sharp_cut_add;
+        finite_grid_max_ = cutoff_+finite_grid_add_;
         ph::gauss_legendre_finite_mesh(number_of_p_points_,0,
                 finite_grid_max_,&p_grid_,&w_grid_);
     }
@@ -799,6 +801,11 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
     // S = 1-2*i*rho_T*T
     double rho_T = M_PI*q_on_shell*mu; // In the convention used
     
+    // Protext from the numerical instable situation that the 
+    // c.m. scattering angle is exactly 90 deg.
+    if (std::abs(theta-90.0) < 0.001) {
+        theta = 90.001;
+    }
     saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, T_vec, 
             theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
     
@@ -1241,7 +1248,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_);
 
         return pot_complex_weights;
@@ -1265,7 +1272,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_);
 
         return pot_complex_weights;
@@ -1285,7 +1292,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_);
     
         return pot_complex_weights;
@@ -1303,7 +1310,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
     
         return pot_complex_weights;
@@ -1346,7 +1353,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
     
         return pot_complex_weights;
@@ -1398,7 +1405,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
     
         return pot_complex_weights;
@@ -1454,7 +1461,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
     
         return pot_complex_weights;
@@ -1473,9 +1480,8 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
-;
 
         std::cout << "Done creating WPC_LO potential" << std::endl;
         return pot_complex_weights;
@@ -1508,7 +1514,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
     
         return pot_complex_weights;
@@ -1541,7 +1547,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg,lam_SFR);
     
         return pot_complex_weights;
@@ -1583,7 +1589,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg, lam_SFR);
     
         return pot_complex_weights;
@@ -1625,7 +1631,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg, lam_SFR);
     
         return pot_complex_weights;
@@ -1676,7 +1682,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg, lam_SFR);
     
         return pot_complex_weights;
@@ -1713,7 +1719,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, inc_weights_in_pot, 
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
                 cut_on_shell_,loop_reg, lam_SFR);
     
         return pot_complex_weights;

@@ -63,6 +63,7 @@ private:
     double cutoff_;
     int cut_pow_;
     bool sharp_cutoff_;
+    double sharp_cutoff_add_;
     bool cut_on_shell_;
     bool print_;
     double* p_grid_;
@@ -121,9 +122,9 @@ public:
 
     nn_mwpc_dwb_interface(double scale,
             int J_max_chn, double cutoff, int cut_pow, 
-            bool sharp_cutoff, bool rel_corr,
-            int number_of_p_points, bool finite_grid, bool cut_on_shell,
-            bool print);
+            bool sharp_cutoff, double sharp_cutoff_add, bool rel_corr,
+            int number_of_p_points, bool finite_grid, double finite_grid_add,
+            bool cut_on_shell, bool print);
     ~nn_mwpc_dwb_interface();
     
     /*

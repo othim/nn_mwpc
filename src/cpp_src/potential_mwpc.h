@@ -59,6 +59,7 @@ private:
     // The power that Lambda and p is raised to
     int cut_pow_;
     bool sharp_cutoff_;
+    double sharp_cutoff_add_;
     // This is the maximum J of the channels the potential class can
     // calculate matrix elements in, since Lagandre polynomials are just
     // precomputed and stored to this order.
@@ -165,6 +166,7 @@ public:
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
+           double sharp_cutoff_add = 300.0,
            bool inc_grid_weights_in_pot = false, bool cut_on_shell = true,
            std::string loop_reg = "DR", double lam_SFR = 0.0);
 

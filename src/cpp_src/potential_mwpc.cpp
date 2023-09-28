@@ -53,7 +53,8 @@ template double Potential_mwpc<gsl_matrix_complex>::get_rel_cut(double p_in,
 template <class gsl_m>
 Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   bool sharp_cutoff, double sharp_cutoff_add, 
+   bool inc_grid_weights_in_pot, bool cut_on_shell,
    std::string loop_reg, double lam_SFR)
 {
    // Init constants
@@ -65,6 +66,7 @@ Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned i
    cutoff_Lambda_           = cutoff_Lambda;
    cut_pow_                 = cut_pow;   
    sharp_cutoff_            = sharp_cutoff;
+   sharp_cutoff_add_        = sharp_cutoff_add;
    inc_grid_weights_in_pot_ = inc_grid_weights_in_pot;
    cut_on_shell_            = cut_on_shell;
    loop_reg_                = loop_reg;
@@ -1173,7 +1175,8 @@ double Potential_mwpc<gsl_m>::get_total_rel_cut_weight_factor(double p_in, int j
      }
      
      if (sharp_cutoff_) {
-        if (p_in > cutoff_Lambda_ + 300.0 || p_out > cutoff_Lambda_ + 300.0) {
+        if (p_in > cutoff_Lambda_ + sharp_cutoff_add_ || 
+                p_out > cutoff_Lambda_ + sharp_cutoff_add_) {
            cutoff_regulator = 0.0;
         }
      }

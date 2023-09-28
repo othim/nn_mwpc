@@ -155,9 +155,9 @@ def phase_shift_pert_N3LO(T0,T1,T2,T3,p_on,mu):
     tmp2 = d2_phase_shift(T0,p_on,mu)*T1*T2
     tmp3 = d3_phase_shift(T0,p_on,mu)*T1**3/6
     
-    print(f'dphase={d_phase_shift(T0,p_on,mu)*2*1j}')
-    print(f'ddphase={d2_phase_shift(T0,p_on,mu)*2*1j}')
-    print(f'dddphase={d3_phase_shift(T0,p_on,mu)*2*1j}')
+    #print(f'dphase={d_phase_shift(T0,p_on,mu)*2*1j}')
+    #print(f'ddphase={d2_phase_shift(T0,p_on,mu)*2*1j}')
+    #print(f'dddphase={d3_phase_shift(T0,p_on,mu)*2*1j}')
     return tmp1 + tmp2 + tmp3
     #return tmp1+tmp2
 
