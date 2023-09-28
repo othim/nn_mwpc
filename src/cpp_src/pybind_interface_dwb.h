@@ -70,6 +70,7 @@ private:
     double* w_grid_;
 
     bool finite_grid_;
+    double finite_grid_add_;
     double finite_grid_max_;
 
 private:

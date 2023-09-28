@@ -19,7 +19,7 @@ template Potential_mwpc<gsl_matrix>::~Potential_mwpc();
 
 template Potential_mwpc<gsl_matrix>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   bool sharp_cutoff, double sharp_cutoff_add, bool inc_grid_weights_in_pot, bool cut_on_shell,
    std::string loop_reg, double lam_SFR);
 
 template void Potential_mwpc<gsl_matrix_complex>::populate_saved_mtx(qs::quantum_channel chn, 
@@ -38,7 +38,7 @@ template Potential_mwpc<gsl_matrix_complex>::~Potential_mwpc();
 
 template Potential_mwpc<gsl_matrix_complex>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   bool sharp_cutoff, double sharp_cutoff_add, bool inc_grid_weights_in_pot, bool cut_on_shell,
    std::string loop_reg, double lam_SFR);
 
 template void Potential_mwpc<gsl_matrix_complex>::print_LECs_and_params_info();

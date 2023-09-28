@@ -60,8 +60,8 @@ PYBIND11_MODULE(nn_mwpc, m)
      * ****************
      */
     py::class_<nn_mwpc_dwb_interface>(m,"nn_mwpc_dwb_interface")
-        .def(py::init<double,int,double,int,bool,bool,int,
-                bool,bool,bool>())
+        .def(py::init<double,int,double,int,bool,double,bool,int,
+                bool,double,bool,bool>())
         
         .def("solve_DWBA_T", 
                 &nn_mwpc_dwb_interface::solve_DWBA_T,

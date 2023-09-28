@@ -1596,12 +1596,14 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     bool cut_on_shell            = true;
     std::string loop_reg         = "DR";
     double lam_SFR               = 700.0;
+    double sharp_cutoff_add      = 300.0;
 
     // Create the real potential without weights
     // *****************************************
     Potential_mwpc<gsl_matrix> pot_real = Potential_mwpc<gsl_matrix>(terms,
             ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, sharp_cutoff,
+            sharp_cutoff_add,
             inc_grid_weights_in_pot,cut_on_shell,loop_reg,lam_SFR);
     
     std::cout << "Saving potential matrices" << std::endl;
@@ -1623,11 +1625,13 @@ void check_T_matrix(std::vector<qs::quantum_channel> chns, unsigned int number_o
     cut_on_shell            = true;
     loop_reg                = "DR";
     lam_SFR                 = 700.0;
+    sharp_cutoff_add        = 300.0;
     
     Potential_mwpc<gsl_matrix_complex> pot_complex_weights = 
         Potential_mwpc<gsl_matrix_complex>(terms,
             ang_int_points,p_grid,w_grid,
             number_of_p_points,J_max_in_pot,Lambda, cut_pow, sharp_cutoff,
+            sharp_cutoff_add,
             inc_grid_weights_in_pot,cut_on_shell,loop_reg,lam_SFR);
     
     std::cout << "Saving potential matrices" << std::endl;
