@@ -93,10 +93,6 @@ private:
       ---------------------------
    */
 
-   /*
-      This method clears the saved matrices from memory.
-   */
-   void clear_saved_matrices();
 
    /*
       This method computes the \mathcal{A}-integrals (see Erkelenz). The method takes an
@@ -127,6 +123,10 @@ private:
    
    int isoFac(int L, int S);
 public:
+   /*
+      This method clears the saved matrices from memory.
+   */
+   void clear_saved_matrices();
    
    double get_rel_cut(double p_in,
            double p_out, double mu, bool rel_correction);

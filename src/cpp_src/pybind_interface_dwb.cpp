@@ -624,17 +624,17 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
     // Solve in specified channels and orders and save the result
     energy_saved_ = T_lab;
 
-    #pragma omp parallel
+    for (auto order : orders)
     {
-        for (auto order : orders)
+        //std::cout << "order=" << order << std::endl;
+        #pragma omp parallel
         {
-            //int tid = omp_get_thread_num();
-            //std::cout << "Hello from thread: " << tid << std::endl;
-            //std::cout << "order=" << order << std::endl;
             #pragma omp for
             for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
             {
-                //std::cout << "chn_index=" << chn_index << std::endl;
+                int tid = omp_get_thread_num();
+                // std::cout << "Hello from thread: " << tid << std::endl;
+                // std::cout << "chn_index=" << chn_index << std::endl;
                 // If a LO channel
                 std::vector<std::complex<double>> t;
                 if ( std::find(chn_index_LO.begin(), chn_index_LO.end(), chn_index) 
@@ -1001,12 +1001,11 @@ void nn_mwpc_dwb_interface::set_params_in_potential(const std::string& potential
 
 void nn_mwpc_dwb_interface::save_potential_decomposition(
         const std::string& potential_name)
-{
+{   
     // Save potential in all channels
-
-    #pragma omp parallel
-    {
-        #pragma omp for
+    //#pragma omp parallel
+    //{
+    //   #pragma omp for
         for (int i = 0; i < chns_.size(); i++)
         {
             qs::quantum_channel chn = chns_[i];
@@ -1015,7 +1014,7 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
                 std::cout << "Saved channel: " << i << std::endl;
             }
         }
-    }
+    //}
 }
 
 void nn_mwpc_dwb_interface::print_potential_names()

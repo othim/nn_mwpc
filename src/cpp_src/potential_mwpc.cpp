@@ -3,6 +3,9 @@
 /* These declarations are neccessary to be able to have the declarations
  * in a separate .cpp file.
  */
+template void Potential_mwpc<gsl_matrix>::clear_saved_matrices();
+template void Potential_mwpc<gsl_matrix_complex>::clear_saved_matrices();
+
 template void Potential_mwpc<gsl_matrix>::populate_saved_mtx(qs::quantum_channel chn, 
         bool rel_correction);
 
@@ -784,7 +787,6 @@ void Potential_mwpc<gsl_m>::clear_saved_matrices()
    #ifdef ENABLE_DEBUG
       std::cerr << "clear_saved_matrices() - end" << std::endl;
    #endif
-   
 }
 
 /*
@@ -796,7 +798,17 @@ void Potential_mwpc<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, bool rel
    #ifdef ENABLE_DEBUG
       std::cerr << "populate_saved_mtx()" << std::endl;
    #endif
-    
+   
+   // Deallocate the saved matrices in this channel 
+   /*for (typename std::map<std::string, gsl_m*>::iterator it=saved_matrices_[chn].begin(); 
+          it!=saved_matrices_[chn].end(); ++it)
+   {
+        if (it->second != nullptr) {
+            ph::matrix_free(it->second);
+        }
+   }*/
+   
+   // Do not clear all the channels, just the one you recompute
    clear_saved_matrices(); // Clears the allocated pointers
 
    // Get the constant

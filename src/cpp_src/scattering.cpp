@@ -532,7 +532,8 @@ double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double
 }
 
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
-    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,int l_max)
+    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,int l_max,
+    bool optical_thm)
 {
     /*
     
@@ -562,20 +563,68 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
     std::cout << std::imag(a) << " " << std::imag(a) << std::endl;
     std::cout << std::real(b) << " " << std::imag(b) << std::endl;
     */
-    double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
-    std::vector<std::complex<double>> out = compute_Saclay_amplitudes(chns_vec,
-            phase_shifts_vec, 0.0, q_on_shell, rho_T,l_max);
-    std::complex<double> a = out[0];
-    std::complex<double> b = out[1];
+    if (optical_thm)
+    {
+        double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+        std::vector<std::complex<double>> out = compute_Saclay_amplitudes(chns_vec,
+                phase_shifts_vec, 0.0, q_on_shell, rho_T,l_max);
+        std::complex<double> a = out[0];
+        std::complex<double> b = out[1];
 
-    //std::cout << std::imag(a) << " " << std::imag(a) << std::endl;
-    //std::cout << std::real(b) << " " << std::imag(b) << std::endl;
+        //std::cout << std::imag(a) << " " << std::imag(a) << std::endl;
+        //std::cout << std::real(b) << " " << std::imag(b) << std::endl;
+        
+        double fac = std::sqrt(constants::MeVm2_to_mbarn);
+        // This factor is to convert the q_on_shell to mbarn
+        double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b)*fac;
+        
+        return sigma;
+    } else {
+       // Make grid for angular integration of DSG
+       unsigned int N_GLI_PWA_; // Number of points in Gauss-Legandre angular integration
+
+       gsl_integration_fixed_workspace* int_ang_; // Need to be saved to not delete pointers
+       double* z_mesh; // GL integration points
+       double* w_z_mesh; // GL integration weights
+       unsigned int len_z_mesh; // GL integration number of points
+       
+       const gsl_integration_fixed_type * T = gsl_integration_fixed_legendre;
+       int_ang_ = gsl_integration_fixed_alloc(T, N_GLI_PWA_, -1.0, 1.0, 0, 0);
+
+       z_mesh   = gsl_integration_fixed_nodes(int_ang_);
+       w_z_mesh = gsl_integration_fixed_weights(int_ang_);
+      
+       len_z_mesh = N_GLI_PWA_;
+       
+       // S = 1-2*i*rho_T*T
+       double rho_T = M_PI*q_on_shell*mu; // In the convention used
+       
+       // For each angle, compute the saclay amplitude and DSG
+       
+       double SGT = 0;
+       for (int i=0; i<len_z_mesh; i++)
+       {
+          double theta = std::arccos(z_mesh[i])*180/M_PI;
+          if (std::abs(theta-90.0) < 0.0001) {
+             theta = 90.0001;
+          }
+          std::vector<std::complex<double> > saclay_amplitudes = 
+                = sc::compute_Saclay_amplitudes(chns_, T_vec, 
+                theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+         
+          double DSG = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, 
+                "I 0000", theta*M_PI/180.0);
+
+          // Integrate DSG
+          SGT += w_z_mesh[i]*DSG
+       }
+       // Add phi-integral factor
+       SGT = SGT*2.0*M_PI;
+       gsl_integration_fixed_free(int_ang_);
     
-    double fac = std::sqrt(constants::MeVm2_to_mbarn);
-    // This factor is to convert the q_on_shell to mbarn
-    double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b)*fac;
-    
-    return sigma;
+       return SGT;
+    }
+
 }
 
 gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
