@@ -57,6 +57,14 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
                 finite_grid_max_,&p_grid_,&w_grid_);
     }
     
+    if (print_) 
+    {   
+        std::cout << "p, w" << std::endl;
+        for (int i=0; i<number_of_p_points_; i++) 
+        {
+            std::cout << p_grid_[i] << ", " << w_grid_[i] << std::endl;
+        }
+    }
     // Construct the quantum states
     if (print_) {
         std::cout << "Constructing quantum states..." << std::endl;
@@ -632,7 +640,7 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
             #pragma omp for
             for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
             {
-                int tid = omp_get_thread_num();
+                //int tid = omp_get_thread_num();
                 // std::cout << "Hello from thread: " << tid << std::endl;
                 // std::cout << "chn_index=" << chn_index << std::endl;
                 // If a LO channel
@@ -825,6 +833,10 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
     if (obs_name == "A 00kk") {
         obs_value = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, 
                 obs_name, theta*M_PI/180.0);
+    } else if (obs_name == "SGT_int") {
+        obs_value = sc::compute_total_cross_section(chns_, 
+                T_vec, q_on_shell, J_max_in_pot_,false);
+
     } else {
         obs_value = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_name);
     }

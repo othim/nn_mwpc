@@ -5,15 +5,15 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-#SYSTEM = MAC
-SYSTEM = SUBATOM
+SYSTEM = MAC
+#SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
 #BLAS_LIB = MKL
-#BLAS_LIB = GSL
+BLAS_LIB = GSL
 # -------------------
 
 # Compiler

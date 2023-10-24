@@ -372,7 +372,8 @@ std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
 
 
 
-double compute_observable(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs)
+double compute_observable(std::vector<std::complex<double> > sac_amp, 
+        double q_on_shell, std::string obs)
 {
     // The vector of sac_amp contains a,b,c,d,e in order
     std::complex<double> a = sac_amp[0];
@@ -532,7 +533,7 @@ double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double
 }
 
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
-    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,int l_max,
+    std::vector<std::complex<double>*> T_on_shell_vec,double q_on_shell,int l_max,
     bool optical_thm)
 {
     /*
@@ -567,7 +568,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
     {
         double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
         std::vector<std::complex<double>> out = compute_Saclay_amplitudes(chns_vec,
-                phase_shifts_vec, 0.0, q_on_shell, rho_T,l_max);
+                T_on_shell_vec, 0.0, q_on_shell, rho_T,l_max);
         std::complex<double> a = out[0];
         std::complex<double> b = out[1];
 
@@ -581,7 +582,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
         return sigma;
     } else {
        // Make grid for angular integration of DSG
-       unsigned int N_GLI_PWA_; // Number of points in Gauss-Legandre angular integration
+       unsigned int N_GLI_PWA_ = 96; // Number of points in Gauss-Legandre angular integration
 
        gsl_integration_fixed_workspace* int_ang_; // Need to be saved to not delete pointers
        double* z_mesh; // GL integration points
@@ -597,31 +598,34 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
        len_z_mesh = N_GLI_PWA_;
        
        // S = 1-2*i*rho_T*T
-       double rho_T = M_PI*q_on_shell*mu; // In the convention used
+       double rho_T = M_PI*q_on_shell*
+           constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
        
        // For each angle, compute the saclay amplitude and DSG
        
        double SGT = 0;
        for (int i=0; i<len_z_mesh; i++)
        {
-          double theta = std::arccos(z_mesh[i])*180/M_PI;
+          double theta = std::acos(z_mesh[i])*180/M_PI;
           if (std::abs(theta-90.0) < 0.0001) {
              theta = 90.0001;
           }
           std::vector<std::complex<double> > saclay_amplitudes = 
-                = sc::compute_Saclay_amplitudes(chns_, T_vec, 
-                theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+                sc::compute_Saclay_amplitudes(chns_vec, T_on_shell_vec, 
+                theta*M_PI/180.0, q_on_shell, rho_T, l_max);
          
-          double DSG = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, 
-                "I 0000", theta*M_PI/180.0);
+          double DSG = sc::compute_observable(saclay_amplitudes, q_on_shell, 
+                "I 0000");
 
           // Integrate DSG
-          SGT += w_z_mesh[i]*DSG
+          SGT += w_z_mesh[i]*DSG;
        }
        // Add phi-integral factor
        SGT = SGT*2.0*M_PI;
        gsl_integration_fixed_free(int_ang_);
-    
+       //delete[] z_mesh;
+       //delete[] w_z_mesh;
+        
        return SGT;
     }
 

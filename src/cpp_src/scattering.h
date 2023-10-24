@@ -125,7 +125,8 @@ double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double
  * This function computes the total cross section SGT. The return unit is mb.
  */
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
-    std::vector<Phase_shifts_chn> phase_shifts_vec,double q_on_shell,int l_max);
+    std::vector<std::complex<double>*> T_on_shell_vec,double q_on_shell,
+    int l_max,bool optical_thm);
 
 /* 
  * This function gives the M-matrix for the given on shell energy
