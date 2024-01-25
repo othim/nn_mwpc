@@ -1107,6 +1107,17 @@ std::string nn_mwpc_dwb_interface::get_chn_LS_term(int chn_number)
     return quantum_channel_to_string(chns_[chn_number]);
 }
 
+
+std::vector<double> nn_mwpc_dwb_interface::get_p_points()
+{
+    std::vector<double> p_vec;
+    for (int i=0; i<number_of_p_points_; i++)
+    {
+        p_vec.push_back(p_grid_[i]);
+    }
+    return p_vec;
+}
+
 int nn_mwpc_dwb_interface::get_chn_coupled(int chn_number)
 {
     if (!(chn_number < (int)chns_.size()))

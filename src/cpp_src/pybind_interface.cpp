@@ -140,6 +140,8 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("get_chn_coupled", &nn_mwpc_dwb_interface::get_chn_coupled, 
                 py::return_value_policy::copy)
+        .def("get_p_points", &nn_mwpc_dwb_interface::get_p_points, 
+                py::return_value_policy::copy)
         .def("get_gA", &nn_mwpc_dwb_interface::get_gA, py::return_value_policy::copy)
         .def("get_fpi", &nn_mwpc_dwb_interface::get_fpi, py::return_value_policy::copy)
         .def("get_mpi", &nn_mwpc_dwb_interface::get_mpi, py::return_value_policy::copy)
