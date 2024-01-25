@@ -234,6 +234,16 @@ def blattToStapp_corr(delta_m_BB,delta_p_BB,twoeps_BB):
     return delta_m, delta_p, eps
 
 
+def phase_shifts_BB(T11,T12,T22,p_on,mu):
+    fac = 2*np.pi*1j*mu*p_on
+
+    # Blatt-Biedenharn (BB) convention
+    twoEpsilonJ_BB = np.arctan(2*T12/(T11-T22))	# mixing parameter
+    delta_plus_BB  = -0.5*1j*np.log(1 - fac*(T11+T22)/2 + fac*(T12)/np.sin(twoEpsilonJ_BB))
+    delta_minus_BB = -0.5*1j*np.log(1 - fac*(T11+T22)/2 - fac*(T12)/np.sin(twoEpsilonJ_BB))
+ 
+    epsilon_BB = twoEpsilonJ_BB/2
+    return np.array([delta_minus_BB, delta_plus_BB, epsilon_BB])
 
 def phase_shifts_Stapp(T11,T12,T22,p_on,mu,CORR_CONV):
     fac = 2*np.pi*1j*mu*p_on
