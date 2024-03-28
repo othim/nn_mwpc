@@ -23,7 +23,7 @@ template Potential_mwpc<gsl_matrix>::~Potential_mwpc();
 template Potential_mwpc<gsl_matrix>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
    bool sharp_cutoff, double sharp_cutoff_add, bool inc_grid_weights_in_pot, bool cut_on_shell,
-   std::string loop_reg, double lam_SFR);
+   std::string loop_reg, double lam_SFR,ph::constants_struct* program_const);
 
 template void Potential_mwpc<gsl_matrix_complex>::populate_saved_mtx(qs::quantum_channel chn, 
         bool rel_correction);
@@ -42,7 +42,7 @@ template Potential_mwpc<gsl_matrix_complex>::~Potential_mwpc();
 template Potential_mwpc<gsl_matrix_complex>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
    bool sharp_cutoff, double sharp_cutoff_add, bool inc_grid_weights_in_pot, bool cut_on_shell,
-   std::string loop_reg, double lam_SFR);
+   std::string loop_reg, double lam_SFR, ph::constants_struct* program_const);
 
 template void Potential_mwpc<gsl_matrix_complex>::print_LECs_and_params_info();
 template void Potential_mwpc<gsl_matrix>::print_LECs_and_params_info();
@@ -58,7 +58,7 @@ Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned i
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
    bool sharp_cutoff, double sharp_cutoff_add, 
    bool inc_grid_weights_in_pot, bool cut_on_shell,
-   std::string loop_reg, double lam_SFR)
+   std::string loop_reg, double lam_SFR, ph::constants_struct* program_const)
 {
    // Init constants
    N_GLI_PWA_               = N_GLI_PWA;
@@ -74,6 +74,7 @@ Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned i
    cut_on_shell_            = cut_on_shell;
    loop_reg_                = loop_reg;
    lam_SFR_                 = lam_SFR;
+   program_const_          = program_const;
 
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
@@ -300,7 +301,7 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
          //std::cout << "Term: " << terms_in_pot_[i].get_term_name() << std::endl;
          std::vector<double> v_alpha_arr = 
              terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_,params_,
-                     chn,loop_reg_,lam_SFR_);
+                     chn,loop_reg_,lam_SFR_,program_const_);
 
          // Call pwa with the correct spin structure from this term
          // This will fill up the array V_arr with the correct potential elements
@@ -669,7 +670,7 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
-   double mu = ph::get_mN(chn.Tz)/2.0; // Default
+   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0; // Default
 
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
@@ -867,7 +868,7 @@ gsl_m* Potential_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_ch
    unsigned int S = chn.S;
    bool coupled = chn.coupled;
 
-   double mu = ph::get_mN(chn.Tz)/2.0;
+   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0;
    
    // Note that the matrix is computed for the current LECs_!!
    // Note also that the LECs_ are screwed up by the act of saving the matrices!
@@ -1043,7 +1044,7 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
-   double mu = ph::get_mN(chn.Tz)/2.0;
+   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0;
 
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case

@@ -30,7 +30,6 @@
 #include "gsl_matrix.h"
 #include "gsl_matrix_complex_double.h"
 #include "Term.h"
-#include "Constants.h"
 #include "quantum_states.h"
 #include "physics_helpers.h"
 #include "potential.h"
@@ -85,6 +84,8 @@ private:
     double* z_mesh; // GL integration points
     double* w_z_mesh; // GL integration weights
     unsigned int len_z_mesh; // GL integration number of points
+
+    ph::constants_struct* program_const_;
 
 private:
    /*
@@ -168,7 +169,8 @@ public:
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
            double sharp_cutoff_add = 300.0,
            bool inc_grid_weights_in_pot = false, bool cut_on_shell = true,
-           std::string loop_reg = "DR", double lam_SFR = 0.0);
+           std::string loop_reg = "DR", double lam_SFR = 0.0,
+           ph::constants_struct* program_const = nullptr);
 
     /* 
       Destructor

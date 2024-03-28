@@ -416,6 +416,19 @@ void dwba::make_tests(std::string chn_string)
     ph::physics_helpers_init();
     // ---------------   
     
+    // Define the program constants
+    // ****************************
+    ph::constants_struct* program_const = new ph::constants_struct;
+    
+    program_const->fpi            = 92.1;
+    program_const->mpi            = 138.039; // Average of +,-,0 (PDG 2022-03) 
+    program_const->Mp             = 938.2720880259; // NIST
+    program_const->Mn             = 939.5654203856; // NIST
+    program_const->inv_fm_to_MeV  = 197.3269804; // NIST
+    program_const->MeVm2_to_mbarn = program_const->inv_fm_to_MeV
+        *program_const->inv_fm_to_MeV*10.0;
+    // ****************************
+    
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
     std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
@@ -484,7 +497,8 @@ void dwba::make_tests(std::string chn_string)
     Pot_Yam_nogrid.LECs_["Yamaguchi_1S0"] = 100.0;
     
     // Solve for the T-matrix
-    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,
+            program_const);
    
     double q_on_shell;
     double mu;
@@ -506,7 +520,7 @@ void dwba::make_tests(std::string chn_string)
     
         
     // Get the on-shell momenta and reduced mass
-    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    solver.get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     gsl_matrix* V_1S0  = Pot_1S0.get_saved_matrix(q_on_shell, chn, REL_CORR);
     gsl_matrix* V_1S0_nogrid  = Pot_1S0_nogrid.get_saved_matrix(q_on_shell, chn, REL_CORR);
@@ -608,6 +622,19 @@ void dwba::make_tests_DWBA(std::string chn_string)
     ph::physics_helpers_init();
     // ---------------   
     
+    // Define the program constants
+    // ****************************
+    ph::constants_struct* program_const = new ph::constants_struct;
+    
+    program_const->fpi            = 92.1;
+    program_const->mpi            = 138.039; // Average of +,-,0 (PDG 2022-03) 
+    program_const->Mp             = 938.2720880259; // NIST
+    program_const->Mn             = 939.5654203856; // NIST
+    program_const->inv_fm_to_MeV  = 197.3269804; // NIST
+    program_const->MeVm2_to_mbarn = program_const->inv_fm_to_MeV
+        *program_const->inv_fm_to_MeV*10.0;
+    // ****************************
+    
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
     std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, Tz_min, Tz_max, print);
@@ -656,7 +683,8 @@ void dwba::make_tests_DWBA(std::string chn_string)
     }
     
     // Solve for the T-matrix
-    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,
+            program_const);
    
     double q_on_shell;
     double mu;
@@ -678,7 +706,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
         
     // Get the on-shell momenta and reduced mass
-    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    solver.get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     
     
@@ -812,6 +840,19 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     // ---------------------------------
     // ---------------------------------
     
+    // Define the program constants
+    // ****************************
+    ph::constants_struct* program_const = new ph::constants_struct;
+    
+    program_const->fpi            = 92.1;
+    program_const->mpi            = 138.039; // Average of +,-,0 (PDG 2022-03) 
+    program_const->Mp             = 938.2720880259; // NIST
+    program_const->Mn             = 939.5654203856; // NIST
+    program_const->inv_fm_to_MeV  = 197.3269804; // NIST
+    program_const->MeVm2_to_mbarn = program_const->inv_fm_to_MeV
+        *program_const->inv_fm_to_MeV*10.0;
+    // ****************************
+    
     // Construct the quantum states
     // ---------------------------------
     std::cout << "Constructing quantum states..." << std::endl;
@@ -937,7 +978,7 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     solve_DWB_from_potentials(pot1_real_noweights, pot1_complex_weights,
         pot2_real_noweights, pot2_complex_weights,
         number_of_p_points,
-        p_grid, w_grid, FINITE_GRID, Tl, chn, REL_CORR);
+        p_grid, w_grid, FINITE_GRID, Tl, chn, REL_CORR,program_const);
     
 }
 
@@ -978,12 +1019,13 @@ void dwba::solve_DWB_from_potentials(Potential_mwpc<gsl_matrix>& pot1_real_nowei
     Potential_mwpc<gsl_matrix_complex>& pot2_complex_weights, 
     double number_of_p_points,
     double* p_grid, double* w_grid, bool FINITE_GRID, double Tl, 
-    qs::quantum_channel chn, double REL_CORR)
+    qs::quantum_channel chn, double REL_CORR, 
+    ph::constants_struct* program_const)
 {
     std::string DATA_DIR = "../../../projects/dwb/data/";
     // Construct a LS-solver for the T-matrix
     // ---------------------------------
-    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,program_const);
     // ---------------------------------
     // ---------------------------------
     
@@ -996,7 +1038,7 @@ void dwba::solve_DWB_from_potentials(Potential_mwpc<gsl_matrix>& pot1_real_nowei
         
     // Get the on-shell momenta and reduced mass
     // ---------------------------------
-    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    solver.get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     // ---------------------------------
     // ---------------------------------
@@ -1188,6 +1230,18 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     ph::physics_helpers_init();
     // ---------------------------------
     // ---------------------------------
+    // Define the program constants
+    // ****************************
+    ph::constants_struct* program_const = new ph::constants_struct;
+    
+    program_const->fpi            = 92.1;
+    program_const->mpi            = 138.039; // Average of +,-,0 (PDG 2022-03) 
+    program_const->Mp             = 938.2720880259; // NIST
+    program_const->Mn             = 939.5654203856; // NIST
+    program_const->inv_fm_to_MeV  = 197.3269804; // NIST
+    program_const->MeVm2_to_mbarn = program_const->inv_fm_to_MeV
+        *program_const->inv_fm_to_MeV*10.0;
+    // ****************************
     
     // Construct the quantum states
     // ---------------------------------
@@ -1284,7 +1338,8 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     
     // Construct a LS-solver for the T-matrix
     // ---------------------------------
-    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,
+            program_const);
     // ---------------------------------
     // ---------------------------------
     
@@ -1297,7 +1352,7 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
         
     // Get the on-shell momenta and reduced mass
     // ---------------------------------
-    LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+    solver.get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
     std::cout << std::setprecision(16) << "mu = " << mu << " q_on_shell = " << q_on_shell << std::endl;
     // ---------------------------------
     // ---------------------------------

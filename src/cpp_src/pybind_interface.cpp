@@ -61,7 +61,7 @@ PYBIND11_MODULE(nn_mwpc, m)
      */
     py::class_<nn_mwpc_dwb_interface>(m,"nn_mwpc_dwb_interface")
         .def(py::init<double,int,double,int,bool,double,bool,int,
-                bool,double,bool,bool>())
+                bool,double,bool,bool,double,double,double,double,double>())
         
         .def("solve_DWBA_T", 
                 &nn_mwpc_dwb_interface::solve_DWBA_T,
@@ -154,7 +154,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         int J_max_chn, double cutoff, int cut_pow, 
         bool sharp_cutoff, bool pre_comp_pot, bool rel_corr,
         int number_of_p_points,bool finite_grid,bool inc_weights_in_pot,
-        bool cut_on_shell)
+        bool cut_on_shell, ph::constants_struct* program_const)
 {
 
     // ------ CONSTANTS TO CHANGE ------
@@ -172,8 +172,12 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     finite_grid_max_ = 0.0;
     inc_weights_in_pot_ = inc_weights_in_pot;
     cut_on_shell_ = cut_on_shell;
+    
+    program_const_ = program_const;
+    
     J_pot_ext_cut_ = 5000;
     Pot_ext_aux_ = nullptr;
+    
     // For the quantum states
     int J_max = J_max_chn;
     int J_min = 0;
@@ -229,7 +233,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
+                finite_grid_,program_const_);
 
     } else if("MWPC_LO_1"==model_name)
     { 
@@ -263,7 +268,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
+                finite_grid_,program_const_);
 
     } else if("MWPC_LO_J"==model_name)
     { 
@@ -317,7 +323,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
+                finite_grid_, program_const_);
 
     } else if("nijmegen1"==model_name)
     {
@@ -355,7 +362,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         //std::cout << Pot_ext_aux_->LECs_in_use_[0] << std::endl;
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
+                finite_grid_,program_const_);
 
     } else if ("cdbonn"==model_name)
     {
@@ -370,7 +378,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         
         // Can't precompute this potential (which is kind of stupid...)
         // Construct the LS_Solver
-        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
+                finite_grid_,program_const_);
     } else if ("Yamaguchi_1S0" == model_name)
     {
 
@@ -407,7 +416,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         }
 
         // Construct LS Solver
-        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
+                finite_grid_,program_const_);
     } else
     {
         std::cout << "Error, not a valid potential model name" << std::endl;
@@ -456,7 +466,7 @@ void nn_mwpc_interface::solve_LS_ext_pot(double T_lab)
 double nn_mwpc_interface::compute_observable(const std::string& name, double angle)
 {
     double mu, q_on_shell;
-    LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
     
     // If the observable is omcputed with the optical theorem
     if (name=="SGT" || name=="SGTL" || name=="SGTT") {
@@ -474,16 +484,18 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
     // Convert the angle to radians. This uses the pre-computed phase
     // shifts phase_shifts_ that are stored in the class.
     saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phase_shifts_, 
-            angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+            angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_,program_const_);
         
     // Compute the observable from the amplitudes
     double obs;
     // The A 00kk is an observable that is defined in terms of other vectors
     // than the n,l,m. That is why the _lab function is used.
     if (name == "A 00kk") {
-        obs = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, name, angle*M_PI/180.0);
+        obs = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, name, 
+                angle*M_PI/180.0,program_const_);
     } else {
-        obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name);
+        obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name, 
+                program_const_);
     }
     
     return obs;
@@ -521,7 +533,7 @@ std::vector<double> nn_mwpc_interface::compute_observable_l(const std::string& n
     for (auto Tl : T_lab)
     {
         std::vector<Phase_shifts_chn> phases_vec = compute_phase_shifts(Tl);
-        LS_Solver::get_mu_q_on_shell(Tl,chns_[0], &mu,&q_on_shell);
+        LS_Solver_->get_mu_q_on_shell(Tl,chns_[0], &mu,&q_on_shell);
         
         for (auto angle : angles)
         {
@@ -540,10 +552,12 @@ std::vector<double> nn_mwpc_interface::compute_observable_l(const std::string& n
             // Convert the angle to radians. This uses the pre-computed phase
             // shifts phase_shifts_ that are stored in the class.
             saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phases_vec, 
-                    angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+                    angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_,
+                    program_const_);
                 
             // Compute the observable from the amplitudes
-            double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, name);
+            double obs = sc::compute_observable(saclay_amplitudes, q_on_shell, 
+                    name,program_const_);
 
             obs_vec.push_back(obs);
             // If angle independent observable: Ignore loop over angles 
@@ -600,7 +614,7 @@ std::vector<double> nn_mwpc_interface::compute_phase_shift(int chn_number, doubl
     }
 
     double mu, q_on_shell;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
         
     gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
 
@@ -684,7 +698,7 @@ std::vector<double> nn_mwpc_interface::compute_binding_energy(
     gsl_matrix* pot_V_mtx = Pot_->get_matrix_no_onshell(chn, rel_corr_);
     
     ph::eigen_t diag_res = ph::solve_SE(p_grid_, w_grid_, number_of_p_points_, 
-            chn, pot_V_mtx);
+            chn, pot_V_mtx,program_const_->Mn,program_const_->Mp);
     
     std::vector<double> eigenvalues;
     for (int i = 0; i < (int)pot_V_mtx->size1; i++) {
@@ -719,7 +733,7 @@ std::vector<double> nn_mwpc_interface::compute_wave_function(
     gsl_matrix* pot_V_mtx = Pot_->get_matrix_no_onshell(chn, rel_corr_);
     
     ph::eigen_t diag_res = ph::solve_SE(p_grid_, w_grid_, number_of_p_points_, 
-            chn, pot_V_mtx);
+            chn, pot_V_mtx,program_const_->Mn,program_const_->Mp);
     
 
     std::vector<double> wave_function;
@@ -756,7 +770,7 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
             //std::cout << "Hello from thread: " << th_id << std::endl;
             qs::quantum_channel chn = chns_[i];
 
-            LS_Solver::get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
+            LS_Solver_->get_mu_q_on_shell(Tl, chn, &mu, &q_on_shell);
              
             gsl_matrix* pot_V_mtx;
             pot_V_mtx = get_my_potential_matrix(q_on_shell, chn);
@@ -808,7 +822,7 @@ std::vector<std::complex<double>> nn_mwpc_interface::compute_T_on_shell(
     }
 
     double mu, q_on_shell;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
         
     gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
 
@@ -847,7 +861,7 @@ std::complex<double> nn_mwpc_interface::compute_M_element(double T_lab,
     // Should be OK if program compes to here
     double theta_rad = theta_cm*M_PI/180.0;
     double mu, q_on_shell;
-    LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
     
     double rho_T = M_PI*q_on_shell*mu; // In the convention used
     
@@ -860,7 +874,7 @@ std::complex<double> nn_mwpc_interface::compute_M_element(double T_lab,
 double nn_mwpc_interface::get_on_shell_momentum(double T_lab)
 {
     double mu, q_on_shell;
-    LS_Solver::get_mu_q_on_shell(T_lab, chns_[0], &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chns_[0], &mu, &q_on_shell);
     return q_on_shell;
 }
 
@@ -897,26 +911,27 @@ std::string nn_mwpc_interface::get_chn_LS_term(int chn_number)
 
 double nn_mwpc_interface::get_gA()
 {
-    return constants::gA;
+    std::cout << "gA not a constant!" << std::endl;
+    return -1;
 }
 
 double nn_mwpc_interface::get_fpi()
 {
-    return constants::fpi;
+    return program_const_->fpi;
 }
 
 double nn_mwpc_interface::get_mpi()
 {
-    return constants::mpi;
+    return program_const_->mpi;
 }
 
 double nn_mwpc_interface::get_Mp()
 {
-    return constants::Mp;
+    return program_const_->Mp;
 }
 
 double nn_mwpc_interface::get_Mn()
 {
-    return constants::Mn;
+    return program_const_->Mn;
 }
 

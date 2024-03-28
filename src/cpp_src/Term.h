@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include "physics_helpers.h"
 #include "quantum_states.h"
-
 /*
  * Momenta:
  * ----------------------------------------------------------------------------
@@ -91,7 +90,6 @@ private:
     bool well_def_pw_;
     LS_term LS_well_def_pw_;
 
-
     // Variables to keep track of regularization for loop integrals 
     // mainly in chiral EFT potential terms
 
@@ -105,7 +103,8 @@ public:
     std::vector<double> (*my_v_alpha)(double qi, double qo, double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     // Constructor
     Term(std::string name);
@@ -123,7 +122,8 @@ public:
     std::vector<double> get_v_alpha(double qi, double qo, double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     double get_v_alpha_well_def_pw(double qi, double qo,
             std::unordered_map<std::string,double>& LECs,
@@ -132,7 +132,8 @@ public:
     static std::vector<double> v_alpha_OPEP(double qi, double qo, double* z, int z_len, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     static double mom_C1S0(double qi, double qo, 
             std::unordered_map<std::string,double>& LECs,
@@ -272,7 +273,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
     
     static double V_T_2pi_nu_2(double q, double gA, double mpi, double fpi,
             std::string loop_reg, double lam_SFR);
@@ -283,7 +285,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
 
     
@@ -291,7 +294,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     static double W_C_2pi_nu_2(double q, double gA, double mpi, double fpi,
             double w, std::string loop_reg, double lam_SFR);
@@ -303,7 +307,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
 /*
  * ****************************************************************************
@@ -320,7 +325,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     // q is the absolute value of the 3-momentum transfer
     static double V_C_2pi_nu_3(double q, double gA, double c1, double c3, 
@@ -333,7 +339,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
    
     static double W_C_2pi_nu_3(double q, double gA, double mpi, double fpi, 
             double mN, double w, double w_t,
@@ -345,7 +352,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     static double V_T_2pi_nu_3(double q, double gA, double mpi, double fpi, 
             double mN, double w, double w_t,
@@ -357,7 +365,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
 
     
@@ -365,7 +374,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
     
    
     static double W_T_2pi_nu_3(double q, double gA, double c4, double mpi, double fpi,
@@ -378,7 +388,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
  
 
 
@@ -386,7 +397,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
     
     static double V_LS_2pi_nu_3(double q, double gA, double mpi, double fpi,
             double mN, double w_t,
@@ -398,7 +410,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     static double W_LS_2pi_nu_3(double q, double gA, double mpi, double fpi, 
             double mN, double w,
@@ -423,7 +436,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     static double V_C_2pi_nu_3_no_rel(double q, double gA, double c1, double c3, 
             double mpi, double fpi, double mN, double w, double w_t,
@@ -434,7 +448,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     static double W_T_2pi_nu_3_no_rel(double q, double gA, double c4, 
             double mpi, double fpi,
@@ -444,7 +459,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
 /*
  * ****************************************************************************
@@ -466,7 +482,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
     
     static double V_C_2pi_nu_3_to_EM(double q, double gA,
             double mpi, double fpi, double mN, double w, double w_t,
@@ -478,7 +495,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
     
     static double W_C_2pi_nu_3_to_EM(double q, double gA, double mpi, double fpi, 
             double mN, double w, double w_t, std::string loop_reg, 
@@ -490,7 +508,8 @@ public:
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
     
     static double V_T_2pi_nu_3_to_EM(double q, double gA, double mpi, double fpi, 
             double mN, double w, double w_t, std::string loop_reg, 
@@ -502,7 +521,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 
     
     
@@ -510,7 +530,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
     
     static double W_T_2pi_nu_3_to_EM(double q, double gA, double mpi, 
             double fpi, double mN, double w, std::string loop_reg, 
@@ -522,7 +543,8 @@ public:
             double* z, int z_len,
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
-            qs::quantum_channel chn, std::string loop_reg, double lam_SFR);
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
 };
 
 #endif

@@ -28,7 +28,7 @@
 #include "gsl_integration.h" 
 #include "gsl_matrix.h"
 #include "Term.h"
-#include "Constants.h"
+#include "constants.h"
 #include "quantum_states.h"
 
 //#define ENABLE_DEBUG
@@ -74,6 +74,9 @@ private:
    double* z_mesh; // GL integration points
    double* w_z_mesh; // GL integration weights
    unsigned int len_z_mesh; // GL integration number of points
+
+
+   ph::constants_struct* program_const_;
 
 private:
    /*
@@ -147,7 +150,8 @@ public:
            double* p_grid = nullptr, double* w_grid = nullptr, 
            std::size_t grid_size = 0,unsigned int J_max = 0, 
            double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
-           bool inc_grid_weights_in_pot = false, bool cut_on_shell = true);
+           bool inc_grid_weights_in_pot = false, bool cut_on_shell = true,
+           ph::constants_struct* program_const);
 
     /* 
       Destructor

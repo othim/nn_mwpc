@@ -13,7 +13,6 @@
 
 #include "quantum_states.h"
 #include "physics_helpers.h"
-#include "Constants.h"
 #include "wigxjpf.h"
 #include <vector>
 #include <complex>
@@ -27,6 +26,7 @@
 #include "potential_mwpc.h"
 #include "LS_Solver.h"
 #include <string>
+
 namespace dwba 
 {
  
@@ -169,7 +169,8 @@ void solve_DWB_from_potentials(Potential_mwpc<gsl_matrix>& pot1_real_noweights,
     Potential_mwpc<gsl_matrix_complex>& pot2_complex_weights, 
     double number_of_p_points,
     double* p_grid, double* w_grid, bool FINITE_GRID, double Tl, 
-    qs::quantum_channel chn, double REL_CORR);
+    qs::quantum_channel chn, double REL_CORR, 
+    ph::constants_struct* program_const);
 }
 
 /*

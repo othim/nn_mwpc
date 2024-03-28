@@ -7,7 +7,8 @@ struct my_f_params { double qi; double qo; int J; int l; Term* term; Potential_m
 // Constructor
 Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
    double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell)
+   bool sharp_cutoff, bool inc_grid_weights_in_pot, bool cut_on_shell,
+   ph::constants_struct* program_const)
 {
    // Init constants
    N_GLI_PWA_ = N_GLI_PWA;
@@ -21,6 +22,8 @@ Potential_mwpc::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GL
    
    inc_grid_weights_in_pot_ = inc_grid_weights_in_pot;
    cut_on_shell_ = cut_on_shell;
+
+   program_const_ = program_const;
 
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
@@ -430,6 +433,7 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
+    /*
    double mu = 0.0; // Default
    if (chn.Tz == -1)
    {
@@ -446,6 +450,8 @@ gsl_matrix* Potential_mwpc::get_matrix(double q_on_shell,qs::quantum_channel chn
          std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
       #endif
    }
+    */
+   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0;
 
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
@@ -639,6 +645,7 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
    unsigned int S = chn.S;
    bool coupled = chn.coupled;
 
+   /*
    double mu =0.0;
    if (chn.Tz == -1)
    {
@@ -655,6 +662,8 @@ gsl_matrix* Potential_mwpc::get_saved_matrix(double q_on_shell, qs::quantum_chan
          std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
       #endif
    }
+   */
+   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0;
    // Note that the matrix is computed for the current LECs_!!
    // Note also that the LECs_ are screwed up by the act of saving the matrices!
    // This means that the 
@@ -825,6 +834,7 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
+   /*
    double mu = 0.0;
    if (chn.Tz == -1)
    {
@@ -841,7 +851,8 @@ gsl_matrix* Potential_mwpc::get_matrix_no_onshell(qs::quantum_channel chn, bool 
          std::cerr << "Error in solve_in_chn(): Unknown isospin" << std::endl;
       #endif
    }
-
+   */
+   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0;
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
    // In the construction of the saved matrix the desired on-shell momentum 

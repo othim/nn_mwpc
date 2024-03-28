@@ -1,5 +1,4 @@
 #include "Term.h"
-#include "Constants.h"
 #include <iostream>
 
 
@@ -507,9 +506,10 @@ std::vector<std::string> Term::get_params_in_term()
 std::vector<double> Term::get_v_alpha(double qi, double qo, double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
-    return my_v_alpha(qi,qo,z,z_len,LECs,params,chn,loop_reg,lam_SFR);
+    return my_v_alpha(qi,qo,z,z_len,LECs,params,chn,loop_reg,lam_SFR,program_const);
 }
 
 double Term::get_v_alpha_well_def_pw(double qi, double qo,
@@ -534,7 +534,8 @@ double Term::get_v_alpha_well_def_pw(double qi, double qo,
 std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z, int z_len, 
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double lec = params["gA"];
     std::vector<double> tmp(z_len);
@@ -543,8 +544,8 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z, int z_le
     for (int i = 0; i < (int)z_len; i++)
     {
         q2 = qi*qi + qo*qo - 2*qi*qo*z[i];
-        tmp[i] = -(lec*lec/(4.0*constants::fpi*constants::fpi))*(1.0/
-                (q2+constants::mpi*constants::mpi));
+        tmp[i] = -(lec*lec/(4.0*program_const->fpi*program_const->fpi))*(1.0/
+                (q2+program_const->mpi*program_const->mpi));
     }
 	return tmp;
 }
@@ -884,11 +885,12 @@ std::vector<double> Term::V_T_2pi_nu_2(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
     
     // Compute the function for all angles z = cos <qi,qo>
     std::vector<double> tmp(z_len);
@@ -918,11 +920,12 @@ std::vector<double> Term::V_S_2pi_nu_2(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
     
     // Compute the function for all angles z = cos <qi,qo>
     std::vector<double> tmp(z_len);
@@ -944,11 +947,12 @@ std::vector<double> Term::W_C_2pi_nu_2(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
 
     
     std::vector<double> tmp(z_len);
@@ -984,12 +988,13 @@ std::vector<double> Term::W_T_1pi_nu_2(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA = params["gA"];
     double d18 = params["d18"];
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
     std::vector<double> tmp(z_len);
     double q;
 
@@ -1016,16 +1021,17 @@ std::vector<double> Term::V_C_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     // Get the constants
     double gA  = params["gA"];
     double c1  = LECs["c1"];
     double c3  = LECs["c3"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
     // Compute the function for all angles z = cos <qi,qo>
     std::vector<double> tmp(z_len);
@@ -1065,13 +1071,14 @@ std::vector<double> Term::W_C_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
     
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
 
     std::vector<double> tmp(z_len);
     double q,w,w_t;
@@ -1109,13 +1116,14 @@ std::vector<double> Term::V_T_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
 
     
     std::vector<double> tmp(z_len);
@@ -1148,13 +1156,14 @@ std::vector<double> Term::V_S_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
 
     
     std::vector<double> tmp(z_len);
@@ -1179,14 +1188,15 @@ std::vector<double> Term::W_T_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
     double c4  = LECs["c4"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
 
     std::vector<double> tmp(z_len);
@@ -1223,14 +1233,15 @@ std::vector<double> Term::W_S_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
     double c4  = LECs["c4"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
 
     std::vector<double> tmp(z_len);
@@ -1254,13 +1265,14 @@ std::vector<double> Term::V_LS_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
 
     
     std::vector<double> tmp(z_len);
@@ -1293,13 +1305,14 @@ std::vector<double> Term::W_LS_2pi_nu_3(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
     std::vector<double> tmp(z_len);
     double q,w;
@@ -1349,16 +1362,17 @@ std::vector<double> Term::V_C_2pi_nu_3_no_rel(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     // Get the constants
     double gA  = params["gA"];
     double c1  = LECs["c1"];
     double c3  = LECs["c3"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
     // Compute the function for all angles z = cos <qi,qo>
     std::vector<double> tmp(z_len);
@@ -1396,14 +1410,15 @@ std::vector<double> Term::W_T_2pi_nu_3_no_rel(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
     double c4  = LECs["c4"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
 
     std::vector<double> tmp(z_len);
@@ -1436,14 +1451,15 @@ std::vector<double> Term::W_S_2pi_nu_3_no_rel(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
     double c4  = LECs["c4"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
 
     std::vector<double> tmp(z_len);
@@ -1479,14 +1495,15 @@ std::vector<double> Term::V_C_2pi_nu_3_to_EM(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     // Get the constants
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
     // Compute the function for all angles z = cos <qi,qo>
     std::vector<double> tmp(z_len);
@@ -1522,13 +1539,14 @@ std::vector<double> Term::W_C_2pi_nu_3_to_EM(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
     
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
 
     std::vector<double> tmp(z_len);
     double q,w,w_t;
@@ -1562,13 +1580,14 @@ std::vector<double> Term::V_T_2pi_nu_3_to_EM(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
 
     
     std::vector<double> tmp(z_len);
@@ -1603,13 +1622,14 @@ std::vector<double> Term::V_S_2pi_nu_3_to_EM(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
 
     
     std::vector<double> tmp(z_len);
@@ -1634,13 +1654,14 @@ std::vector<double> Term::W_T_2pi_nu_3_to_EM(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
 
     std::vector<double> tmp(z_len);
@@ -1674,13 +1695,14 @@ std::vector<double> Term::W_S_2pi_nu_3_to_EM(double qi, double qo,
         double* z, int z_len,
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,
-        qs::quantum_channel chn, std::string loop_reg, double lam_SFR)
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
 {
     double gA  = params["gA"];
 
-    double mpi = constants::mpi;
-    double fpi = constants::fpi;
-    double mN  = ph::get_mN(chn.Tz);
+    double mpi = program_const->mpi;
+    double fpi = program_const->fpi;
+    double mN  = ph::get_mN(chn.Tz,program_const->Mn,program_const->Mp);
     
 
     std::vector<double> tmp(z_len);

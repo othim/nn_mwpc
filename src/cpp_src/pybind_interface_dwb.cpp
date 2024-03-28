@@ -13,7 +13,8 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
         int J_max_chn, double cutoff, int cut_pow, 
         bool sharp_cutoff, double sharp_cutoff_add, bool rel_corr,
         int number_of_p_points, bool finite_grid, double finite_grid_add, 
-        bool cut_on_shell, bool print)
+        bool cut_on_shell, bool print, double fpi, double mpi, double Mp,
+        double Mn, double inv_fm_to_MeV)
 {
     // ************************************************************************
     // ****** CONSTANTS TO CHANGE *********************************************
@@ -32,6 +33,8 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     finite_grid_max_    = 0.0; // Just default value
     cut_on_shell_       = cut_on_shell;
     print_              = print;  
+
+
     // For the quantum states
     int J_max           = J_max_chn;
     int J_min           = 0;
@@ -42,7 +45,21 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     
     // Initialize physics helpers
     ph::physics_helpers_init();
+   
+    // Set constants
+    // **********************
+    ph::constants_struct* program_const_ = new ph::constants_struct;
     
+    program_const_->fpi            = fpi;
+    program_const_->mpi            = mpi; // Average of +,-,0 
+    program_const_->Mp             = Mp; 
+    program_const_->Mn             = Mn;
+    program_const_->inv_fm_to_MeV  = inv_fm_to_MeV;
+
+    program_const_->MeVm2_to_mbarn = (program_const_->inv_fm_to_MeV)
+        * (program_const_->inv_fm_to_MeV)*10.0;
+    // ***********************
+
     // Make GL grid
     if (!finite_grid)
     {
@@ -80,7 +97,8 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     
 
     // Construct a LS_Solver
-    LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_);
+    LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_,
+            program_const_);
     
     
     // Initialize all the saved T-matrix elements to zero
@@ -202,7 +220,7 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
 
     // Get on-shell momentum and reduced mass
     double q_on_shell,mu;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
     
     // Get G0 vector matrix
     gsl_vector_complex* prop_vec = 
@@ -365,7 +383,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
 
     // Get on-shell momentum and reduced mass
     double q_on_shell,mu;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
     
     // Get G0 vector matrix
     gsl_vector_complex* prop_vec = 
@@ -462,7 +480,7 @@ std::vector<std::complex<double>>
     qs::quantum_channel chn = chns_[chn_index];
     // Get on-shell momentum and reduced mass
     double q_on_shell,mu;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
     
     // Get G0 vector matrix
     gsl_vector_complex* prop_vec = 
@@ -502,7 +520,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC_full(
 
     // Get on-shell momentum and reduced mass
     double q_on_shell,mu;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
     
     // Get G0 vector matrix
     gsl_vector_complex* prop_vec = 
@@ -724,7 +742,7 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
     double mu, q_on_shell;
     //std::cout << "Energy saved:" << energy_saved_ << std::endl;
 
-    LS_Solver::get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
     
     // Construct the vector of on-shell-T matrix
     std::vector<std::complex<double>*> T_vec;
@@ -815,7 +833,8 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
         theta = 90.001;
     }
     saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, T_vec, 
-            theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_);
+            theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_,
+            program_const_);
     
     // Print saclay amplitudes
     /*
@@ -832,13 +851,14 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
     // than the n,l,m. That is why the _lab function is used.
     if (obs_name == "A 00kk") {
         obs_value = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, 
-                obs_name, theta*M_PI/180.0);
+                obs_name, theta*M_PI/180.0,program_const_);
     } else if (obs_name == "SGT_int") {
         obs_value = sc::compute_total_cross_section(chns_, 
-                T_vec, q_on_shell, J_max_in_pot_,false);
+                T_vec, q_on_shell, J_max_in_pot_,false,program_const_);
 
     } else {
-        obs_value = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_name);
+        obs_value = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_name,
+                program_const_);
     }
 
     // Delete the vector of on-shell T
@@ -879,7 +899,8 @@ std::vector<double> nn_mwpc_dwb_interface::compute_binding_energy(int chn_number
         potentials_[V_name]->get_matrix_no_onshell(chn, rel_corr_);
     
     ph::eigen_t_herm diag_res = ph::solve_SE_complex_weights(p_grid_, w_grid_, 
-            number_of_p_points_, chn, pot_V_mtx);
+            number_of_p_points_, chn, pot_V_mtx,program_const_->Mn,
+            program_const_->Mp);
     
     std::vector<double> eigenvalues;
     for (int i = 0; i < (int)pot_V_mtx->size1; i++) {
@@ -938,7 +959,7 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     std::cout << std::setprecision(16);
     for (int i=0;i<6;i++)
     {
-        double mu = ph::get_mN(0)/2.0;
+        double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
         double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
         //std::cout << "relcut: " << rel_cut << std::endl;
         //std::cout << "relcut: " << V_arr[i]*rel_cut << "   ";
@@ -961,7 +982,7 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     std::cout << std::setprecision(16);
     for (int i=0;i<6;i++)
     {
-        double mu = ph::get_mN(0)/2.0;
+        double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
         double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
         std::cout << V_arr[i]*rel_cut << "   ";
     }
@@ -980,7 +1001,7 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     std::cout << std::setprecision(16);
     for (int i=0;i<6;i++)
     {
-        double mu = ph::get_mN(0)/2.0;
+        double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
         double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
          std::cout << V_arr[i]*rel_cut << "   ";
     }
@@ -1048,7 +1069,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::get_V_matrix(double T_l
     // Get the correct on-shell q
     qs::quantum_channel chn = chns_[chn_index];
     double q_on_shell,mu;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
     
     // Get the saved matrix
     gsl_matrix_complex* V = 
@@ -1072,7 +1093,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::get_V_matrix(double T_l
 double nn_mwpc_dwb_interface::get_on_shell_momentum(double T_lab)
 {    
     double mu, q_on_shell;
-    LS_Solver::get_mu_q_on_shell(T_lab, chns_[0], &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chns_[0], &mu, &q_on_shell);
     return q_on_shell;
 }
 
@@ -1130,27 +1151,28 @@ int nn_mwpc_dwb_interface::get_chn_coupled(int chn_number)
 
 double nn_mwpc_dwb_interface::get_gA()
 {
-    return constants::gA;
+    std::cout << "Error, gA is not a constant!" << std::endl;
+    return -1;
 }
 
 double nn_mwpc_dwb_interface::get_fpi()
 {
-    return constants::fpi;
+    return program_const_->fpi;
 }
 
 double nn_mwpc_dwb_interface::get_mpi()
 {
-    return constants::mpi;
+    return program_const_->mpi;
 }
 
 double nn_mwpc_dwb_interface::get_Mp()
 {
-    return constants::Mp;
+    return program_const_->Mp;
 }
 
 double nn_mwpc_dwb_interface::get_Mn()
 {
-    return constants::Mn;
+    return program_const_->Mn;
 }
 
 /*
@@ -1227,7 +1249,7 @@ void nn_mwpc_dwb_interface::get_G0_and_potentials(double T_lab,
 {
     // Get on-shell momentum and reduced mass
     double q_on_shell,mu;
-    LS_Solver::get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
     
     // Get G0 vector matrix
     gsl_vector_complex* prop_vec = 

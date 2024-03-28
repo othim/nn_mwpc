@@ -4,7 +4,8 @@
 
 // Constructor
 LS_Solver::LS_Solver(unsigned int mom_grid_size,
-    double* p_grid, double* w_grid, bool finite_grid)
+    double* p_grid, double* w_grid, bool finite_grid,ph::constants_struct*
+    program_const)
 {
     #ifdef ENABLE_DEBUG
         std::cout << "LS_Solver()" << std::endl;
@@ -13,6 +14,7 @@ LS_Solver::LS_Solver(unsigned int mom_grid_size,
     mom_grid_size_ = mom_grid_size;
     p_grid_        = p_grid;
     w_grid_        = w_grid;
+    program_const_ = program_const;
     
     // These are important, since if the grid is finite the counterterm for the
     // integral needs to be added. It is important that the potential is
@@ -253,7 +255,8 @@ Phase_shifts_chn BB_to_Stapp_2(Phase_shifts_chn ps,double tan_p, double tan_m, d
     return phases;
 }
 
-void LS_Solver::get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double* mu, double* q_on_shell)
+void LS_Solver::get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, 
+        double* mu, double* q_on_shell)
 {
     // get q_on_shell
     if (chn.Tz == -1)
@@ -261,8 +264,10 @@ void LS_Solver::get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double*
         *q_on_shell = sqrt(*mu*T_lab);
     } else if (chn.Tz == 0)
     {
-        *q_on_shell = sqrt(constants::Mp*constants::Mp*T_lab*(T_lab + 2.0*constants::Mn)/
-            ((constants::Mp + constants::Mn)*(constants::Mp + constants::Mn) + 2.0*T_lab*constants::Mp));
+        *q_on_shell = sqrt(program_const_->Mp*program_const_->Mp*T_lab*
+                (T_lab + 2.0*program_const_->Mn)/
+            ((program_const_->Mp + program_const_->Mn)*
+             (program_const_->Mp + program_const_->Mn)+2.0*T_lab*program_const_->Mp));
 
     } else if (chn.Tz == 1)
     {
@@ -272,7 +277,7 @@ void LS_Solver::get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, double*
         std::cout << "Error in get_mu_q_on_shell(): Unknown isospin" << std::endl;
     }
     // get mu as half the nucleon mass
-    *mu = ph::get_mN(chn.Tz)/2.0;
+    *mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0;
 }
 
 /*

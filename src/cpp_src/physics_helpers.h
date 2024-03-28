@@ -1,5 +1,4 @@
-#ifndef PHYSICS_HELPERS_H
-#define PHYSICS_HELPERS_H
+#pragma once
 
 #include <iostream>
 #include <cmath>
@@ -11,13 +10,25 @@
 #include "gsl_matrix_complex_double.h"
 #include "wigxjpf.h"
 #include "quantum_states.h"
-#include "Constants.h"
 #include "gsl_eigen.h"
 #include "gsl_blas.h"
 #include <stdio.h>
 #include <complex>
 
 namespace ph {
+
+typedef struct
+{
+    double fpi;           // Convention fpi \approx 92 (MeV)
+    double mpi;           // Average pion mass (MeV)
+    double Mp;            // Proton mass (MeV)
+    double Mn;            // Neutron mass (MeV)
+    double inv_fm_to_MeV; // hbarc in units MeV*fm
+   
+    double MeVm2_to_mbarn; // Conversion factor from MeV^{-2} to mbarn
+
+} constants_struct;
+
 /*
  * This function initialize relevant data that needs to be in memory 
  * to be able to use the functions.
@@ -91,13 +102,13 @@ typedef struct
  * (2\pi)^(+/-)3 to convert to the correct basis.
  */
 eigen_t solve_SE(double* p, double* w, unsigned int numer_of_grid_points,
-        qs::quantum_channel chn, const gsl_matrix* V);
+        qs::quantum_channel chn, const gsl_matrix* V, double Mn, double Mp);
 
 // Same mwthod but now the potential is complex and has weights and momentum
 // factors factored in.
 eigen_t_herm solve_SE_complex_weights(double* p, double* w, 
         unsigned int numer_of_grid_points,
-        qs::quantum_channel chn, const gsl_matrix_complex* V);
+        qs::quantum_channel chn, const gsl_matrix_complex* V, double Mn, double Mp);
 
 /*
  * Converts radians to degrees
@@ -204,7 +215,7 @@ void matrix_scale(gsl_matrix_complex* m1, const double scale);
 
 void matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec);
 
-double get_mN(int Tz);
+double get_mN(int Tz, double Mn, double Mp);
 
 /*
  *
@@ -225,6 +236,5 @@ std::vector<std::complex<double>>
 std::vector<std::complex<double>> 
     get_complex_vector_from_matrix(gsl_matrix_complex* M);
 }
-#endif
 
 

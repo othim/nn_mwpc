@@ -166,7 +166,7 @@ void ph::gauss_legendre_inf_mesh(unsigned int Number_of_points, double scale,dou
 
 
 ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_points
-        ,qs::quantum_channel chn, const gsl_matrix* V)
+        ,qs::quantum_channel chn, const gsl_matrix* V, double Mn, double Mp)
 {
    // The potential is assumed to be in a partial wave basis with normalization 
    // <p'|p> = \delta(p'-p)/p^2, with \pi/2 factor from Landau removed.
@@ -184,7 +184,7 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
       }
    }
    // Get reduced mass of system
-   double mu = ph::get_mN(chn.Tz)/2.0;
+   double mu = ph::get_mN(chn.Tz,Mn,Mp)/2.0;
    
    gsl_matrix* H = gsl_matrix_alloc(V->size1,V->size2);
    
@@ -251,7 +251,8 @@ ph::eigen_t ph::solve_SE(double* p, double* w, unsigned int number_of_grid_point
 
 ph::eigen_t_herm ph::solve_SE_complex_weights(double* p, double* w, 
         unsigned int number_of_grid_points
-        ,qs::quantum_channel chn, const gsl_matrix_complex* V)
+        ,qs::quantum_channel chn, const gsl_matrix_complex* V,
+        double Mn, double Mp)
 {
    // The potential is assumed to be in a partial wave basis with normalization 
    // <p'|p> = \delta(p'-p)/p^2, with \pi/2 factor from Landau removed.
@@ -269,7 +270,7 @@ ph::eigen_t_herm ph::solve_SE_complex_weights(double* p, double* w,
       }
    }
    // Get reduced mass of system
-   double mu = ph::get_mN(chn.Tz)/2.0;
+   double mu = ph::get_mN(chn.Tz, Mn, Mp)/2.0;
    
    gsl_matrix_complex* H = gsl_matrix_complex_alloc(V->size1,V->size2);
    
@@ -611,18 +612,18 @@ void ph::matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
     }
 }
 
-double ph::get_mN(int Tz)
+double ph::get_mN(int Tz, double Mn, double Mp)
 {
     if (Tz == -1)
     {
-        return constants::Mn; // nn
+        return Mn; // nn
     } else if (Tz == 0)
     {
-        return 2.0*constants::Mn*constants::Mp/(constants::Mn+constants::Mp); // np
+        return 2.0*Mn*Mp/(Mn+Mp); // np
 
     } else if (Tz == 1)
     {
-        return constants::Mp; // pp
+        return Mp; // pp
     } else 
     {
         std::cout << "Error in get_mN(): Unknown isospin" << std::endl;

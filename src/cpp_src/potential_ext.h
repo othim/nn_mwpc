@@ -14,7 +14,6 @@
 #define POT_EXT
 
 #include "quantum_states.h"
-#include "Constants.h"
 #include "gsl_matrix.h"
 #include <iostream>
 #include <cmath>

@@ -73,6 +73,8 @@ private:
     double finite_grid_add_;
     double finite_grid_max_;
 
+    ph::constants_struct* program_const_;
+
 private:
 /*
  * Other private variables that are set and used by memberfunctions
@@ -125,7 +127,9 @@ public:
             int J_max_chn, double cutoff, int cut_pow, 
             bool sharp_cutoff, double sharp_cutoff_add, bool rel_corr,
             int number_of_p_points, bool finite_grid, double finite_grid_add,
-            bool cut_on_shell, bool print);
+            bool cut_on_shell, bool print, double fpi, double mpi, double Mp,
+            double Mn, double inv_fm_to_MeV);
+
     ~nn_mwpc_dwb_interface();
     
     /*

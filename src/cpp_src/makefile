@@ -173,6 +173,7 @@ pybind_interface_dwb.o: pybind_interface_dwb.h
 
 potential_mwpc.o: potential_mwpc.h
 	$(CC) $(CFLAGS) $(FLAGS) -c potential_mwpc.cpp
+
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o potential.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \

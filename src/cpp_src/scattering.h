@@ -14,7 +14,6 @@
 #include "physics_helpers.h"
 #include "gsl_sf_legendre.h"
 #include "gsl_blas.h"
-#include "Constants.h"
 #include "wigxjpf.h"
 #include <vector>
 #include <complex>
@@ -65,7 +64,8 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
 std::vector<std::complex<double> > compute_Saclay_amplitudes(
         std::vector<qs::quantum_channel> chns_vec, 
         std::vector<Phase_shifts_chn> phase_shifts_vec, 
-        double theta, double q_on_shell,double rho_T, int l_max);
+        double theta, double q_on_shell,double rho_T, int l_max,
+        ph::constants_struct* program_const);
 
 /*
  * Same function as above but the T-matrix elements is an argument
@@ -74,7 +74,8 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(
 std::vector<std::complex<double> > compute_Saclay_amplitudes(
         std::vector<qs::quantum_channel> chns_vec, 
         std::vector<std::complex<double>*> T_on_shell_vec, 
-        double theta, double q_on_shell,double rho_T, int l_max);
+        double theta, double q_on_shell,double rho_T, int l_max,
+        ph::constants_struct* program_const);
 
 /*
  * Helper function for computing the saclay amplitudes given
@@ -83,7 +84,8 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(
 std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
         std::complex<double> M_pp, std::complex<double> M_00,
         std::complex<double> M_pm, std::complex<double> M_s,
-        std::complex<double> M_p0, std::complex<double> M_0p,double theta);
+        std::complex<double> M_p0, std::complex<double> M_0p,double theta,
+        double MeVm2_to_mbarn);
 
 /*
     This function computes observables from Saclay amplitudes.
@@ -111,7 +113,7 @@ std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
     q_on_shell in the on shell momentum in MeV
 */
 double compute_observable(std::vector<std::complex<double> > sac_amp, 
-        double q_on_shell, std::string obs);
+        double q_on_shell, std::string obs, ph::constants_struct* program_const);
 
 /*
  * This function computes the observables that are defined in the lab frame.
@@ -120,20 +122,24 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,
     Formalism of nucleon-nucleon elastic scattering experiments. 
     Journal de Physique, 1978, 39 (1), pp.1-32.
  */
-double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs, double angle);
+double compute_observable_lab(std::vector<std::complex<double> > sac_amp, 
+        double q_on_shell, std::string obs, double angle, 
+        ph::constants_struct* program_const);
 /*
  * This function computes the total cross section SGT. The return unit is mb.
  */
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
     std::vector<std::complex<double>*> T_on_shell_vec,double q_on_shell,
-    int l_max,bool optical_thm);
+    int l_max,bool optical_thm,
+    ph::constants_struct* program_const);
 
 /* 
  * This function gives the M-matrix for the given on shell energy
  * and cm scattering angle
  */ 
 gsl_matrix_complex* get_M_matrix(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<Phase_shifts_chn> phase_shifts_vec, double q_on_shell, double theta, double rho_T, int l_max);
+    std::vector<Phase_shifts_chn> phase_shifts_vec, double q_on_shell, 
+    double theta, double rho_T, int l_max);
 
 /*
  * This function computes the observable trace as in 

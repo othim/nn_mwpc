@@ -16,8 +16,7 @@
    Department of Physics, Chalmers
 */
 
-#ifndef LS_SOLVER_H
-#define LS_SOLVER_H
+#pragma once
 
 #include "gsl_matrix.h"
 #include "gsl_sf_trig.h"
@@ -49,12 +48,13 @@ private:
     gsl_vector*  setup_D_vector(double q_on_shell, bool coupled, double mu);
     gsl_matrix* setup_F_matrix(bool coupled, gsl_vector* D_vector, 
         gsl_matrix* V_mtx);
-
+    
+    ph::constants_struct* program_const_;
 
 public:
 
     LS_Solver(unsigned int mom_grid_size, double* p_grid, double* w_grid, 
-            bool finite_grid);
+            bool finite_grid,ph::constants_struct* program_const);
 
     ~LS_Solver();
     void gauss_legendre_inf_mesh(unsigned int Numper_of_points, 
@@ -106,7 +106,7 @@ public:
     std::complex<double>* T_matrix_from_R_matrix(double Rmm, 
             double Rmp, double Rpp, double mu, double q_on_shell);
 
-    static void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, 
+    void get_mu_q_on_shell(double T_lab, qs::quantum_channel chn, 
             double* mu, double* q_on_shell);
     
     /*
@@ -128,4 +128,3 @@ public:
     static Phase_shifts_chn BB_to_Stapp(Phase_shifts_chn ps);
 };
 
-#endif

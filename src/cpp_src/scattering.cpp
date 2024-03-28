@@ -276,41 +276,43 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
 }
 
 
-std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, double q_on_shell, double rho_T, int l_max)
+std::vector<std::complex<double> > compute_Saclay_amplitudes(
+        std::vector<qs::quantum_channel> chns_vec, 
+        std::vector<Phase_shifts_chn> phase_shifts_vec, double theta, 
+        double q_on_shell, double rho_T, int l_max, 
+        ph::constants_struct* program_const)
 {
     //std::cout << "S l " << l_max << std::endl;
     // Compute M-matrix elements
     std::complex<double> M_pp = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)1,
+        std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_00 = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)0,
+        std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_pm = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)-1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)-1,
+        std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_s =
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)0,(int)0,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)0,(int)0,(int)0,
+        std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_p0 = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)0,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)1,(int)0,
+        std::cos(theta),q_on_shell,rho_T,l_max);
     std::complex<double> M_0p = 
-        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)1,std::cos(theta),q_on_shell,rho_T,l_max);
+        get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)1,
+        std::cos(theta),q_on_shell,rho_T,l_max);
     
-    return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta);   
+    return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta,
+            program_const->MeVm2_to_mbarn);   
 }
 
-std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::quantum_channel> chns_vec,
-    std::vector<std::complex<double>*> T_on_shell_vec, double theta, double q_on_shell, double rho_T, int l_max)
+std::vector<std::complex<double> > compute_Saclay_amplitudes(
+        std::vector<qs::quantum_channel> chns_vec,
+        std::vector<std::complex<double>*> T_on_shell_vec, double theta, 
+        double q_on_shell, double rho_T, int l_max,
+        ph::constants_struct* program_const)
 {
-    /*
-    std::cout << "T on shell vec" << std::endl;
-
-    for (auto c : T_on_shell_vec)
-    {   
-        for(int i=0; i<3; i++) {
-            std::cout << std::real(c[i]) << "," << std::imag(c[i]) << "   ";
-        }
-        std::cout << std::endl;
-    }
-    */
 
     // Compute M-matrix elements
     std::complex<double> M_pp = 
@@ -331,7 +333,8 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
     std::cout << std::real(M_00) << "," << std::imag(M_00) << std::endl;
     */
 
-    return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta);   
+    return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta,
+            program_const->MeVm2_to_mbarn);   
 }
 
 
@@ -339,7 +342,8 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(std::vector<qs::qua
 std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
         std::complex<double> M_pp, std::complex<double> M_00,
         std::complex<double> M_pm, std::complex<double> M_s,
-        std::complex<double> M_p0, std::complex<double> M_0p,double theta)
+        std::complex<double> M_p0, std::complex<double> M_0p,double theta, 
+        double MeVm2_to_mbarn)
 {
     // Compute Saclay amplitudes as in eq 2.14 in 
     // Formalism of nucleon-nucleon elastic scattering experiments. 
@@ -354,7 +358,7 @@ std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
     const std::complex<double> imag_u(0.0,1.0);  
     std::complex<double> e = (imag_u/std::sqrt(2))*(M_p0 - M_0p);  
     
-    double fac = std::sqrt(constants::MeVm2_to_mbarn);
+    double fac = std::sqrt(MeVm2_to_mbarn);
     
     //std::cout << "M_00: " << M_00*fac << " M_pm: " << M_pm*fac << " M_s: " << M_s*fac << std::endl;
     //std::cout << "M_pp: " << M_pp*fac << " M_10: " << M_p0*fac << " M_01:" << M_0p*fac << std::endl;
@@ -373,7 +377,7 @@ std::vector<std::complex<double>> saclay_amplitudes_from_M_elements(
 
 
 double compute_observable(std::vector<std::complex<double> > sac_amp, 
-        double q_on_shell, std::string obs)
+        double q_on_shell, std::string obs, ph::constants_struct* program_const)
 {
     // The vector of sac_amp contains a,b,c,d,e in order
     std::complex<double> a = sac_amp[0];
@@ -501,15 +505,15 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,
         return std::imag(std::conj(a)*d - std::conj(b)*c)/DSG;
     } else if (obs == "SGT")
     {
-        double fac = std::sqrt(constants::MeVm2_to_mbarn);
+        double fac = std::sqrt(program_const->MeVm2_to_mbarn);
         return ((2*M_PI)/q_on_shell)*std::imag(a+b)*fac;
     } else if (obs == "SGTL")
     {
-        double fac = M_PI*std::sqrt(constants::MeVm2_to_mbarn)/q_on_shell;
+        double fac = M_PI*std::sqrt(program_const->MeVm2_to_mbarn)/q_on_shell;
         return -4.0*std::imag(c-d)*fac; 
     } else if (obs == "SGTT")
     {
-        double fac = M_PI*std::sqrt(constants::MeVm2_to_mbarn)/q_on_shell;
+        double fac = M_PI*std::sqrt(program_const->MeVm2_to_mbarn)/q_on_shell;
         return -4.0*std::imag(c+d)*fac; 
     } else {
         std::cout << "Unknown observable: '" << obs << "'" << std::endl;
@@ -517,12 +521,17 @@ double compute_observable(std::vector<std::complex<double> > sac_amp,
     }    
 }
 
-double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double q_on_shell, std::string obs, double angle)
+double compute_observable_lab(std::vector<std::complex<double> > sac_amp, 
+        double q_on_shell, std::string obs, double angle, 
+        ph::constants_struct* program_const)
 {
     if (obs == "A 00kk") {
-        double tmp_ll = compute_observable(sac_amp,q_on_shell, "C ll00");        
-        double tmp_lm = compute_observable(sac_amp,q_on_shell, "C lm00");        
-        double tmp_mm = compute_observable(sac_amp,q_on_shell, "C mm00");        
+        double tmp_ll = compute_observable(sac_amp,q_on_shell, "C ll00",
+                program_const);        
+        double tmp_lm = compute_observable(sac_amp,q_on_shell, "C lm00",
+                program_const);        
+        double tmp_mm = compute_observable(sac_amp,q_on_shell, "C mm00",
+                program_const);        
         return tmp_ll*std::cos(angle/2.0)*std::cos(angle/2.0)+
             tmp_lm*std::sin(angle) + 
             tmp_mm*std::sin(angle/2.0)*std::sin(angle/2.0);
@@ -534,7 +543,7 @@ double compute_observable_lab(std::vector<std::complex<double> > sac_amp, double
 
 double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec, 
     std::vector<std::complex<double>*> T_on_shell_vec,double q_on_shell,int l_max,
-    bool optical_thm)
+    bool optical_thm, ph::constants_struct* program_const)
 {
     /*
     
@@ -566,16 +575,17 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
     */
     if (optical_thm)
     {
-        double rho_T = M_PI*q_on_shell*constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+        double rho_T = M_PI*q_on_shell*ph::get_mN(0,program_const->Mn,
+                program_const->Mp)/2.0;
         std::vector<std::complex<double>> out = compute_Saclay_amplitudes(chns_vec,
-                T_on_shell_vec, 0.0, q_on_shell, rho_T,l_max);
+                T_on_shell_vec, 0.0, q_on_shell, rho_T,l_max, program_const);
         std::complex<double> a = out[0];
         std::complex<double> b = out[1];
 
         //std::cout << std::imag(a) << " " << std::imag(a) << std::endl;
         //std::cout << std::real(b) << " " << std::imag(b) << std::endl;
         
-        double fac = std::sqrt(constants::MeVm2_to_mbarn);
+        double fac = std::sqrt(program_const->MeVm2_to_mbarn);
         // This factor is to convert the q_on_shell to mbarn
         double sigma = ((2*M_PI)/q_on_shell)*std::imag(a+b)*fac;
         
@@ -598,8 +608,8 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
        len_z_mesh = N_GLI_PWA_;
        
        // S = 1-2*i*rho_T*T
-       double rho_T = M_PI*q_on_shell*
-           constants::Mn*constants::Mp/(constants::Mn+constants::Mp);
+       double rho_T = M_PI*q_on_shell*ph::get_mN(0,program_const->Mn,
+               program_const->Mp)/2.0;
        
        // For each angle, compute the saclay amplitude and DSG
        
@@ -612,10 +622,10 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
           }
           std::vector<std::complex<double> > saclay_amplitudes = 
                 sc::compute_Saclay_amplitudes(chns_vec, T_on_shell_vec, 
-                theta*M_PI/180.0, q_on_shell, rho_T, l_max);
+                theta*M_PI/180.0, q_on_shell, rho_T, l_max,program_const);
          
           double DSG = sc::compute_observable(saclay_amplitudes, q_on_shell, 
-                "I 0000");
+                "I 0000",program_const);
 
           // Integrate DSG
           SGT += w_z_mesh[i]*DSG;

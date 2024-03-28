@@ -8,8 +8,7 @@
  * Department of Physics, Chalmers
  */
 
-#ifndef PYBIND11_INTERFACE
-#define PYBIND11_INTERFACE
+#pragma once
 
 #include <algorithm>
 #include <iostream>
@@ -68,6 +67,8 @@ private:
 
     bool finite_grid_;
     double finite_grid_max_;
+    
+    ph::constants_struct* program_const_;
     // Objects 
     
     Potential_mwpc<gsl_matrix>* Pot_;
@@ -95,7 +96,8 @@ public:
     nn_mwpc_interface(const std::string& model_name, int J_max_chn, 
             double cutoff, int cut_pow, bool sharp_cutoff, bool pre_comp_pot, 
             bool rel_corr, int number_of_p_points, bool finite_grid,
-            bool inc_weights_in_pot_ = false, bool cut_on_shell = true);
+            bool inc_weights_in_pot_ = false, bool cut_on_shell = true,
+            ph::constants_struct* program_const = nullptr);
     ~nn_mwpc_interface();
     
     /*
@@ -222,4 +224,3 @@ public:
     double get_Mn();
 
 };
-#endif
