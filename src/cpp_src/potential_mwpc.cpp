@@ -54,9 +54,10 @@ template double Potential_mwpc<gsl_matrix_complex>::get_rel_cut(double p_in,
         double p_out, double mu, bool rel_correction);
 
 template <class gsl_m>
-Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
-   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, int cut_pow,
-   bool sharp_cutoff, double sharp_cutoff_add, 
+Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, 
+   unsigned int N_GLI_PWA,double* p_grid, 
+   double* w_grid, std::size_t mom_grid_size, unsigned int J_max, double cutoff_Lambda, 
+   int cut_pow, bool sharp_cutoff, double sharp_cutoff_add, 
    bool inc_grid_weights_in_pot, bool cut_on_shell,
    std::string loop_reg, double lam_SFR, ph::constants_struct* program_const)
 {
@@ -74,7 +75,7 @@ Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, unsigned i
    cut_on_shell_            = cut_on_shell;
    loop_reg_                = loop_reg;
    lam_SFR_                 = lam_SFR;
-   program_const_          = program_const;
+   program_const_           = program_const;
 
    // Construct terms and append them to terms_in_pot
    for (std::size_t i = 0; i < terms.size(); i++)
@@ -670,14 +671,16 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
    #ifdef ENABLE_DEBUG
       std::cerr << "get_matrix()" << std::endl;
    #endif
-   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0; // Default
 
+   double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0; // Default
    // Allocate gsl matrices in the case of coupled and uncoupled channels.
    // The matrix becomes twise as large in the coupled case
    // In the construction of the saved matrix the desired on-shell momentum 
    // that the matrix element will be evaluated on are unknown. These matrix elements needs
    // to be computed at runtime
+   
    gsl_m* matrix_data = nullptr;
+   
    if (chn.coupled) {
       matrix_data = ph::matrix_alloc((2*mom_grid_size_ + 2),(2*mom_grid_size_ + 2),
               matrix_data);
@@ -685,7 +688,6 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
       matrix_data = ph::matrix_alloc(mom_grid_size_ + 1,mom_grid_size_ + 1,
               matrix_data);
    }
-
    // Set all elements to zero to be able to add the contribution of the on-shell 
    // part later. This ensures that the elements in these saved matrices are zero.
    ph::matrix_set_zero(matrix_data);
@@ -705,7 +707,7 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
          double p_in  = 0;
          double p_out = 0;
 
-         if (j < mom_grid_size_) {
+        if (j < mom_grid_size_) {
             p_in  = p_grid_[j];
          } else {
             p_in = q_on_shell;
@@ -719,14 +721,14 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
          double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i,mu,rel_correction);
-
+         
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          calc_element_V_arr(p_in,p_out,chn,&V_arr[0]);
          //std::cout << "Rel fac: " << rel_fac << std::endl;
-         /*for (int i= 0; i < 6; i++)
-         {
-            std::cout << V_arr[i] << " ";
-         }*/
+         //for (int i= 0; i < 6; i++)
+         //{
+         //   std::cout << V_arr[i] << " ";
+         //}
          if (!chn.coupled)
          {
             if (chn.S==0) 

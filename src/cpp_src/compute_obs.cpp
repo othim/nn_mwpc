@@ -155,8 +155,8 @@ int main(int argc, char** argv)
     // Computing observables
     // compute_observables(chns,number_of_p_points,ang_int_points,J_max_in_pot,scale,Lambda,C1S0,C3S1);
     if (std::string(argv[1]) == "phase") {
-        check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, 
-                J_max_in_pot,TEST,program_const);
+        //check_phase_shifts(chns, number_of_p_points,scale, ang_int_points, 
+        //        J_max_in_pot,TEST,program_const);
     }
     /*
     // Check observables
@@ -213,6 +213,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
+/*
 void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int number_of_p_points, double scale,unsigned int ang_int_points,
    unsigned int J_max_in_pot,bool TEST, ph::constants_struct* program_const)
 {
@@ -405,4 +406,4 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns, unsigned int numb
     delete[] p_grid;
     delete[] w_grid;
 }
-
+*/

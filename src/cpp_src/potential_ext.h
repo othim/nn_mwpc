@@ -66,8 +66,10 @@ public:
 };
 
 
-void cdbonn_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr);
-void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr);
+void cdbonn_correct_arg(double qi, double qo, bool coupled, int S, int J, 
+        int T, int Tz,  double* V_arr);
+void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, 
+        int Tz,  double* V_arr);
 void nijm_OPE_correct_arg(double qi, double qo, bool coupled, int S, int J, 
         int T, int Tz,  double* V_arr);
 

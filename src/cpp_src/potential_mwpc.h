@@ -163,14 +163,14 @@ public:
     */
     Potential_mwpc(){} // Dummy default constructor
 
-    Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA = 96,
-           double* p_grid = nullptr, double* w_grid = nullptr, 
-           std::size_t grid_size = 0,unsigned int J_max = 0, 
-           double cutoff_Lambda = 450.0, int cut_pow = 6, bool sharp_cutoff = false,
-           double sharp_cutoff_add = 300.0,
-           bool inc_grid_weights_in_pot = false, bool cut_on_shell = true,
-           std::string loop_reg = "DR", double lam_SFR = 0.0,
-           ph::constants_struct* program_const = nullptr);
+    Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,
+           double* p_grid, double* w_grid, 
+           std::size_t grid_size,unsigned int J_max, 
+           double cutoff_Lambda, int cut_pow, bool sharp_cutoff,
+           double sharp_cutoff_add,
+           bool inc_grid_weights_in_pot, bool cut_on_shell,
+           std::string loop_reg, double lam_SFR,
+           ph::constants_struct* program_const);
 
     /* 
       Destructor

@@ -1292,8 +1292,8 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
-                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_);
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, 
+                inc_weights_in_pot, cut_on_shell_,"DR",700.0,program_const_);
 
         return pot_complex_weights;
     
@@ -1317,7 +1317,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_);
+                cut_on_shell_,"DR",700.0,program_const_);
 
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_LO_SP")
@@ -1337,7 +1337,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_);
+                cut_on_shell_,"DR",700.0,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_NLO_SP")
@@ -1355,7 +1355,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg,lam_SFR);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_N2LO_SP")
@@ -1398,7 +1398,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg,lam_SFR);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_N3LO_SP")
@@ -1450,7 +1450,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg,lam_SFR);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_N3LO_SP_REL")
@@ -1506,7 +1506,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg,lam_SFR);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "WPC_LO")
@@ -1525,7 +1525,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg,lam_SFR);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
 
         std::cout << "Done creating WPC_LO potential" << std::endl;
         return pot_complex_weights;
@@ -1559,7 +1559,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg,lam_SFR);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "WPC_NLO_SFR")
@@ -1592,7 +1592,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg,lam_SFR);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "WPC_N2LO_DR")
@@ -1634,7 +1634,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg, lam_SFR);
+                cut_on_shell_,loop_reg, lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "WPC_N2LO_SFR_K")
@@ -1676,7 +1676,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg, lam_SFR);
+                cut_on_shell_,loop_reg, lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "WPC_N2LO_SFR_EM")
@@ -1727,7 +1727,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg, lam_SFR);
+                cut_on_shell_,loop_reg, lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "WPC_N2LO_SFR_NO_REL")
@@ -1764,7 +1764,7 @@ Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,loop_reg, lam_SFR);
+                cut_on_shell_,loop_reg, lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else 

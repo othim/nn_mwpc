@@ -1,3 +1,16 @@
+/*
+ *
+ *
+ *
+ * This file contans code that test the implementation of phase shifts,
+ * scattering observables and M-matrix elementes by using the nijmegen1
+ * potential.
+ *
+ *
+ * Oliver Thim 2024
+ *
+ */
+
 
 #include <iostream>
 #include <iomanip>
@@ -26,12 +39,20 @@ void check_observable_noang(
         finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
         ph::constants_struct* program_const, std::string obs_string,bool print);
 
+void check_M_el(
+        unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
+        bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
+        finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
+        ph::constants_struct* program_const, bool print);
+
 void new_log();
 void print_to_log(std::string data);
 
 void print_color(std::string data, std::string color);
 
 void load_data(std::string path,double* theta_obs,double* data_obs);
+void load_data_M(std::string path,double* theta,double* data_real,
+        double* data_imag);
 
 struct arg_struct
 {
@@ -79,7 +100,7 @@ int main(int argc, char** argv)
     unsigned int ang_int_points     = 76;    // Number of points in angular integration
     unsigned int number_of_p_points = 100;   // Number of momentum-grid points
     unsigned int J_max_in_pot       = 50;    // Maximum J that is stored for L-polynomials
-    int          J_max              = 15;
+    int          J_max              = 14;
     int          J_min              = 0;
     int          Tz_min             = 0;
     int          Tz_max             = 0;
@@ -128,6 +149,7 @@ int main(int argc, char** argv)
     }
     */
     // Check total cross sections
+    /*
     std::vector<std::string> obs_string2 = {"SGT","SGTL","SGTT"};
     for (auto obs_string : obs_string2)
     {
@@ -135,12 +157,15 @@ int main(int argc, char** argv)
                 rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
                 cut_on_shell, program_const,obs_string,print);
     }
-
+    */
 
     // Check M-matrix elements
+    check_M_el(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot,
+            rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
+            cut_on_shell, program_const,print);
     
     
-    //Free allocated memory
+    // Free allocated memory
     ph::physics_helpers_free();
     delete program_const;
     return 0;
@@ -150,7 +175,7 @@ void check_observable(
         unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
         bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
         finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
-        ph::constants_struct* program_const, std::string obs_string,bool print)
+        ph::constants_struct* program_const, std::string obs_string, bool print)
 {
     std::cout << "Testing observables with the nijmegen1 potential" << std::endl;
     std::cout << "------------------------------------------------\n\n"; 
@@ -246,6 +271,92 @@ void check_observable(
     }
 }
 
+void check_M_el(
+        unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
+        bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
+        finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
+        ph::constants_struct* program_const, bool print)
+{
+    std::cout << "Testing observables with the nijmegen1 potential" << std::endl;
+    std::cout << "------------------------------------------------\n\n"; 
+
+    nn_mwpc_interface interface = nn_mwpc_interface("nijmegen1",J_max,
+         Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
+         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+
+    double energies[3] = {10.0,50.0, 200.0};
+    for (int j=0; j<3; j++)
+    {
+        double Tl = energies[j];
+        std::cout << "Tlab=" << Tl << std::endl;
+        //
+        // Load data    
+        //
+        double theta[180];
+        double data_real[180];
+        double data_imag[180];
+        double err_real[180];
+        double err_imag[180];
+        
+        interface.solve_LS_ext_pot(Tl);
+
+        std::string path;
+        for (int S=0; S<2; S++)
+        {
+        for (int Mo=0; Mo<S+1; Mo++)
+        {
+        for (int Mi=0; Mi<S+1; Mi++)
+        {
+            if (S==1)
+            {
+                path = DATA_DIR + "np_M_" +  
+                    std::to_string(Mo) + std::to_string(Mi)
+                    + "_" + std::to_string((int)Tl) + "_nijm1.txt";
+            } else 
+            {
+                path = DATA_DIR + "np_M_ss_" + 
+                    std::to_string((int)Tl) + "_nijm1.txt";
+            }
+            load_data_M(path,&theta[0],&data_real[0],&data_imag[0]);
+            if (print)
+            {
+                std::cout << 
+                    "Angle \t th_real \t th_imag \t abs. error (real) \t (imag)" 
+                    << std::endl;   
+            }
+            for (int i=0; i<179; i++)
+            {
+                std::complex<double>
+                    M_el = interface.compute_M_element(Tl,
+                    theta[i],S,Mo,Mi);
+                
+                M_el *= std::sqrt(program_const->MeVm2_to_mbarn);
+                if (data_real[i] != 0 && data_imag[i] != 0) {
+                    err_real[i] = std::abs(data_real[i] - std::real(M_el));
+                    err_imag[i] = std::abs(data_imag[i] - std::imag(M_el));
+                } else {
+                    err_real[i] = 0;
+                    err_imag[i] = 0;
+                }
+                if (print)
+                {
+                    std::cout << theta[i] << "\t" << std::real(M_el) << "\t" 
+                        << std::imag(M_el) << "\t" << 
+                        err_real[i] << "\t" << err_imag[i] << std::endl;
+                }
+
+            }
+            std::cout << "Maximum error: " << 
+                *(std::max_element(err_real,err_real + 179)) << "," << 
+                *(std::max_element(err_imag,err_imag + 179)) 
+                << "\n\n";
+        }
+        }
+        }
+        std::cout << "\n\n";
+    }
+}
+
 void check_observable_noang(
         unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
         bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
@@ -330,6 +441,34 @@ void load_data(std::string path,double* theta_obs,double* data_obs)
     {
         theta_obs[k] = theta;
         data_obs[k]  = obs;
+        k++;
+    }
+}
+
+void load_data_M(std::string path,double* theta,double* data_real,
+        double* data_imag)
+{
+    std::ifstream infile(path);
+    if (infile.is_open())
+    {
+        std::cout << "File" + path + " loaded: OK" << std::endl;
+    } else
+    {
+        std::cout << "File" + path + ": Failed" << std::endl;
+    }
+
+    // Read and save the data to arrays
+    double th, real, imag;
+    int k = 0;
+    std::string str;
+    std::getline(infile,str);
+    std::getline(infile,str);
+    std::getline(infile,str);
+    while(infile >> th >> real >> imag)
+    {
+        theta[k] = th;
+        data_real[k]  = real;
+        data_imag[k]  = imag;
         k++;
     }
 }

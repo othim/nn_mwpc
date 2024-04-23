@@ -132,6 +132,12 @@ FILES_SO = pybind_interface.o compute_obs.o Term.o potential.o\
 so: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
 
+so_2: $(FILES_SO)
+	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o libnn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
+
+obs_so: $(FILES_SO)
+	$(CC) -Wall -std=c++11 -o obs2 $(LDFLAGS) compute_obs.o -L. -lgsl -lm  -lwigxjpf -lgfortran  -lnn_mwpc
+
 pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) $(FLAGS) -c pybind_interface.cpp
 
@@ -143,9 +149,6 @@ compute_obs.o: compute_obs.cpp
 
 test_mwpc_dwb_interface.o: test_mwpc_dwb_interface.cpp
 	$(CC) $(CFLAGS) $(FLAGS) -c test_mwpc_dwb_interface.cpp
-
-pot_nn_mwpc.o: pot_nn_mwpc.h
-	$(CC) $(CFLAGS) $(FLAGS) -c pot_nn_mwpc.cpp
 
 Term.o: Term.h
 	$(CC) $(CFLAGS) $(FLAGS) -c Term.cpp

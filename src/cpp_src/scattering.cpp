@@ -303,6 +303,11 @@ std::vector<std::complex<double> > compute_Saclay_amplitudes(
         get_M_matrix_p(chns_vec,phase_shifts_vec,(int)1,(int)0,(int)1,
         std::cos(theta),q_on_shell,rho_T,l_max);
     
+    //std::cout << M_pp << std::endl;
+    //std::cout << M_00 << std::endl;
+    //std::cout << M_pm << std::endl;
+    //std::cout << M_s << std::endl;
+
     return saclay_amplitudes_from_M_elements(M_pp,M_00,M_pm,M_s,M_p0,M_0p,theta,
             program_const->MeVm2_to_mbarn);   
 }

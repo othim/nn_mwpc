@@ -219,8 +219,11 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("C3S1");
 
         // Construct potential
+        //Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
+        //        number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_);
         Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_);
+            number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_,
+            300.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)
@@ -254,8 +257,11 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("D3P2");
 
         // Construct potential
+        //Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
+        //        number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
         Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
+            number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_,
+            300.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)
@@ -309,8 +315,11 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         terms.push_back("D3P2");
 
         // Construct potential
+        //Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
+        //        number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
         Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
+            number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_,
+            300.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)
@@ -347,8 +356,11 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         rel_corr_      = false;
         sharp_cutoff_  = false;
 
-        Pot_ext_aux_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_);
+        Pot_ext_aux_ = 
+            new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
+            number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_,
+            300.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
+        
         if (pre_comp_pot_)
         {
             // Save potential
@@ -358,7 +370,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
             }
         }
         double ga = 1.29;
-        Pot_ext_aux_->LECs_["gA2"] = ga*ga;
+        Pot_ext_aux_->params_["gA"] = ga;
         //std::cout << Pot_ext_aux_->LECs_in_use_[0] << std::endl;
 
         // Construct LS Solver
@@ -402,8 +414,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct potential
         Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
-                number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_,
-                inc_weights_in_pot_,cut_on_shell_);
+            number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_,
+            300.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)
@@ -485,7 +497,11 @@ double nn_mwpc_interface::compute_observable(const std::string& name, double ang
     // shifts phase_shifts_ that are stored in the class.
     saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, phase_shifts_, 
             angle*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_,program_const_);
-        
+    
+    //for (int i=0; i<saclay_amplitudes.size(); i++)
+    //{
+    //    std::cout << saclay_amplitudes[i] << " ";
+    //}
     // Compute the observable from the amplitudes
     double obs;
     // The A 00kk is an observable that is defined in terms of other vectors
@@ -761,9 +777,9 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
     double mu, q_on_shell;
     
     // Make this loop parallel
-    #pragma omp parallel
-    {
-        #pragma omp for
+    //#pragma omp parallel
+    //{
+        //#pragma omp for
         for (int i = 0; i < (int)chns_.size(); i++)
         {
             //int th_id = omp_get_thread_num();
@@ -775,13 +791,12 @@ std::vector<Phase_shifts_chn> nn_mwpc_interface::compute_phase_shifts(double Tl)
             gsl_matrix* pot_V_mtx;
             pot_V_mtx = get_my_potential_matrix(q_on_shell, chn);
             
-            //std::cout << "Phase shifts done" << std::endl;
             Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(Tl,chn,pot_V_mtx);
         
             gsl_matrix_free(pot_V_mtx);
             phases_vec[i] = phases;
         }
-    }
+    //}
     return phases_vec;
 }
 
@@ -795,7 +810,7 @@ gsl_matrix* nn_mwpc_interface::get_my_potential_matrix(double q_on_shell,
         if (chn.J < J_pot_ext_cut_) {
             pot_V_mtx = Pot_ext_->get_matrix(q_on_shell, chn,false);
         } else {
-            pot_V_mtx = Pot_ext_aux_->get_saved_matrix(q_on_shell, chn, rel_corr_);
+            pot_V_mtx = Pot_ext_aux_->get_matrix(q_on_shell, chn, rel_corr_);
         }
     }
     return pot_V_mtx;

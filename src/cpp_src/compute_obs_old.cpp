@@ -125,8 +125,8 @@ int main(int argc, char** argv)
     // Construct the quantum states
     std::cout << "Constructing quantum states..." << std::endl;
     // When checking agains Andreas code Jmax=8
-    int J_max = 8;
-    int J_min = 0;
+    int J_max  = 8;
+    int J_min  = 0;
     int Tz_min = 0;
     int Tz_max = 0;
     bool print = true;
