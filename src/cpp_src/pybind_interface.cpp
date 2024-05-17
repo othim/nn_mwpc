@@ -226,6 +226,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
             300.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
         Pot_ext_ = nullptr;
 
+        double ga = 1.29;
+        Pot_->params_["gA"] = ga;
         if (pre_comp_pot_)
         {
             // Save potential
