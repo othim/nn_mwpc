@@ -137,7 +137,7 @@ int main(int argc, char** argv)
     
 
     // Check angular observables
-    /*
+    
     std::vector<std::string> obs_strings = {"DSG","PB","DT","AYY","AZZ","PT",
     "CKK"};
 
@@ -147,9 +147,9 @@ int main(int argc, char** argv)
                 rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
                 cut_on_shell, program_const,obs_string,print);
     }
-    */
+    
     // Check total cross sections
-    /*
+    
     std::vector<std::string> obs_string2 = {"SGT","SGTL","SGTT"};
     for (auto obs_string : obs_string2)
     {
@@ -157,7 +157,7 @@ int main(int argc, char** argv)
                 rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
                 cut_on_shell, program_const,obs_string,print);
     }
-    */
+    
 
     // Check M-matrix elements
     check_M_el(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot,

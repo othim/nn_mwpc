@@ -52,11 +52,17 @@ test: test.o
 obs: test_obs_nijmegen1.o
 	$(CC) -Wall -std=c++11 -o obs $(LDPATH) test_obs_nijmegen1.o $(LDFLAGS)
 
+WPC: test_LO_WPC.o
+	$(CC) -Wall -std=c++11 -o WPC $(LDPATH) test_LO_WPC.o $(LDFLAGS)
+
 test.o: test.cpp
 	$(CC) $(CFLAGS) -c test.cpp
 
 test_obs_nijmegen1.o: test_obs_nijmegen1.cpp
 	$(CC) $(CFLAGS) -c test_obs_nijmegen1.cpp
+
+test_LO_WPC.o: test_LO_WPC.cpp
+	$(CC) $(CFLAGS) -c test_LO_WPC.cpp
 
 clean:
 	rm test.o test_obs_nijmegen1.o
