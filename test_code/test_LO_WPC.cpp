@@ -38,6 +38,12 @@ void check_chn(
         finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
         ph::constants_struct* program_const, std::string obs_string, bool print);
 
+void check_binding( 
+        unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
+        bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
+        finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
+        ph::constants_struct* program_const, int chn_number, bool print);
+
 void new_log();
 void print_to_log(std::string data);
 
@@ -125,6 +131,9 @@ int main(int argc, char** argv)
     ph::physics_helpers_init();
     
 
+    check_binding(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot, 
+            rel_corr, number_of_p_points, finite_grid, inc_weights_in_pot, 
+            cut_on_shell, program_const, 3, print);
     // Check angular observables
     check_observable(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot, 
             rel_corr, number_of_p_points, finite_grid, inc_weights_in_pot, 
@@ -464,6 +473,38 @@ void check_chn(
     }
 }
 
+void check_binding( 
+        unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
+        bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
+        finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
+        ph::constants_struct* program_const, int chn_number, bool print)
+{
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "Testing binding energy with the WPC_LO potential." << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    
+    // Make constants the same
+    // -----------------------
+    // Set the constants to the values Andreas use
+    
+    double C1S0	= -0.1/100.0; 
+    double C3S1	= -0.13/100.0;
+    
+    nn_mwpc_interface interface = nn_mwpc_interface("WPC_LO",J_max,
+         Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
+         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+    // -----------------------
+        
+    std::vector<double> LECs = {C1S0,C3S1};
+    std::vector<double> eigenvalues = interface.compute_binding_energy(chn_number,LECs);
+    std::cout << "Eigenvalues in 3S-D1 LO WPC:" << std::endl;
+    for (auto e : eigenvalues) 
+    {
+        if (e<0.0) {
+            std::cout << e << std::endl;
+        }
+    }
+}
 
 arg_struct parse_arguments(int argc, char** argv)
 {

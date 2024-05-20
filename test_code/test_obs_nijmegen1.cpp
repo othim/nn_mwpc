@@ -45,6 +45,12 @@ void check_M_el(
         finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
         ph::constants_struct* program_const, bool print);
 
+void check_binding( 
+        unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
+        bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
+        finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
+        ph::constants_struct* program_const, int chn_number, bool print);
+
 void new_log();
 void print_to_log(std::string data);
 
@@ -136,6 +142,9 @@ int main(int argc, char** argv)
     ph::physics_helpers_init();
     
 
+    check_binding(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot,
+            rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
+            cut_on_shell, program_const,3,print);
     // Check angular observables
     
     std::vector<std::string> obs_strings = {"DSG","PB","DT","AYY","AZZ","PT",
@@ -421,6 +430,59 @@ void check_observable_noang(
         << std::endl;
     std::cout << "Maximum error: " << *(std::max_element(errors, errors + 3)) 
         << std::endl;
+}
+
+void check_binding( 
+        unsigned int J_max,double Lambda, int cut_pow,bool sharp_cutoff,
+        bool pre_comp_pot, bool rel_corr,unsigned int number_of_p_points, bool 
+        finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
+        ph::constants_struct* program_const, int chn_number, bool print)
+{
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << "Testing binding energy with the nijmegen1 potential." << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+    
+    double* p_grid;
+    double* w_grid;
+    bool FINITE_GRID = false;
+    double E_nijmegen = -2.224575;
+    Lambda = 10000.0;
+    double scale = 100.0;
+    
+    std::vector<qs::quantum_NN_state> states = 
+        get_states_NN(J_max, 0, 0, 0, print);
+     
+    // Construct the quantum scattering channels from the states
+    std::cout << "Contruction scattering channels..." << std::endl;
+    std::vector<qs::quantum_channel> chns = get_channels(states, print);   
+    qs::quantum_channel chn = chns[3]; // 3S1-3D1
+    
+    ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
+    
+    Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
+            p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    
+    gsl_matrix* pot_V_mtx = nijmegen.get_matrix_no_onshell(chn,false);
+    ph::eigen_t diag_res = ph::solve_SE(p_grid, w_grid, 
+            number_of_p_points, chn, pot_V_mtx,program_const->Mn,program_const->Mp);
+    
+    std::cout << "The eigenvalues in " << quantum_channel_to_string(chn) << " are: "
+        << std::endl;
+    std::cout << "Nijmegen1 binding energy: -2.224575 MeV" << std::endl;
+    
+    for (int i = 0; i < (int)diag_res.eigenvalues->size; i++)
+    {
+        double E = GSL_REAL(gsl_vector_complex_get(diag_res.eigenvalues,i));
+        if (E < 0.0)
+        {
+            std::cout << "This code: " << E << " MeV" << std::endl;
+            std::cout << "Relative error: " << (E-E_nijmegen)/E_nijmegen << std::endl; 
+        }
+    }
+    gsl_matrix_complex_free(diag_res.eigenvectors);
+    gsl_vector_complex_free(diag_res.eigenvalues); 
+
+    delete[] pot_V_mtx;
 }
 
 void load_data(std::string path,double* theta_obs,double* data_obs)
