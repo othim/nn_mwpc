@@ -540,7 +540,7 @@ arg_struct parse_arguments(int argc, char** argv)
 
     arg_struct ar;
     ar.args = {"-t","-f","-p","-h"};
-    ar.arg_value = {"phase","./test_logfiles/out_default.txt","false","false"};
+    ar.arg_value = {"phase","test_obs_nijmegen1.out","false","false"};
 
     bool help = false;
     for (int i=0; i<ar.args.size(); i++)
@@ -578,6 +578,8 @@ void new_log()
     std::ofstream myfile;
     myfile.open(LOG_DIR);
     myfile << "New log" << std::endl;
+    std::time_t result = std::time(nullptr);
+    myfile << std::asctime(std::localtime(&result)) << std::endl;
     myfile.close();
 }
 

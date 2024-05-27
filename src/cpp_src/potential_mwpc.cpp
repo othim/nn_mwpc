@@ -411,7 +411,7 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr_full(double qi,double qo,
         qs::quantum_channel chn, bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr)
 {
     // This function is not safe to use when cut_on_shell = false
-    if (cut_on_shell_=false)
+    if (cut_on_shell_==false)
     {
         std::cout << "Error, not safe to use calc_element_V_arr_full when cut_on_shell_=false"
             << std::endl;

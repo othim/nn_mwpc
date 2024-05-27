@@ -52,7 +52,7 @@ bool print = true;
 std::string DATA_DIR = "../data/"; 
 
 // Where test logfiles are written
-std::string LOG_DIR  = "";
+std::string LOG_DIR  = "test_logfiles/";
 
 int main(int argc, char** argv)
 {
@@ -101,35 +101,6 @@ int main(int argc, char** argv)
         *program_const->inv_fm_to_MeV*10.0;
 
     // ****************************
-
-    /*
-     * ************************************************************************ 
-     * ************************************************************************
-     */
-
-    /*
-     * ************************************************************************
-     *                        Directory stettings
-     * ************************************************************************
-     */
-
-    
-    /*
-     * ************************************************************************
-     * ************************************************************************
-     */
-    
-    /*
-     * ************************************************************************
-     *                        Test stettings
-     * ************************************************************************
-     */
-
-    /*
-     * ************************************************************************
-     * ************************************************************************
-     */
-
 
     print_color("Hello in green","green");
     print_color("Hello in red","red");
@@ -328,7 +299,7 @@ arg_struct parse_arguments(int argc, char** argv)
 
     arg_struct ar;
     ar.args = {"-t","-f","-p","-h"};
-    ar.arg_value = {"phase","./test_logfiles/out_default.txt","false","false"};
+    ar.arg_value = {"phase","test.out","false","false"};
 
     bool help = false;
     for (int i=0; i<ar.args.size(); i++)
@@ -366,6 +337,8 @@ void new_log()
     std::ofstream myfile;
     myfile.open(LOG_DIR);
     myfile << "New log" << std::endl;
+    std::time_t result = std::time(nullptr);
+    myfile << std::asctime(std::localtime(&result)) << std::endl;
     myfile.close();
 }
 

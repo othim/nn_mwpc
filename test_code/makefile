@@ -46,8 +46,8 @@ LDPATH +=  -L/Users/toliver/wigxjpf-1.11/lib/ \
 		   -L/usr/local/Cellar/gcc/12.2.0/lib/gcc/12  \
 		   -L/usr/local/opt/llvm/lib
 
-test: test.o
-	$(CC) -Wall -std=c++11 -o test $(LDPATH) test.o $(LDFLAGS)
+NPHASE: test_nijm_phase.o
+	$(CC) -Wall -std=c++11 -o test $(LDPATH) test_nijm_phase.o $(LDFLAGS)
 
 obs: test_obs_nijmegen1.o
 	$(CC) -Wall -std=c++11 -o obs $(LDPATH) test_obs_nijmegen1.o $(LDFLAGS)
@@ -58,8 +58,8 @@ WPC: test_LO_WPC.o
 POT: test_potentials.o
 	$(CC) -Wall -std=c++11 -o POT $(LDPATH) test_potentials.o $(LDFLAGS)
 
-test.o: test.cpp
-	$(CC) $(CFLAGS) -c test.cpp
+test_nijm_phase.o: test_nijm_phase.cpp
+	$(CC) $(CFLAGS) -c test_nijm_phase.cpp
 
 test_obs_nijmegen1.o: test_obs_nijmegen1.cpp
 	$(CC) $(CFLAGS) -c test_obs_nijmegen1.cpp
@@ -71,4 +71,4 @@ test_potentials.o: test_potentials.cpp
 	$(CC) $(CFLAGS) -c test_potentials.cpp
 
 clean:
-	rm test.o test_obs_nijmegen1.o test_potentials.o
+	rm test_nijm_phase.o test_obs_nijmegen1.o test_potentials.o

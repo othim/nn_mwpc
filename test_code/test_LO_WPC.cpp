@@ -272,6 +272,7 @@ void check_chn(
     std::cout << "Testing  phase shifts with the WPC_LO potential." << std::endl;
     std::cout << "------------------------------------------------" << std::endl;
     std::cout << "Channel: " << chn_string << std::endl;
+    print_to_log("Channel: " + chn_string + "\n");
     std::vector<std::string> files;
     
     // Make constants the same
@@ -456,12 +457,14 @@ void check_chn(
     
     std::cout << "Mean error (deg): " << mean_err/350.0 << std::endl <<
         "Max error (deg): " << max_err << std::endl;
+
     double tol = 2e-4;
     if (mean_err/350.0<tol && max_err<tol)
     {
         std::cout << "------------------------------------------------" << std::endl;
         std::cout << "******** Test: OK (abs.tol=" << tol << ") ********" << std::endl;
         std::cout << "------------------------------------------------" << std::endl;
+        print_to_log("TEST: SUCCESS\n\n");
         std::cout << std::endl << std::endl << std::endl;
     } else 
     {   
@@ -469,6 +472,7 @@ void check_chn(
         std::cout << "******** Test: FAILED (abs.tol=" << tol << ") ********" << std::endl;
         std::cout << "------------------------------------------------" << std::endl;
         std::cout << std::endl << std::endl << std::endl;
+        print_to_log("TEST: FAILED\n\n");
 
     }
 }
@@ -482,6 +486,7 @@ void check_binding(
     std::cout << "------------------------------------------------" << std::endl;
     std::cout << "Testing binding energy with the WPC_LO potential." << std::endl;
     std::cout << "------------------------------------------------" << std::endl;
+    print_to_log("Testing binding energy 3S-D1\n");
     
     // Make constants the same
     // -----------------------
@@ -502,9 +507,11 @@ void check_binding(
     {
         if (e<0.0) {
             std::cout << e << std::endl;
+            print_to_log("Computed: " + std::to_string(e)+", old: (-19.8288)\n\n");
         }
     }
     std::cout << "(-19.8288)" << std::endl;
+
 }
 
 arg_struct parse_arguments(int argc, char** argv)
@@ -512,7 +519,7 @@ arg_struct parse_arguments(int argc, char** argv)
 
     arg_struct ar;
     ar.args = {"-t","-f","-p","-h"};
-    ar.arg_value = {"phase","./test_logfiles/out_default.txt","false","false"};
+    ar.arg_value = {"phase","test_LO_WPC.out","false","false"};
 
     bool help = false;
     for (int i=0; i<ar.args.size(); i++)
@@ -550,6 +557,8 @@ void new_log()
     std::ofstream myfile;
     myfile.open(LOG_DIR);
     myfile << "New log" << std::endl;
+    std::time_t result = std::time(nullptr);
+    myfile << std::asctime(std::localtime(&result)) << std::endl;
     myfile.close();
 }
 
