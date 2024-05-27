@@ -1447,6 +1447,7 @@ void check_binding_energies(std::vector<qs::quantum_channel> chns,
             << std::endl;
         ph::print_v(diag_res.eigenvalues);    
     }
+    std::cout << "(-19.8288)" << std::endl;
     gsl_matrix_complex_free(diag_res.eigenvectors);
     gsl_vector_complex_free(diag_res.eigenvalues); 
     delete[] pot_V_mtx;

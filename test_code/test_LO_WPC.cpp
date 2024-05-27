@@ -504,6 +504,7 @@ void check_binding(
             std::cout << e << std::endl;
         }
     }
+    std::cout << "(-19.8288)" << std::endl;
 }
 
 arg_struct parse_arguments(int argc, char** argv)

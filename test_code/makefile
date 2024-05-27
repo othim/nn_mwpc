@@ -55,6 +55,9 @@ obs: test_obs_nijmegen1.o
 WPC: test_LO_WPC.o
 	$(CC) -Wall -std=c++11 -o WPC $(LDPATH) test_LO_WPC.o $(LDFLAGS)
 
+POT: test_potentials.o
+	$(CC) -Wall -std=c++11 -o POT $(LDPATH) test_potentials.o $(LDFLAGS)
+
 test.o: test.cpp
 	$(CC) $(CFLAGS) -c test.cpp
 
@@ -64,5 +67,8 @@ test_obs_nijmegen1.o: test_obs_nijmegen1.cpp
 test_LO_WPC.o: test_LO_WPC.cpp
 	$(CC) $(CFLAGS) -c test_LO_WPC.cpp
 
+test_potentials.o: test_potentials.cpp
+	$(CC) $(CFLAGS) -c test_potentials.cpp
+
 clean:
-	rm test.o test_obs_nijmegen1.o
+	rm test.o test_obs_nijmegen1.o test_potentials.o

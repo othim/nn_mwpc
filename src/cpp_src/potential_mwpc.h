@@ -189,6 +189,13 @@ public:
     void calc_element_V_arr(double qi,double qo, qs::quantum_channel chn, 
             double* V_arr);
 
+    /*
+     * Same as above bu includes the cutoff, relativistic and weights factors.
+     * NOTE! Can not be used when cut_on_shell_ = false.
+     */
+    void calc_element_V_arr_full(double qi,double qo, qs::quantum_channel chn,
+           bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr);
+    
     // TODO: implement
     double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
 

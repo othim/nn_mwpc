@@ -37,6 +37,9 @@ template gsl_matrix_complex* Potential_mwpc<gsl_matrix_complex>::get_matrix(doub
 template gsl_matrix_complex* Potential_mwpc<gsl_matrix_complex>::get_matrix_no_onshell(
         qs::quantum_channel chn, bool rel_correction);
 
+template void Potential_mwpc<gsl_matrix_complex>::calc_element_V_arr_full(double qi,double qo, 
+        qs::quantum_channel chn, bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr);
+
 template Potential_mwpc<gsl_matrix_complex>::~Potential_mwpc();
 
 template Potential_mwpc<gsl_matrix_complex>::Potential_mwpc(std::vector<std::string> terms, unsigned int N_GLI_PWA,double* p_grid, 
@@ -401,6 +404,35 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
    V_arr[3] = V_coupled_mm*fac;
    V_arr[4] = -V_coupled_pm*fac;
    V_arr[5] = -V_coupled_mp*fac;
+}
+
+template <class gsl_m>
+void Potential_mwpc<gsl_m>::calc_element_V_arr_full(double qi,double qo, 
+        qs::quantum_channel chn, bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr)
+{
+    // This function is not safe to use when cut_on_shell = false
+    if (cut_on_shell_=false)
+    {
+        std::cout << "Error, not safe to use calc_element_V_arr_full when cut_on_shell_=false"
+            << std::endl;
+        return;
+    } else 
+    {
+        double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0;
+        // Get the factor from the cutoff and relaticisitc corrections.
+        double fac = 1.0;
+        if (inc_reg_cut_and_rel) {
+            fac = get_rel_cut(qi,qo,mu,rel_correction);
+        }
+        // Compute the potential matrix element without these factors
+        calc_element_V_arr(qi,qo,chn,&V_arr[0]);
+        
+        // Multiply all elements by the total factor
+        for (int i=0; i<6; i++)
+        {
+            V_arr[i] = V_arr[i]*fac;
+        }
+    }
 }
 /*
    This funtion performs the partial wave decomposition, which depends on the tensor structure of the 

@@ -125,9 +125,10 @@ obs: $(NN_MWPC_FILES) compute_obs.o
 tmi: $(NN_MWPC_FILES) test_mwpc_dwb_interface.o
 	$(CC) $(CFLAGS2) -o tmi $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) test_mwpc_dwb_interface.o $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
-FILES_SO = pybind_interface.o compute_obs.o Term.o potential.o\
+FILES_SO = pybind_interface.o Term.o potential.o\
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o potential_ext.o \
-		   born_approx.o pybind_interface_dwb.o potential_mwpc.o
+		   born_approx.o pybind_interface_dwb.o potential_mwpc.o \
+		   pre_def_potentials.o
 
 so: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
@@ -177,7 +178,11 @@ pybind_interface_dwb.o: pybind_interface_dwb.h
 potential_mwpc.o: potential_mwpc.h
 	$(CC) $(CFLAGS) $(FLAGS) -c potential_mwpc.cpp
 
+pre_def_potentials.o: pre_def_potentials.h
+	$(CC) $(CFLAGS) $(FLAGS) -c pre_def_potentials.cpp
+
 clean:
 	rm obs nn_mwpc.so pybind_interface.o compute_obs.o potential.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
-	   	potential_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o *.tmp
+	   	potential_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o *.tmp \
+		pre_def_potentials.o
