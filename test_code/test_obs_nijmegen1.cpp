@@ -106,7 +106,7 @@ int main(int argc, char** argv)
     unsigned int ang_int_points     = 76;    // Number of points in angular integration
     unsigned int number_of_p_points = 100;   // Number of momentum-grid points
     unsigned int J_max_in_pot       = 50;    // Maximum J that is stored for L-polynomials
-    int          J_max              = 14;
+    int          J_max              = 14; // Use Jmax=8 when chacking DSG against Andreas code
     int          J_min              = 0;
     int          Tz_min             = 0;
     int          Tz_max             = 0;

@@ -30,6 +30,7 @@ ax[0].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,2],'r',label="nn-on-line")
 ax[1].plot(np.cos(DSG_10[:,0]*np.pi/180), DSG_10[:,3],label="error")
 ax[0].set_title(obs_string + ' 10 MeV')
 
+fig.legend()
 fig.savefig('./test_logfiles/obs_PDF/'+obs_string+'_10MeV.pdf')
 
 fig,ax = plt.subplots(3,1)
@@ -37,6 +38,14 @@ ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,1],'b',label="this code")
 ax[0].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,2],'r',label="nn-on-line")
 ax[1].plot(np.cos(DSG_50[:,0]*np.pi/180), DSG_50[:,3],label="error")
 ax[0].set_title(obs_string + ' 50 MeV')
+
+if (obs_string=="DSG"):
+    dat = np.loadtxt('../data/results.dat')
+    ax[0].plot(np.cos(dat[:,0]*np.pi/180),dat[:,1],'g',label="Andreas")
+    ax[1].plot(np.cos(dat[:,0]*np.pi/180),np.abs(dat[:,1]-DSG_50[:,2])/DSG_50[:,2],'g',label="Andreas")
+    ax[2].plot(np.cos(dat[:,0]*np.pi/180),np.abs(dat[:,1]-DSG_50[:,2])/DSG_50[:,2],'g',label="Andreas")
+
+fig.legend()
 fig.savefig('./test_logfiles/obs_PDF/'+obs_string+'_50MeV.pdf')
 
 fig,ax = plt.subplots(2,1)
@@ -44,6 +53,7 @@ ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,1],'b',label="this code")
 ax[0].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,2],'r',label="nn-on-line")
 ax[1].plot(np.cos(DSG_200[:,0]*np.pi/180), DSG_200[:,3],label="error")
 ax[0].set_title(obs_string + ' 200 MeV')
+fig.legend()
 fig.savefig('./test_logfiles/obs_PDF/'+obs_string+'_200MeV.pdf')
 
 
