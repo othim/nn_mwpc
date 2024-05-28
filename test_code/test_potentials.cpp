@@ -63,32 +63,19 @@ int main(int argc, char** argv)
     // Create new log-file
     new_log();
 
-    bool print = false;
-    if (ar.arg_value[2] == "true")
-    {
-        print = true;
-    }
     /*
      * ************************************************************************
      *                             Constants
      * ************************************************************************
      */
 
-    double       scale              = 100.0; // Scale of momenutm grid MeV
     unsigned int ang_int_points     = 76;    // Number of points in angular integration
     unsigned int number_of_p_points = 100;   // Number of momentum-grid points
     unsigned int J_max_in_pot       = 50;    // Maximum J that is stored for L-polynomials
-    int          J_max              = 20;
-    int          J_min              = 0;
-    int          Tz_min             = 0;
-    int          Tz_max             = 0;
  
     double       Lambda             = 500.0;
-    bool         finite_grid        = false;
-    double       finite_grid_max    = 10000.0;
     int          cut_pow            = 6;
     bool         sharp_cutoff       = false;
-    bool         pre_comp_pot       = true;
     bool         rel_corr           = true;
     bool         inc_weights_in_pot = false;
     bool         cut_on_shell       = true;
@@ -216,8 +203,6 @@ void check_potentials(int ang_int_points_, double* p_grid_,
     double c1 = 0.0002233095898695;
     double c3 = -0.0035553709664838;
     double c4 = 0.0039329551987581;
-
-    double gA   = 1.29;
 
     pot2->params_["gA"] = 1.29;
     pot2->LECs_["C1S0"] = C1S0;
@@ -349,7 +334,7 @@ void new_log()
 {
     std::ofstream myfile;
     myfile.open(LOG_DIR);
-    myfile << "New log file" << std::endl;
+    myfile << "New log: " << LOG_DIR << std::endl;
     std::time_t result = std::time(nullptr);
     myfile << std::asctime(std::localtime(&result)) << std::endl;
     myfile.close();

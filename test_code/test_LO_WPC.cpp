@@ -91,25 +91,17 @@ int main(int argc, char** argv)
      * ************************************************************************
      */
 
-    double       scale              = 100.0; // Scale of momenutm grid MeV
-    unsigned int ang_int_points     = 76;    // Number of points in angular integration
     unsigned int number_of_p_points = 100;   // Number of momentum-grid points
-    unsigned int J_max_in_pot       = 50;    // Maximum J that is stored for L-polynomials
     int          J_max              = 20;
-    int          J_min              = 0;
-    int          Tz_min             = 0;
-    int          Tz_max             = 0;
  
     double       Lambda             = 500.0;
     bool         finite_grid        = false;
-    double       finite_grid_max    = 10000.0;
     int          cut_pow            = 6;
     bool         sharp_cutoff       = false;
     bool         pre_comp_pot       = true;
     bool         rel_corr           = true;
     bool         inc_weights_in_pot = false;
     bool         cut_on_shell       = true;
-    double sharp_cutoff_add = 0;
 
 
     // Define the program constants (All in MeV)
@@ -281,8 +273,6 @@ void check_chn(
     
     double C1S0	= -0.1/100.0; 
     double C3S1	= -0.13/100.0;
-    double C3P0 = 0.0;
-    double C3P2 = 0.0;    
     
     nn_mwpc_interface interface = nn_mwpc_interface("WPC_LO",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
@@ -354,8 +344,6 @@ void check_chn(
     }
     
    
-    double q_on_shell;
-    double mu;
     
     std::string chn_string_full = chn_string;
     if (chn_string=="3S1" || chn_string=="3D1" ||chn_string=="E1")
@@ -366,7 +354,6 @@ void check_chn(
         chn_string_full = "3P-F2";
     }
     // Take just the relevant channel
-    qs::quantum_channel chn;
     int chn_number = 0;
     for (int i = 0; i < (int)interface.get_chn_len(); i++)
     {
@@ -556,7 +543,7 @@ void new_log()
 {
     std::ofstream myfile;
     myfile.open(LOG_DIR);
-    myfile << "New log" << std::endl;
+    myfile << "New log:" << LOG_DIR << std::endl;
     std::time_t result = std::time(nullptr);
     myfile << std::asctime(std::localtime(&result)) << std::endl;
     myfile.close();

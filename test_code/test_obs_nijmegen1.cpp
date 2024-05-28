@@ -102,25 +102,17 @@ int main(int argc, char** argv)
      * ************************************************************************
      */
 
-    double       scale              = 100.0; // Scale of momenutm grid MeV
-    unsigned int ang_int_points     = 76;    // Number of points in angular integration
     unsigned int number_of_p_points = 100;   // Number of momentum-grid points
-    unsigned int J_max_in_pot       = 50;    // Maximum J that is stored for L-polynomials
     int          J_max              = 14; // Use Jmax=8 when chacking DSG against Andreas code
-    int          J_min              = 0;
-    int          Tz_min             = 0;
-    int          Tz_max             = 0;
  
     double       Lambda             = 5000.0;
     bool         finite_grid        = false;
-    double       finite_grid_max    = 10000.0;
     int          cut_pow            = 6;
     bool         sharp_cutoff       = false;
     bool         pre_comp_pot       = false;
     bool         rel_corr           = false;
     bool         inc_weights_in_pot = false;
     bool         cut_on_shell       = true;
-    double sharp_cutoff_add = 0;
 
 
     // Define the program constants (All in MeV)
@@ -145,6 +137,10 @@ int main(int argc, char** argv)
     check_binding(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot,
             rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
             cut_on_shell, program_const,3,print);
+    // Check M-matrix elements
+    check_M_el(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot,
+            rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
+            cut_on_shell, program_const,print);
     // Check angular observables
     
     std::vector<std::string> obs_strings = {"DSG","PB","DT","AYY","AZZ","PT",
@@ -168,10 +164,6 @@ int main(int argc, char** argv)
     }
     
 
-    // Check M-matrix elements
-    check_M_el(J_max, Lambda, cut_pow, sharp_cutoff, pre_comp_pot,
-            rel_corr,number_of_p_points, finite_grid, inc_weights_in_pot, 
-            cut_on_shell, program_const,print);
     
     
     // Free allocated memory
@@ -219,6 +211,8 @@ void check_observable(
             + "_" + std::to_string((int)Tl) + "_nijm1.txt";
 
         load_data(path,&theta_obs[0],&data_obs[0]);
+        print_to_log("Checking: " + path + "\n");
+        print_to_log("For result, see output PDFs\n");
         //
         // Open outfile
         //
@@ -327,6 +321,7 @@ void check_M_el(
                     std::to_string((int)Tl) + "_nijm1.txt";
             }
             load_data_M(path,&theta[0],&data_real[0],&data_imag[0]);
+            print_to_log("File: " + path +"\n");
             if (print)
             {
                 std::cout << 
@@ -355,10 +350,22 @@ void check_M_el(
                 }
 
             }
-            std::cout << "Maximum error: " << 
-                *(std::max_element(err_real,err_real + 179)) << "," << 
-                *(std::max_element(err_imag,err_imag + 179)) 
-                << "\n\n";
+            double max_real = *(std::max_element(err_real,err_real + 179));
+            double max_imag = *(std::max_element(err_imag,err_imag + 179));
+            std::cout << "Maximum error: " << max_real << "," << max_imag << "\n\n";
+            
+            double tol=0;
+            if (Tl<200.0)
+            {
+                tol = 5e-4;
+            } else
+                tol = 0.015;
+            if (max_real < tol && max_imag < tol) {
+                print_to_log("Maximum error < tol, SUCCESS\n");
+            } else {
+                print_to_log("Maximum error > tol, FAILED\n");
+            }
+
         }
         }
         }
@@ -390,6 +397,8 @@ void check_observable_noang(
     path = DATA_DIR + "np_" + obs_string + "_nijm1.txt";
 
     load_data(path,&energies[0],&data_obs[0]);
+    print_to_log("Checking: " + path + "\n");
+    print_to_log("For result, see output PDFs\n");
     //
     // Open outfile
     //
@@ -444,7 +453,6 @@ void check_binding(
     
     double* p_grid;
     double* w_grid;
-    bool FINITE_GRID = false;
     double E_nijmegen = -2.224575;
     Lambda = 10000.0;
     double scale = 100.0;
@@ -469,6 +477,7 @@ void check_binding(
     std::cout << "The eigenvalues in " << quantum_channel_to_string(chn) << " are: "
         << std::endl;
     std::cout << "Nijmegen1 binding energy: -2.224575 MeV" << std::endl;
+    print_to_log("Check binding energy:\n");
     
     for (int i = 0; i < (int)diag_res.eigenvalues->size; i++)
     {
@@ -476,7 +485,13 @@ void check_binding(
         if (E < 0.0)
         {
             std::cout << "This code: " << E << " MeV" << std::endl;
-            std::cout << "Relative error: " << (E-E_nijmegen)/E_nijmegen << std::endl; 
+            double rel_err = std::abs((E-E_nijmegen)/E_nijmegen);
+            std::cout << "Relative error: " << rel_err << std::endl; 
+            if (rel_err < 0.0006) {
+                print_to_log("SUCCESS\n");
+            } else {
+                print_to_log("FAILED\n");
+            }
         }
     }
     gsl_matrix_complex_free(diag_res.eigenvectors);
@@ -577,7 +592,7 @@ void new_log()
 {
     std::ofstream myfile;
     myfile.open(LOG_DIR);
-    myfile << "New log" << std::endl;
+    myfile << "New log: " << LOG_DIR << std::endl;
     std::time_t result = std::time(nullptr);
     myfile << std::asctime(std::localtime(&result)) << std::endl;
     myfile.close();

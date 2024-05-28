@@ -58,4 +58,3 @@ fig.savefig('./test_logfiles/obs_PDF/'+obs_string+'_200MeV.pdf')
 
 
 
-plt.show()

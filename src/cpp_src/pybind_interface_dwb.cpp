@@ -959,8 +959,8 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     std::cout << std::setprecision(16);
     for (int i=0;i<6;i++)
     {
-        double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
-        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
+        //double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
+        //double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
         //std::cout << "relcut: " << rel_cut << std::endl;
         //std::cout << "relcut: " << V_arr[i]*rel_cut << "   ";
         std::cout << V_arr[i] << "   ";
@@ -970,7 +970,6 @@ void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_na
     //  3D2
     
     chn = chns_[6];
-    V_arr[6];
     potentials_[potential_name]->calc_element_V_arr(qi,qo,chn,&V_arr[0]);
     
     

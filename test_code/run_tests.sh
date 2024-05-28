@@ -29,7 +29,7 @@ git rev-parse HEAD >> test_logfiles/git_hash.out
 
 # Test obaservables with nijmegen potential
 (make clean)
-(make obs && ./obs)
+(make OBS && ./OBS)
 
 (python3 plot_obs.py DSG)
 (python3 plot_obs.py PB)

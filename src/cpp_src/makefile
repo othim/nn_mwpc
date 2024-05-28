@@ -115,15 +115,6 @@ endif
 
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 CDBONN_FILES = cdbonn_interface.o cdbonn.o # Compiled separately from Fortran code
-NN_MWPC_FILES = pybind_interface.o Term.o \
-				quantum_states.o LS_Solver.o scattering.o physics_helpers.o potential_ext.o \
-				born_approx.o pybind_interface_dwb.o potential_mwpc.o potential.o
-
-obs: $(NN_MWPC_FILES) compute_obs.o
-	$(CC) $(CFLAGS2) -o obs $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) compute_obs.o $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
-
-tmi: $(NN_MWPC_FILES) test_mwpc_dwb_interface.o
-	$(CC) $(CFLAGS2) -o tmi $(LDFLAGS) $(NN_MWPC_FILES) $(NIJM_FILES) test_mwpc_dwb_interface.o $(CDBONN_FILES) -lgsl -lm  -lwigxjpf -lgfortran
 
 FILES_SO = pybind_interface.o Term.o potential.o\
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o potential_ext.o \
@@ -131,13 +122,7 @@ FILES_SO = pybind_interface.o Term.o potential.o\
 		   pre_def_potentials.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o nn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
-
-so_2: $(FILES_SO)
 	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o libnn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
-
-obs_so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -o obs2 $(LDFLAGS) compute_obs.o -L. -lgsl -lm  -lwigxjpf -lgfortran  -lnn_mwpc
 
 pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) $(FLAGS) -c pybind_interface.cpp
@@ -182,7 +167,7 @@ pre_def_potentials.o: pre_def_potentials.h
 	$(CC) $(CFLAGS) $(FLAGS) -c pre_def_potentials.cpp
 
 clean:
-	rm obs nn_mwpc.so pybind_interface.o compute_obs.o potential.o \
+	rm  libnn_mwpc.so pybind_interface.o compute_obs.o potential.o \
 		Term.o LS_Solver.o quantum_states.o scattering.o physics_helpers.o \
 	   	potential_ext.o born_approx.o potential_mwpc.o pybind_interface_dwb.o *.tmp \
 		pre_def_potentials.o

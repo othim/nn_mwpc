@@ -336,7 +336,7 @@ void new_log()
 {
     std::ofstream myfile;
     myfile.open(LOG_DIR);
-    myfile << "New log" << std::endl;
+    myfile << "New log: " << LOG_DIR << std::endl;
     std::time_t result = std::time(nullptr);
     myfile << std::asctime(std::localtime(&result)) << std::endl;
     myfile.close();
