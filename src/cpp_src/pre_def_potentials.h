@@ -23,7 +23,7 @@ namespace pre_def_pot
             std::string pre_def_name, int ang_int_points_, double* p_grid_, 
             double* w_grid_, int number_of_p_points_, int J_max_in_pot_,
             double cutoff_, int cut_pow_, bool sharp_cutoff_, 
-            double sharp_cutoff_add_, bool inc_weights_in_pot_, bool cut_on_shell_,
+            double sharp_cutoff_add_, bool cut_on_shell_,
             ph::constants_struct* program_const_);
 
 }

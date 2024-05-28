@@ -11,7 +11,7 @@ git rev-parse HEAD >> test_logfiles/git_hash.out
 
 # Compile nn_mwpc and move lib-file to this directory
 (cd ../src/cpp_src; make clean)
-(cd ../src/cpp_src; make -j so_2)
+(cd ../src/cpp_src; make -j so)
 (cp ../src/cpp_src/libnn_mwpc.so .)
 
 

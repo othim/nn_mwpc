@@ -922,8 +922,11 @@ void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_na
         std::string pre_def_name, double lam_SFR)
 {
     // Make a new potential of this type
-    Potential_mwpc<gsl_matrix_complex>* pot = load_pre_def_pot(pre_def_name, 
-            lam_SFR);
+    Potential_mwpc<gsl_matrix_complex>* pot = pre_def_pot::create_pre_def_pot(pre_def_name, 
+            ang_int_points_,p_grid_,w_grid_,number_of_p_points_,J_max_in_pot_,
+            cutoff_,cut_pow_,sharp_cutoff_,sharp_cutoff_add_,
+            cut_on_shell_,program_const_);
+
     if (print_) {
         std::cout << "Loaded pre def potential" << std::endl;
     }
@@ -1271,6 +1274,11 @@ void nn_mwpc_dwb_interface::get_G0_and_potentials(double T_lab,
     *VI  = VI_loc;
     *VII = VII_loc;
 }
+
+
+// ******************
+// OLD CODE
+// ******************
 
 Potential_mwpc<gsl_matrix_complex>*  nn_mwpc_dwb_interface::
         load_pre_def_pot(std::string pre_def_name, double lam_SFR)

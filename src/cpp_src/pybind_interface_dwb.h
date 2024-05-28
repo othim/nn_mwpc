@@ -26,6 +26,7 @@
 #include "scattering.h"
 #include "physics_helpers.h"
 #include "born_approx.h"
+#include "pre_def_potentials.h"
 
 /* This class will be acessed from python through the bindings in pybind11.
  * The pybind code will be written in sucha a way that C++ will always have
