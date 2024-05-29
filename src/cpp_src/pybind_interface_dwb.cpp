@@ -48,7 +48,7 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
    
     // Set constants
     // **********************
-    ph::constants_struct* program_const_ = new ph::constants_struct;
+    program_const_ = new ph::constants_struct;
     
     program_const_->fpi            = fpi;
     program_const_->mpi            = mpi; // Average of +,-,0 
@@ -926,6 +926,8 @@ void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_na
             ang_int_points_,p_grid_,w_grid_,number_of_p_points_,J_max_in_pot_,
             cutoff_,cut_pow_,sharp_cutoff_,sharp_cutoff_add_,
             cut_on_shell_,program_const_);
+    
+    //Potential_mwpc<gsl_matrix_complex>* pot =  load_pre_def_pot(pre_def_name, lam_SFR);
 
     if (print_) {
         std::cout << "Loaded pre def potential" << std::endl;
@@ -940,74 +942,6 @@ void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_na
 void nn_mwpc_dwb_interface::print_potential_info(const std::string& potential_name)
 {   
     potentials_[potential_name]->print_LECs_and_params_info();
-
-    // Added to check that the potential is pw decomposed correctly
-    
-    
-    double qi = 20;
-    double qo = 20;
-
-    
-    // 1S0
-    qs::quantum_channel chn = chns_[0];
-    double V_arr[6];
-    potentials_[potential_name]->calc_element_V_arr(qi,qo,chn,&V_arr[0]);
-    
-    
-    std::cout << "V_arr in " << quantum_channel_to_string(chn) << std::endl;
-    std::cout << "qi = " << qi << std::endl;
-    std::cout << "qo = " << qo << std::endl;
-
-    std::cout << "[V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]" << std::endl;
-    std::cout << std::setprecision(16);
-    for (int i=0;i<6;i++)
-    {
-        //double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
-        //double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
-        //std::cout << "relcut: " << rel_cut << std::endl;
-        //std::cout << "relcut: " << V_arr[i]*rel_cut << "   ";
-        std::cout << V_arr[i] << "   ";
-    }
-    std::cout << "\n\n";
-    
-    //  3D2
-    
-    chn = chns_[6];
-    potentials_[potential_name]->calc_element_V_arr(qi,qo,chn,&V_arr[0]);
-    
-    
-    std::cout << "V_arr in " << quantum_channel_to_string(chn) << std::endl;
-    std::cout << "qi = " << qi << std::endl;
-    std::cout << "qo = " << qo << std::endl;
-
-    std::cout << "[V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]" << std::endl;
-    std::cout << std::setprecision(16);
-    for (int i=0;i<6;i++)
-    {
-        double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
-        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
-        std::cout << V_arr[i]*rel_cut << "   ";
-    }
-    std::cout << "\n\n";
-    
-    
-    // 3S-D1
-    chn = chns_[3];
-    potentials_[potential_name]->calc_element_V_arr(qi,qo,chn,&V_arr[0]);
-    
-    std::cout << "V_arr in " << quantum_channel_to_string(chn) << std::endl;
-    std::cout << "qi = " << qi << std::endl;
-    std::cout << "qo = " << qo << std::endl;
-
-    std::cout << "[V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]" << std::endl;
-    std::cout << std::setprecision(16);
-    for (int i=0;i<6;i++)
-    {
-        double mu = ph::get_mN(0,program_const_->Mn,program_const_->Mp)/2.0;
-        double rel_cut = potentials_[potential_name]->get_rel_cut(qi,qo,mu,false);
-         std::cout << V_arr[i]*rel_cut << "   ";
-    }
-    std::cout << "\n\n";
 }
 
 void nn_mwpc_dwb_interface::set_LECs_in_potential(const std::string& potential_name, 
@@ -1046,7 +980,7 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
             qs::quantum_channel chn = chns_[i];
             potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
             if (print_) {
-                std::cout << "Saved channel: " << i << std::endl;
+                std::cout << potential_name << ", saved channel: " << i << std::endl;
             }
         }
     //}

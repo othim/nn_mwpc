@@ -58,6 +58,9 @@ WPC: test_LO_WPC.o
 POT: test_potentials.o
 	$(CC) -Wall -std=c++11 -o POT $(LDPATH) test_potentials.o $(LDFLAGS)
 
+DWB: test_dwb.o
+	$(CC) -Wall -std=c++11 -o DWB $(LDPATH) test_dwb.o $(LDFLAGS)
+
 test_nijm_phase.o: test_nijm_phase.cpp
 	$(CC) $(CFLAGS) -c test_nijm_phase.cpp
 
@@ -70,5 +73,9 @@ test_LO_WPC.o: test_LO_WPC.cpp
 test_potentials.o: test_potentials.cpp
 	$(CC) $(CFLAGS) -c test_potentials.cpp
 
+test_dwb.o: test_dwb.cpp
+	$(CC) $(CFLAGS) -c test_dwb.cpp
+
 clean:
-	rm test_nijm_phase.o test_obs_nijmegen1.o test_potentials.o test_LO_WPC.o
+	rm test_nijm_phase.o test_obs_nijmegen1.o test_potentials.o test_LO_WPC.o\
+		test_dwb.o

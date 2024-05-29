@@ -6,12 +6,11 @@
 (cd src/cpp_src; make clean)
 
 (cd src/cpp_src; make -j so PY_BIND=-DPYBIND)
-#(cd src/cpp_src; make -j so PY_BIND=-DPYBIND FLAGS=-DNIJM_CONST)
-#(cd src/cpp_src; make -j so PY_BIND=-DPYBIND FLAGS=-DANDREAS_CONST)
 
-rm nn_mwpc.so
+rm libnn_mwpc.so
 
-cp src/cpp_src/nn_mwpc.so .
+cp src/cpp_src/libnn_mwpc.so .
+mv libnn_mwpc.so nn_mwpc.so
 
 pip install .
 
