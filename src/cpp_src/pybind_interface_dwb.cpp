@@ -972,21 +972,21 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
         const std::string& potential_name)
 {   
     // Save potential in all channels
-    #pragma omp parallel
-    {
-       #pragma omp for
+    //#pragma omp parallel
+   // {
+       //#pragma omp for
         for (int i = 0; i < chns_.size(); i++)
         {
             int tid = omp_get_thread_num();
             std::cout << "Hello from thread: " << tid << std::endl;
-                // std::cout << "chn_index=" << chn_index << std::endl;
+            // std::cout << "chn_index=" << chn_index << std::endl;
             qs::quantum_channel chn = chns_[i];
             potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
             if (print_) {
                 std::cout << potential_name << ", saved channel: " << i << std::endl;
             }
         }
-    }
+    //}
 }
 
 void nn_mwpc_dwb_interface::print_potential_names()

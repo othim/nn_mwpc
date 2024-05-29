@@ -5,8 +5,8 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = SUBATOM
+#SYSTEM = MAC
+SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
@@ -30,6 +30,7 @@ OPT = -O3
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
+ifeq ($(SYSTEM), MAC)
 CFLAGS = -I../src/cpp_src/ \
 		 -Wall -fPIC -std=c++11 -stdlib=libc++ \
 		 -I/opt/anaconda3/envs/nn-mwpc-env/include \
@@ -39,12 +40,31 @@ CFLAGS = -I../src/cpp_src/ \
 		 -I/usr/local/opt/llvm/include
 
 LDPATH  = -L../src/cpp_src/
-LDFLAGS = -lnn_mwpc
 LDFLAGS = -lnn_mwpc -lgsl -lm -lwigxjpf -lgfortran -lgslcblas
 
 LDPATH +=  -L/Users/toliver/wigxjpf-1.11/lib/ \
 		   -L/usr/local/Cellar/gcc/12.2.0/lib/gcc/12  \
 		   -L/usr/local/opt/llvm/lib
+endif
+
+
+ifeq ($(SYSTEM), SUBATOM)
+
+CFLAGS = -Wall -fopenmp -fPIC -std=c++11 \
+		 -I../src/cpp_src/\
+		 -I/net/home/toliver/miniconda3/include/python3.8 \
+		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
+		 -I/net/home/toliver/wigxjpf-1.11/inc \
+		 -I/net/home/toliver/gsl-2.7/gsl
+
+LDFLAGS = -lnn_mwpc -lgsl -lm -lwigxjpf -lgfortran -lgslcblas -fopenmp
+
+LDPATH = -L../src/cpp_src/\
+		 -L/net/home/toliver/wigxjpf-1.11/lib/\
+		 -L/net/home/toliver/gsl-2.7/lib\
+		 -L/usr/local/lib\
+		 -L./
+endif
 
 NPHASE: test_nijm_phase.o
 	$(CC) -Wall -std=c++11 -o NPHASE $(LDPATH) test_nijm_phase.o $(LDFLAGS)
