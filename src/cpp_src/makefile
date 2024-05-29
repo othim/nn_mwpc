@@ -36,7 +36,7 @@ ifeq ($(SYSTEM), MAC)
 
 CFLAGS2 = -Wall -std=c++11 -stdlib=libc++ $(OPT)
 LDFLAGS =  -undefined dynamic_lookup -L/Users/toliver/wigxjpf-1.11/lib/  -L/usr/local/Cellar/gcc/12.2.0/lib/gcc/12  \
-		   -L/usr/local/opt/llvm/lib
+		   -L/usr/local/opt/llvm/lib 
 
 ifeq ($(BLAS_LIB), MKL)
 LDFLAGS += -L/opt/intel/oneapi/mkl/2021.4.0/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
