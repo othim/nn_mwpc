@@ -811,7 +811,7 @@ void Potential_mwpc<gsl_m>::clear_saved_matrices()
    #endif
    // Go through the map and remove the created matrices
    for (typename std::map<qs::quantum_channel, std::map<std::string, gsl_m*>, qs::comp>::iterator 
-           it1=saved_matrices_.begin(); it1!=saved_matrices_.begin(); ++it1)
+           it1=saved_matrices_.begin(); it1!=saved_matrices_.end(); ++it1)
    {
       for (typename std::map<std::string, gsl_m*>::iterator it=it1->second.begin(); 
               it!=it1->second.end(); ++it)
@@ -835,16 +835,17 @@ void Potential_mwpc<gsl_m>::populate_saved_mtx(qs::quantum_channel chn, bool rel
    #endif
    
    // Deallocate the saved matrices in this channel 
-   /*for (typename std::map<std::string, gsl_m*>::iterator it=saved_matrices_[chn].begin(); 
+   // Do not clear all the channels, just the one you recompute
+   for (typename std::map<std::string, gsl_m*>::iterator it=saved_matrices_[chn].begin(); 
           it!=saved_matrices_[chn].end(); ++it)
    {
+       std::cout << "Deleting: " << it->first << " in channel: " << quantum_channel_to_string(chn) << std::endl;
         if (it->second != nullptr) {
             ph::matrix_free(it->second);
         }
-   }*/
+   }
    
-   // Do not clear all the channels, just the one you recompute
-   clear_saved_matrices(); // Clears the allocated pointers
+   //clear_saved_matrices(); // Clears the allocated pointers
 
    // Get the constant
    for (std::size_t j = 0; j < LEC_names_.size(); j++)

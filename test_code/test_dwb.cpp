@@ -116,6 +116,7 @@ int main(int argc, char** argv)
     std::vector<double> params = {1.29};
     nn_dwb.set_params_in_potential("MLO",params);
     nn_dwb.save_potential_decomposition("MLO");
+    nn_dwb.save_potential_decomposition("MLO");
     std::vector<double> LECs = {-0.1/100.0,-0.13/100,1e-8,2e-8};
     nn_dwb.set_LECs_in_potential("MLO",LECs);
     nn_dwb.print_potential_info("MLO");
