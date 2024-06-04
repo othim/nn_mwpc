@@ -22,7 +22,7 @@
 #include <vector>
 #include "pybind_interface.h"
 #include "pybind_interface_dwb.h"
-
+#include <chrono>
 
 /*
  * Function declarations
@@ -73,8 +73,8 @@ int main(int argc, char** argv)
      */
 
     double scale = 100.0;
-    unsigned int number_of_p_points = 10;   // Number of momentum-grid points
-    int          J_max              = 4;
+    unsigned int number_of_p_points = 60;   // Number of momentum-grid points
+    int          J_max              = 15;
  
     double       Lambda             = 500.0;
     int          cut_pow            = 6;
@@ -115,23 +115,98 @@ int main(int argc, char** argv)
     nn_dwb.print_potential_info("MLO");
     std::vector<double> params = {1.29};
     nn_dwb.set_params_in_potential("MLO",params);
+    
+    nn_dwb.create_new_potential("MNLO","MWPC_NLO_SP",700.0);
+    nn_dwb.print_potential_info("MNLO");
+    params = {1.29};
+    nn_dwb.set_params_in_potential("MNLO",params);
+    
+    nn_dwb.create_new_potential("MN2LO","MWPC_N2LO_SP",700.0);
+    nn_dwb.print_potential_info("MN2LO");
+    params = {1.29};
+    nn_dwb.set_params_in_potential("MN2LO",params);
+    
+    nn_dwb.create_new_potential("MN3LO","MWPC_N3LO_SP",700.0);
+    nn_dwb.print_potential_info("MN3LO");
+    params = {1.29};
+    nn_dwb.set_params_in_potential("MN3LO",params);
+
+
+    //std::chrono::time_point<std::chrono::system_clock> start_time, end_time, time;
+    
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     nn_dwb.save_potential_decomposition("MLO");
-    nn_dwb.save_potential_decomposition("MLO");
+    
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
+    std::cout << "Time to save LO potential: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    
+    start_time = std::chrono::high_resolution_clock::now();
+    nn_dwb.save_potential_decomposition("MNLO");
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "Time to save NLO potential: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    
+    start_time = std::chrono::high_resolution_clock::now();
+    nn_dwb.save_potential_decomposition("MN2LO");
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "Time to save N2LO potential: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    
+    start_time = std::chrono::high_resolution_clock::now();
+    nn_dwb.save_potential_decomposition("MN3LO");
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "Time to save N3LO potential: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    
+    
+    //nn_dwb.save_potential_decomposition("MLO");
     std::vector<double> LECs = {-0.1/100.0,-0.13/100,1e-8,2e-8};
     nn_dwb.set_LECs_in_potential("MLO",LECs);
     nn_dwb.print_potential_info("MLO");
     
-    /*nn_dwb.create_new_potential("MNLO","MWPC_NLO_SP",700.0);
-    nn_dwb.print_potential_info("MNLO");
-    nn_dwb.set_params_in_potential("MNLO",params);
-    nn_dwb.print_potential_info("MNLO");
-    nn_dwb.save_potential_decomposition("MNLO");
-    */    
+    double T_lab    = 100.0;
+    double theta_cm = 80.0;
+    int order = 0;
+
+    std::vector<int> chn_index_LO = {0,1,2,3,4,7};
+    std::vector<int> orders       = {0,1,2,3};
+    
+    for (int i=0; i<4; i++)
+    {
+        start_time = std::chrono::high_resolution_clock::now();
+        nn_dwb.solve_save_T_chn_PC(T_lab, chn_index_LO, orders, "MLO", "MNLO","MN2LO","MN3LO");
+        end_time = std::chrono::high_resolution_clock::now();
+        time = end_time - start_time;
+        std::cout << "Time to compute all T's: " << 
+            time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    }
+
+
+    for (auto order : orders)
+    {
+        start_time = std::chrono::high_resolution_clock::now();
+        std::complex<double> obs_comp = nn_dwb.observable_from_saved_T("I 0000",theta_cm,order);
+        end_time = std::chrono::high_resolution_clock::now();
+        time = end_time - start_time;
+        std::cout <<"order: " << order <<  ". Time to compute obs    : " << 
+            time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+        std::cout << "obs: " << obs_comp << std::endl;
+    }
+    
+    
+
     // Free allocated memory
     ph::physics_helpers_free();
     delete program_const;
     return 0;
 }
+
 
 arg_struct parse_arguments(int argc, char** argv)
 {

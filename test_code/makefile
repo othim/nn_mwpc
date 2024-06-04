@@ -5,21 +5,21 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = SUBATOM
+#SYSTEM = MAC
+SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
-#BLAS_LIB = MKL
-BLAS_LIB = GSL
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
 # -------------------
 
 # Compiler
 # --------
-CC = g++
-#CC = icpc
+#CC = g++
+CC = icpc
 # --------
 
 # Optimization
@@ -32,7 +32,7 @@ OPT = -O3
 
 ifeq ($(SYSTEM), MAC)
 CFLAGS = -I../src/cpp_src/ \
-		 -Wall -fPIC -std=c++11 -stdlib=libc++ \
+		 -Wall -fPIC -std=c++11 -stdlib=libc++ $(OPT)\
 		 -I/opt/anaconda3/envs/nn-mwpc-env/include \
 		 -I/opt/anaconda3/include/python3.8 \
 		 -I/Users/toliver/wigxjpf-1.11/inc/ \
@@ -57,13 +57,16 @@ CFLAGS = -Wall -fopenmp -fPIC -std=c++11 \
 		 -I/net/home/toliver/wigxjpf-1.11/inc \
 		 -I/net/home/toliver/gsl-2.7/gsl
 
-LDFLAGS = -lnn_mwpc -lgsl -lm -lwigxjpf -lgfortran -lgslcblas -fopenmp
+#LDFLAGS = -lnn_mwpc -lgsl -lm -lwigxjpf -lgfortran -lgslcblas -fopenmp
 
-LDPATH = -L../src/cpp_src/\
+#LDPATH = -L../src/cpp_src/\
 		 -L/net/home/toliver/wigxjpf-1.11/lib/\
 		 -L/net/home/toliver/gsl-2.7/lib\
 		 -L/usr/local/lib\
 		 -L./
+
+LDFLAGS = -lnn_mwpc -lm  -fopenmp
+LDPATH = -L/usr/local/lib -L./
 endif
 
 NPHASE: test_nijm_phase.o
