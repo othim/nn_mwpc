@@ -16,7 +16,7 @@
 #include <string>
 #include <omp.h>
 #include <algorithm>
-
+#include <chrono>
 #include "potential_mwpc.h"
 #include "potential_ext.h"
 #include "quantum_states.h"

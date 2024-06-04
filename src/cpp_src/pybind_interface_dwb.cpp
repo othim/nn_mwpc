@@ -254,12 +254,22 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
     }
     
     // LO
+    //auto start_time = std::chrono::high_resolution_clock::now();
+    
     gsl_matrix_complex* V_LO = 
         potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
     gsl_matrix_complex* TI = 
         LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,V_LO,G0);
 
-    
+    /*
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
+    std::cout << "DWBA: solving LO" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
+
+    //start_time = std::chrono::high_resolution_clock::now();
     // Solve for TI
     gsl_matrix_complex* T_res = nullptr; 
     if (order == 0)
@@ -288,7 +298,14 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
     {
         std::cout << "Error, 'order' must be <=3." << std::endl;
     }
-
+    
+    /*
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "DWBA: solving higher orders" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
     if (order!=0)
     {
         gsl_matrix_complex_free(TI);
@@ -416,37 +433,35 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
             get_saved_matrix(q_on_shell, chn, rel_corr_);
     }
     
-    // LO
-    gsl_matrix_complex* V_LO = 
-        potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
-    gsl_matrix_complex* TI = 
-        LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,V_LO,G0);
-
-    // ****
-    // OBS
-    // ****
-    gsl_matrix_complex_set_zero(TI);
-    
-    // Solve for TI
     gsl_matrix_complex* T_res = nullptr; 
+    std::vector<std::complex<double>> T_arr;
     if (order == 0)
     {
-        T_res = TI;
+        T_arr = std::vector<std::complex<double>>(4,std::complex<double>(0.0,0.0));
     }
     else if (order == 1)
     {
-        T_res = dwba::pw_T_DWBA_PC_NLO(TI, G0, V_NLO);
+        //T_res = dwba::pw_T_DWBA_PC_NLO(TI, G0, V_NLO);
+        T_arr = ph::get_on_shell_from_matrix(V_NLO,number_of_p_points_);
         gsl_matrix_complex_free(V_NLO);
     }
     else if (order == 2)
     {   
-        T_res = dwba::pw_T_DWBA_PC_N2LO(TI, G0, V_NLO, V_N2LO);
+        //T_res = dwba::pw_T_DWBA_PC_N2LO(TI, G0, V_NLO, V_N2LO);
+        T_res = dwba::pw_T_BA_PC_N2LO(G0, V_NLO, V_N2LO);
+        T_arr = ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
+        
+        gsl_matrix_complex_free(T_res);
         gsl_matrix_complex_free(V_NLO);
         gsl_matrix_complex_free(V_N2LO);
     } 
     else if (order == 3)
     {
-        T_res = dwba::pw_T_DWBA_PC_N3LO(TI, G0, V_NLO, V_N2LO, V_N3LO);
+        //T_res = dwba::pw_T_DWBA_PC_N3LO(TI, G0, V_NLO, V_N2LO, V_N3LO);
+        T_res = dwba::pw_T_DWBA_PC_N3LO(G0, V_NLO, V_N2LO, V_N3LO);
+        T_arr = ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
+        
+        gsl_matrix_complex_free(T_res);
         gsl_matrix_complex_free(V_NLO);
         gsl_matrix_complex_free(V_N2LO);
         gsl_matrix_complex_free(V_N3LO);
@@ -455,21 +470,15 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
     {
         std::cout << "Error, 'order' must be <=3." << std::endl;
     }
-    
-    // Get the on-shell values
-    std::vector<std::complex<double>> T_arr = 
-            ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
-    
-    if (order==0)
-    {
-        gsl_matrix_complex_free(T_res);
-    } else {
-        gsl_matrix_complex_free(T_res);
-        gsl_matrix_complex_free(TI);
-    }
+    /*
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
+    std::cout << "BA: solving" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
 
     gsl_matrix_complex_free(G0);
-    gsl_matrix_complex_free(V_LO);
 
     return T_arr;
 }
@@ -652,7 +661,7 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
 
     for (auto order : orders)
     {
-        //std::cout << "order=" << order << std::endl;
+        auto start_time = std::chrono::high_resolution_clock::now();
         #pragma omp parallel
         {
             #pragma omp for
@@ -662,6 +671,8 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
                 // std::cout << "Hello from thread: " << tid << std::endl;
                 // std::cout << "chn_index=" << chn_index << std::endl;
                 // If a LO channel
+
+                // if chn_index is a channel where LO is non-trivial
                 std::vector<std::complex<double>> t;
                 if ( std::find(chn_index_LO.begin(), chn_index_LO.end(), chn_index) 
                         != chn_index_LO.end())
@@ -673,12 +684,21 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
                 {
                     t = solve_BA_T_PC(T_lab,chn_index,order,V_LO_name,V_LO_name,
                             V_NLO_name,V_N2LO_name);
+                    //std::cout << "chn_index=" << chn_index << std::endl;
+                    //for (auto tt : t) {
+                    //    std::cout << tt << ", ";
+                    //}
+                    //std::cout << std::endl;
                 
                 }
                 // Save the the saved on-shell T-arrays
                 save_order(order,chn_index,t);
             }
         }
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto time = end_time - start_time;
+        std::cout << "Time to save T's order " << order << ": " << 
+            time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
     }
 }
 
@@ -972,21 +992,14 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
         const std::string& potential_name)
 {   
     // Save potential in all channels
-    //#pragma omp parallel
-   // {
-       //#pragma omp for
-        for (int i = 0; i < chns_.size(); i++)
-        {
-            //int tid = omp_get_thread_num();
-            //std::cout << "Hello from thread: " << tid << std::endl;
-            // std::cout << "chn_index=" << chn_index << std::endl;
-            qs::quantum_channel chn = chns_[i];
-            potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
-            if (print_) {
-                std::cout << potential_name << ", saved channel: " << i << std::endl;
-            }
+    for (int i = 0; i < chns_.size(); i++)
+    {
+        qs::quantum_channel chn = chns_[i];
+        potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
+        if (print_) {
+            std::cout << potential_name << ", saved channel: " << i << std::endl;
         }
-    //}
+    }
 }
 
 void nn_mwpc_dwb_interface::print_potential_names()
