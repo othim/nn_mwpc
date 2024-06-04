@@ -251,7 +251,62 @@ gsl_matrix_complex* dwba::pw_T_DWBA_PC_N3LO(gsl_matrix_complex* T_I,
     return term1;
 }
 
+/*
+ * ****************************************************************************
+ * Functions to compute the corrections to T-matrices in MWPC in BA
+ * ****************************************************************************
+ */
 
+gsl_matrix_complex* dwba::pw_T_BA_PC_N2LO(
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
+        gsl_matrix_complex* V_N2LO)
+{
+    // Allocate the T_NLO
+    gsl_matrix_complex* term1 = gsl_matrix_complex_alloc(G0->size1,
+            G0->size2);
+
+    // Make multiplication
+    ph::mult3(V_NLO,G0,V_NLO,term1);   
+    
+    // Add the contributions
+    // V_N2LO + V_NLO*G0*V_NLO
+    ph::matrix_add(term1,V_N2LO);
+
+    return term1;
+}
+
+gsl_matrix_complex* dwba::pw_T_DWBA_PC_N3LO(
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
+        gsl_matrix_complex* V_N2LO, gsl_matrix_complex* V_N3LO)
+{
+    // Allocate the T_NLO
+    gsl_matrix_complex* term1 = gsl_matrix_complex_alloc(G0->size1,
+            G0->size2);
+    gsl_matrix_complex* term2 = gsl_matrix_complex_alloc(G0->size1,
+            G0->size2);
+    gsl_matrix_complex* term3 = gsl_matrix_complex_alloc(G0->size1,
+            G0->size2);
+
+    // Term 1
+    ph::mult3(V_N2LO,G0,V_NLO,term1);
+    
+    // Term 2
+    ph::mult3(V_NLO,G0,V_N2LO,term2);
+    
+    // Term 3
+    ph::mult5(V_NLO,G0,V_NLO,G0,V_NLO,term3);
+
+    ph::matrix_add(term1, term2);
+    ph::matrix_add(term1, term3);
+    // Add last term, V_NLO
+    ph::matrix_add(term1, V_N3LO);
+
+    // Delete and return
+    gsl_matrix_complex_free(term2);
+    gsl_matrix_complex_free(term3);
+
+    return term1;
+}
 
 /*
  * Helperfunctions to compute the Möller wave operators

@@ -141,6 +141,20 @@ gsl_matrix_complex* pw_T_DWBA_PC_N3LO(gsl_matrix_complex* T_I,
         gsl_matrix_complex* V_N2LO, gsl_matrix_complex* V_N3LO);
 
 
+/*
+ * These functions are the same as the corresponding DWBA function but 
+ * with TI=0. This means that the m√ller operators are the identity
+ * and some expressions simplify.
+ */
+
+gsl_matrix_complex* pw_T_BA_PC_N2LO(
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
+        gsl_matrix_complex* V_N2LO);
+
+gsl_matrix_complex* pw_T_DWBA_PC_N3LO(
+        gsl_matrix_complex* G0, gsl_matrix_complex* V_NLO,
+        gsl_matrix_complex* V_N2LO, gsl_matrix_complex* V_N3LO);
+
 
 /*
  * ****************************************************************************
@@ -149,6 +163,7 @@ gsl_matrix_complex* pw_T_DWBA_PC_N3LO(gsl_matrix_complex* T_I,
  */
 gsl_matrix_complex* pw_moller_plus(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0);
+
 gsl_matrix_complex* pw_moller_minus_dagger(gsl_matrix_complex* T_I, 
         gsl_matrix_complex* G0);
 
