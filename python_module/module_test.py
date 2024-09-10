@@ -200,9 +200,9 @@ cut_on_shell       = True       # Implement the cutoff also on on-shell elements
 obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
         precompute_pot,rel_correction,num_grid_points,finite_grid,\
         inc_weights_in_pot,cut_on_shell)
-num_chn = obj.get_chn_len()
+#num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
-phase_shifts(obj)
-observables(obj)
-diagonalization(obj)
-M_matrix(obj)
+#phase_shifts(obj)
+#observables(obj)
+#diagonalization(obj)
+#M_matrix(obj)

@@ -361,6 +361,7 @@ public:
     int    get_chn_coupled(int chn_number);
     
     std::vector<double> get_p_points();
+    std::vector<double> get_w_points();
 
     double get_gA();
     double get_fpi();

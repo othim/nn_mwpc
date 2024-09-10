@@ -1078,6 +1078,16 @@ std::vector<double> nn_mwpc_dwb_interface::get_p_points()
     return p_vec;
 }
 
+std::vector<double> nn_mwpc_dwb_interface::get_w_points()
+{
+    std::vector<double> w_vec;
+    for (int i=0; i<number_of_p_points_; i++)
+    {
+        w_vec.push_back(w_grid_[i]);
+    }
+    return w_vec;
+}
+
 int nn_mwpc_dwb_interface::get_chn_coupled(int chn_number)
 {
     if (!(chn_number < (int)chns_.size()))
