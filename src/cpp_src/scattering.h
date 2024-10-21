@@ -18,6 +18,7 @@
 #include <vector>
 #include <complex>
 #include <iostream>
+#include <chrono>
 #include "gsl_matrix.h"
 
 namespace sc 

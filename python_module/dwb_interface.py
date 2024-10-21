@@ -20,7 +20,8 @@ import sys
 
 
 def get_pwa93_phase_shifts(chn):
-    path = '/Users/toliver/Documents/phd/projects/lo_lepage/data/pwa93/'
+    #path = '/Users/toliver/Documents/phd/projects/lo_lepage/data/pwa93/'
+    path = '/net/home/toliver/phd/projects/lo_lepage/data/pwa93/'
     filename = 'np_' + chn + '_pwa93.txt' # chn is the LS term
     
     try:

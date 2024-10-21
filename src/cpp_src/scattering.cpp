@@ -153,8 +153,9 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
 { 
     const std::complex<double> imag_u(0.0,1.0);  
     // Move to some constructor-ish
-    wig_table_init(2*100, 9);
-    wig_temp_init(2*100);
+    //wig_table_init(2*100, 9);
+    wig_thread_temp_init(2*100);
+    
     //std::cout << "l_max " << l_max << std::endl;
     // Precompute some spherical harmonics for the given cos_theta
     double* sph_arr = (double*) malloc(gsl_sf_legendre_array_n(l_max)*sizeof(double)); // Not including coplex e^{im\phi} phase. But we set \phi = 0 anyway!
@@ -169,8 +170,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
     gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM,l_max,cos_theta,1,sph_arr);
 
     std::complex<double> result = 0;
-    
-    
+
     // Sum over channels, j-sum
     for (std::size_t i = 0; i < chns_vec.size(); i++) //TODO
     {
@@ -264,7 +264,7 @@ std::complex<double> get_M_matrix_T(std::vector<qs::quantum_channel> chns_vec,
     } // end for chn
     free(sph_arr);
     wig_temp_free();
-    wig_table_free();
+    //wig_table_free();
 
 
     // Add factor in front 
@@ -597,7 +597,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
         return sigma;
     } else {
        // Make grid for angular integration of DSG
-       unsigned int N_GLI_PWA_ = 96; // Number of points in Gauss-Legandre angular integration
+       unsigned int N_GLI_PWA_ = 50; // Number of points in Gauss-Legandre angular integration
 
        gsl_integration_fixed_workspace* int_ang_; // Need to be saved to not delete pointers
        double* z_mesh; // GL integration points
@@ -618,25 +618,39 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
        
        // For each angle, compute the saclay amplitude and DSG
        
+       //auto start_time = std::chrono::high_resolution_clock::now();
        double SGT = 0;
+
+       #pragma omp parallel
+       {
+       #pragma omp for reduction(+:SGT)
        for (int i=0; i<len_z_mesh; i++)
        {
           double theta = std::acos(z_mesh[i])*180/M_PI;
           if (std::abs(theta-90.0) < 0.0001) {
              theta = 90.0001;
           }
-          std::vector<std::complex<double> > saclay_amplitudes = 
+          std::vector<std::complex<double> > saclay_amplitudes;
+          saclay_amplitudes = 
                 sc::compute_Saclay_amplitudes(chns_vec, T_on_shell_vec, 
                 theta*M_PI/180.0, q_on_shell, rho_T, l_max,program_const);
-         
-          double DSG = sc::compute_observable(saclay_amplitudes, q_on_shell, 
+          
+          double DSG;
+          DSG = sc::compute_observable(saclay_amplitudes, q_on_shell, 
                 "I 0000",program_const);
-
           // Integrate DSG
           SGT += w_z_mesh[i]*DSG;
        }
+       }
        // Add phi-integral factor
        SGT = SGT*2.0*M_PI;
+       /*
+       auto end_time = std::chrono::high_resolution_clock::now();
+       auto time = end_time - start_time;
+       std::cout << "SGT int" << std::endl;
+       std::cout << "Time: " << 
+            time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+        */
        gsl_integration_fixed_free(int_ang_);
        //delete[] z_mesh;
        //delete[] w_z_mesh;

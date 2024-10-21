@@ -16,7 +16,7 @@
 #include <string>
 #include <omp.h>
 #include <algorithm>
-
+#include <chrono>
 #include "potential_mwpc.h"
 #include "potential_ext.h"
 #include "quantum_states.h"
@@ -48,6 +48,9 @@
  * are made. The idea is that the functions that will be called multiple times
  * should be as fast as possible.
  */
+using Complex4DArray = std::vector<std::vector<std::vector<std::vector<std::complex<double>>>>>;
+using Complex3DArray = std::vector<std::vector<std::vector<std::complex<double>>>>;
+
 class nn_mwpc_dwb_interface
 {
 private: 
@@ -93,15 +96,34 @@ private:
 
     // Saved data
     std::vector<qs::quantum_channel> chns_;
-    double energy_saved_;
 
     // Saves T-matrix elements. This vector of values conrrespond to the 
     // vector of channels.
-    std::vector<std::vector<std::complex<double>> > saved_T_LO_;
-    std::vector<std::vector<std::complex<double>> > saved_T_NLO_;
-    std::vector<std::vector<std::complex<double>> > saved_T_N2LO_;
-    std::vector<std::vector<std::complex<double>> > saved_T_N3LO_;
+    double saved_T_lab_;
+    std::vector<std::vector<std::complex<double>>> saved_T_LO_;
+    std::vector<std::vector<std::complex<double>>> saved_T_NLO_;
+    std::vector<std::vector<std::complex<double>>> saved_T_N2LO_;
+    std::vector<std::vector<std::complex<double>>> saved_T_N3LO_;
+    
 
+    // ********************************************************
+    // Variables defining a saved decomposition of the T-matrix
+    // ********************************************************
+    std::vector<double> saved_decomp_T_lab_;
+    int saved_decomp_order_;
+    std::string saved_decomp_pot_name_;
+    
+    // Index order: energy, channel, LECs, Telem 
+    Complex4DArray* saved_decomp_ti_;
+    // Index order: energy, channel, Telem
+    Complex3DArray* saved_decomp_lower_order_T_;
+
+    // ***********************************************************
+    // T-matrix elements that are used when computing observables.
+    // The T_lab energy for the saved elements are also saved.
+    // ***********************************************************
+    std::vector<std::complex<double>*> saved_T_vec_;
+    double saved_T_vec_T_lab_;
 
 private:
     /*
@@ -112,7 +134,10 @@ private:
             gsl_matrix_complex** VII, std::string VI_name,
             std::string VII_name);
 
-
+    std::vector<std::complex<double>> solve_T_PC(double T_lab, int chn_index,
+            int order, std::vector<int> chn_index_LO,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
 
     /*
      * Function that defines potentials and populate potentials_ and
@@ -264,7 +289,15 @@ public:
             double T_lab, int chn_index, int order,
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
-    
+
+
+    /*
+     * ************************************************************************
+     * Functions to compute the T-matrix at different orders are save the 
+     * result in the saved_T_<NXLO>_ variables
+     * ************************************************************************
+     */
+
     /*
      * Function that does the same as 'solve_DWBA_T_PC()' but saves the 
      * T-matrix in the saved data.
@@ -273,6 +306,15 @@ public:
             std::vector<int> orders, 
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+    void set_saved_T_vec_from_saved_orders(int order);
+    
+    
+    // Function that saves the on-shell T-matrix element t in the correct saved
+    // array.
+    void save_order(
+            int order,int chn_index, std::vector<std::complex<double>> t);
+    
     /*
      * Function that saves a T-matrix that is given. This can be used if one 
      * wants to compute the T-matrix in python and then send it back to C++
@@ -281,19 +323,43 @@ public:
     void save_DWBA_T_chn_PC(double Tlab,int order, int chn_index,
             std::complex<double> T11, std::complex<double> T12,
             std::complex<double> T22, std::complex<double> T_uncoup);
+
     /*
-     * Computes observables by adding the contributions from all channels 
-     * that have a saved T-matrix.
+     * ************************************************************************
+     * Functions to compute and save the on-shell T-matrix decomposition.
+     * ************************************************************************
      */
-    std::complex<double> observable_from_saved_T(const std::string& obs_name, 
-            double theta, int order);
+
+    void save_decomp_T_chn_PC(std::vector<double> T_lab_arr, 
+            std::vector<int> chn_index_LO, int order_decomp,
+            const std::string& V_LO_name, const std::string& V_NLO_name,
+            const std::string& V_N2LO_name, const std::string& V_N3LO_name);
+    
+    void set_saved_T_vec_from_saved_decomp(
+            double T_lab_check, int T_lab_index, std::vector<double> LECs);
+
+
+    /* 
+     * ************************************************************************
+     * Functions to compute sacattering observables from the 
+     * saved_T_vec_
+     * ************************************************************************
+     */  
     
     /*
-     * Function that saves the on-shell T-matrix element t in the correct saved
-     * array.
+     * Computes observables from the saved_T_vec_
      */
-    void save_order(int order,int chn_index, 
-            std::vector<std::complex<double>> t);
+    std::complex<double> observable_from_saved_T_vec(const std::string& obs_name, 
+            double theta);
+    /*
+     * Compute the same as above but for a vector or angles.
+     * This makes the computations more efficient since they can be 
+     * parallelized.
+     */
+    std::vector<std::complex<double>> observable_arr_from_saved_T_vec(
+            const std::string& obs_name, 
+            std::vector<double> theta_arr);
+    
 
     /*
      * Functions to get the potential, propagator and LO T-matrices

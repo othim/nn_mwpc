@@ -8,6 +8,18 @@
     
 #endif
 
+Complex4DArray* create4DArray(size_t dim1, size_t dim2, size_t dim3, size_t dim4) 
+{
+    return new Complex4DArray(dim1, std::vector<std::vector<std::vector<std::complex<double>>>>(
+        dim2, std::vector<std::vector<std::complex<double>>>(
+            dim3, std::vector<std::complex<double>>(dim4))));
+}
+
+Complex3DArray* create3DArray(size_t dim1, size_t dim2, size_t dim3) 
+{
+    return new Complex3DArray(dim1, std::vector<std::vector<std::complex<double>>>(
+        dim2, std::vector<std::complex<double>>(dim3)));
+}
 
 nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
         int J_max_chn, double cutoff, int cut_pow, 
@@ -115,6 +127,9 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
         saved_T_N2LO_.push_back(T_arr_0);
         saved_T_N3LO_.push_back(T_arr_0);
     }
+    
+    saved_decomp_ti_         = nullptr;
+    saved_decomp_lower_order_T_ = nullptr;
 }
 
 
@@ -132,6 +147,20 @@ nn_mwpc_dwb_interface::~nn_mwpc_dwb_interface()
 
     delete[] p_grid_;
     delete[] w_grid_;
+    
+    
+    if (saved_decomp_ti_ != nullptr) {
+        delete saved_decomp_ti_;
+    }
+    if (saved_decomp_lower_order_T_ != nullptr) {
+        delete saved_decomp_lower_order_T_;
+    }
+    
+    while (!saved_T_vec_.empty())
+    {
+        delete saved_T_vec_.back();
+        saved_T_vec_.pop_back();
+    }
 }
  
 
@@ -222,6 +251,7 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
     double q_on_shell,mu;
     LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
     
+    //auto start_time = std::chrono::high_resolution_clock::now();
     // Get G0 vector matrix
     gsl_vector_complex* prop_vec = 
         LS_Solver_->setup_G0_vector_complex(q_on_shell,chn.coupled,mu);
@@ -231,11 +261,22 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
     ph::matrix_from_vector(G0,prop_vec);
     gsl_vector_complex_free(prop_vec);
     
+    /*auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
+    std::cout << "DWBA: computing G0" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
     
     // Load the higher order corrections if neccessary
     gsl_matrix_complex* V_NLO  = nullptr; 
     gsl_matrix_complex* V_N2LO = nullptr;
     gsl_matrix_complex* V_N3LO = nullptr;
+    
+    //start_time = std::chrono::high_resolution_clock::now();
+    
+    gsl_matrix_complex* V_LO = 
+        potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
     
     if (order>0)
     {
@@ -252,14 +293,28 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
         V_N3LO = potentials_[V_N3LO_name]->
             get_saved_matrix(q_on_shell, chn, rel_corr_);
     }
-    
+    /*
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "DWBA: getting potentials" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
     // LO
-    gsl_matrix_complex* V_LO = 
-        potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
+    //start_time = std::chrono::high_resolution_clock::now();
+    
     gsl_matrix_complex* TI = 
         LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,V_LO,G0);
-
     
+    /*
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "DWBA: solving LO" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
+
+    //start_time = std::chrono::high_resolution_clock::now();
     // Solve for TI
     gsl_matrix_complex* T_res = nullptr; 
     if (order == 0)
@@ -288,7 +343,14 @@ gsl_matrix_complex* nn_mwpc_dwb_interface::solve_DWBA_T_PC_gsl_matrix(
     {
         std::cout << "Error, 'order' must be <=3." << std::endl;
     }
-
+    
+    /*
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "DWBA: solving higher orders" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
     if (order!=0)
     {
         gsl_matrix_complex_free(TI);
@@ -400,6 +462,8 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
     gsl_matrix_complex* V_N2LO = nullptr;
     gsl_matrix_complex* V_N3LO = nullptr;
     
+    //auto start_time = std::chrono::high_resolution_clock::now();
+    
     if (order>0)
     {
         V_NLO = potentials_[V_NLO_name]->
@@ -415,38 +479,42 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
         V_N3LO = potentials_[V_N3LO_name]->
             get_saved_matrix(q_on_shell, chn, rel_corr_);
     }
-    
-    // LO
-    gsl_matrix_complex* V_LO = 
-        potentials_[V_LO_name]->get_saved_matrix(q_on_shell, chn, rel_corr_);
-    gsl_matrix_complex* TI = 
-        LS_Solver_->solve_in_chn_T_fullT_weights(T_lab,chn,V_LO,G0);
-
-    // ****
-    // OBS
-    // ****
-    gsl_matrix_complex_set_zero(TI);
-    
-    // Solve for TI
+    /*
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
+    std::cout << "BA: get potentials" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
     gsl_matrix_complex* T_res = nullptr; 
+    std::vector<std::complex<double>> T_arr;
+    
+    //start_time = std::chrono::high_resolution_clock::now();
+
     if (order == 0)
     {
-        T_res = TI;
+        T_arr = std::vector<std::complex<double>>(4,std::complex<double>(0.0,0.0));
     }
     else if (order == 1)
     {
-        T_res = dwba::pw_T_DWBA_PC_NLO(TI, G0, V_NLO);
+        T_arr = ph::get_on_shell_from_matrix(V_NLO,number_of_p_points_);
         gsl_matrix_complex_free(V_NLO);
     }
     else if (order == 2)
     {   
-        T_res = dwba::pw_T_DWBA_PC_N2LO(TI, G0, V_NLO, V_N2LO);
+        T_res = dwba::pw_T_BA_PC_N2LO(G0, V_NLO, V_N2LO);
+        T_arr = ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
+        
+        gsl_matrix_complex_free(T_res);
         gsl_matrix_complex_free(V_NLO);
         gsl_matrix_complex_free(V_N2LO);
     } 
     else if (order == 3)
     {
-        T_res = dwba::pw_T_DWBA_PC_N3LO(TI, G0, V_NLO, V_N2LO, V_N3LO);
+        T_res = dwba::pw_T_DWBA_PC_N3LO(G0, V_NLO, V_N2LO, V_N3LO);
+        T_arr = ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
+        
+        gsl_matrix_complex_free(T_res);
         gsl_matrix_complex_free(V_NLO);
         gsl_matrix_complex_free(V_N2LO);
         gsl_matrix_complex_free(V_N3LO);
@@ -455,21 +523,15 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_BA_T_PC(
     {
         std::cout << "Error, 'order' must be <=3." << std::endl;
     }
-    
-    // Get the on-shell values
-    std::vector<std::complex<double>> T_arr = 
-            ph::get_on_shell_from_matrix(T_res,number_of_p_points_);
-    
-    if (order==0)
-    {
-        gsl_matrix_complex_free(T_res);
-    } else {
-        gsl_matrix_complex_free(T_res);
-        gsl_matrix_complex_free(TI);
-    }
+    /*
+    end_time = std::chrono::high_resolution_clock::now();
+    time = end_time - start_time;
+    std::cout << "BA: solving" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
 
     gsl_matrix_complex_free(G0);
-    gsl_matrix_complex_free(V_LO);
 
     return T_arr;
 }
@@ -627,6 +689,7 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_DWBA_T_PC_full(
     else
     {
         std::cout << "Error, 'order' must be <=3." << std::endl;
+        std::exit(1);
     }
     
     // Get the on-shell values
@@ -648,11 +711,11 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
         const std::string& V_N2LO_name, const std::string& V_N3LO_name)
 {
     // Solve in specified channels and orders and save the result
-    energy_saved_ = T_lab;
+    saved_T_lab_ = T_lab;
 
     for (auto order : orders)
     {
-        //std::cout << "order=" << order << std::endl;
+        //auto start_time = std::chrono::high_resolution_clock::now();
         #pragma omp parallel
         {
             #pragma omp for
@@ -662,7 +725,12 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
                 // std::cout << "Hello from thread: " << tid << std::endl;
                 // std::cout << "chn_index=" << chn_index << std::endl;
                 // If a LO channel
+
+                // if chn_index is a channel where LO is non-trivial
                 std::vector<std::complex<double>> t;
+                
+                // OLD
+                /*
                 if ( std::find(chn_index_LO.begin(), chn_index_LO.end(), chn_index) 
                         != chn_index_LO.end())
                 {
@@ -673,21 +741,49 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
                 {
                     t = solve_BA_T_PC(T_lab,chn_index,order,V_LO_name,V_LO_name,
                             V_NLO_name,V_N2LO_name);
-                
-                }
+                }*/
+
+                t = solve_T_PC(T_lab,chn_index,order, chn_index_LO, V_LO_name,
+                        V_NLO_name,V_N2LO_name,V_N3LO_name);
                 // Save the the saved on-shell T-arrays
                 save_order(order,chn_index,t);
             }
         }
+        /*
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto time = end_time - start_time;
+        std::cout << "Time to save T's order " << order << ": " << 
+            time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+            */
     }
 }
 
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::solve_T_PC(
+        double T_lab, int chn_index,
+        int order, std::vector<int> chn_index_LO,
+        const std::string& V_LO_name, const std::string& V_NLO_name,
+        const std::string& V_N2LO_name, const std::string& V_N3LO_name)
+{
+    std::vector<std::complex<double>> t;
+    if ( std::find(chn_index_LO.begin(), chn_index_LO.end(), chn_index) 
+            != chn_index_LO.end())
+    {
+        t = solve_DWBA_T_PC(T_lab,chn_index,order,V_LO_name,V_NLO_name,
+                V_N2LO_name,V_N3LO_name);
+    
+    } else
+    {
+        t = solve_BA_T_PC(T_lab,chn_index,order,V_LO_name,V_LO_name,
+                V_NLO_name,V_N2LO_name);
+    }
+    return t;
+}
 
 void nn_mwpc_dwb_interface::save_DWBA_T_chn_PC(double Tlab,int order, int chn_index,
         std::complex<double> T11, std::complex<double> T12,
         std::complex<double> T22, std::complex<double> T_uncoup)
 {
-    energy_saved_ = Tlab;
+    saved_T_lab_ = Tlab;
     // Construct T-element
     std::vector<std::complex<double>> t;
     t.push_back(T11);
@@ -709,6 +805,7 @@ void nn_mwpc_dwb_interface::save_order(
     {
         std::cerr << "Error, something is wrong with one of the save vectors."
             << std::endl;
+        std::exit(1);
     }
 
     // Set the correct saved T-value
@@ -727,22 +824,100 @@ void nn_mwpc_dwb_interface::save_order(
     } else
     {
         std::cerr << "Error, order is out of bounds." << std::endl;   
+        std::exit(1);
     }
 }
 
-std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
-        const std::string& obs_name, double theta, int order)
+std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T_vec(
+        const std::string& obs_name, double theta)
+{
+    double mu, q_on_shell;
+    LS_Solver_->get_mu_q_on_shell(saved_T_vec_T_lab_,chns_[0], &mu,&q_on_shell);
+
+    // Compute saclay amplitudes 
+    std::vector<std::complex<double> > saclay_amplitudes;
+
+    // S = 1-2*i*rho_T*T
+    double rho_T = M_PI*q_on_shell*mu; // In the convention used
+    
+    // Protect from the numerical instable situation that the 
+    // c.m. scattering angle is exactly 90 deg.
+    if (std::abs(theta-90.0) < 0.001) {
+        theta = 90.001;
+    }
+
+    //auto start_time = std::chrono::high_resolution_clock::now();
+    saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, saved_T_vec_, 
+            theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_,
+            program_const_);
+    /*
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
+    std::cout << "Compute saclay" << std::endl;
+    std::cout << "Time: " << 
+        time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+    */
+
+    // Print saclay amplitudes
+    /*
+    std::cout << "Amplitudes:" << std::endl;
+    for (auto s : saclay_amplitudes)
+    {
+        std::cout << std::real(s) << "," << std::imag(s) << std::endl;
+    }
+    */
+
+    // Compute the observable from the amplitudes
+    double obs_value;
+
+    // The A 00kk is an observable that is defined in terms of other vectors
+    // than the n,l,m. That is why the _lab function is used.
+    if (obs_name == "A 00kk") {
+        obs_value = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, 
+                obs_name, theta*M_PI/180.0,program_const_);
+    } else if (obs_name == "SGT_int") {
+        obs_value = sc::compute_total_cross_section(chns_, 
+                saved_T_vec_, q_on_shell, J_max_in_pot_,false,program_const_);
+
+    } else {
+        obs_value = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_name,
+                program_const_);
+    }
+    return obs_value;
+}
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::observable_arr_from_saved_T_vec(
+        const std::string& obs_name, 
+        std::vector<double> theta_arr)
+{
+    std::vector<std::complex<double>> obs_arr(theta_arr.size());
+    #pragma omp parallel
+    {
+        #pragma omp for    
+        for (int i=0; i < theta_arr.size(); i++)
+        {
+            std::complex<double> obs = observable_from_saved_T_vec(obs_name,
+                    theta_arr[i]);
+            obs_arr[i] = obs;
+        }
+    }
+    return obs_arr;
+}
+
+
+
+void  nn_mwpc_dwb_interface::set_saved_T_vec_from_saved_orders(int order)
 {
     if (order > 3 || order < 0)
     {
-        std::cerr << "Error: order out of bounds, returning 0." << std::endl;
-        return (std::complex<double>)0.0;
+        std::cerr << "Error: order out of bounds." << std::endl;
+        std::exit(1);
+        return;
     }
 
     double mu, q_on_shell;
-    //std::cout << "Energy saved:" << energy_saved_ << std::endl;
 
-    LS_Solver_->get_mu_q_on_shell(energy_saved_,chns_[0], &mu,&q_on_shell);
+    LS_Solver_->get_mu_q_on_shell(saved_T_lab_,chns_[0], &mu,&q_on_shell);
     
     // Construct the vector of on-shell-T matrix
     std::vector<std::complex<double>*> T_vec;
@@ -814,62 +989,348 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T(
             }
         }
         
-        //std::cout << "Setting T: " << T[0] << "," << T[1] << "," << T[2] << 
-        //    std::endl;
-
         T_vec.push_back(&T[0]);
         chn_index++;
     }
-
-    // Compute saclay amplitudes 
-    std::vector<std::complex<double> > saclay_amplitudes;
-
-    // S = 1-2*i*rho_T*T
-    double rho_T = M_PI*q_on_shell*mu; // In the convention used
-    
-    // Protext from the numerical instable situation that the 
-    // c.m. scattering angle is exactly 90 deg.
-    if (std::abs(theta-90.0) < 0.001) {
-        theta = 90.001;
-    }
-    saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, T_vec, 
-            theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_,
-            program_const_);
-    
-    // Print saclay amplitudes
-    /*
-    std::cout << "Amplitudes:" << std::endl;
-    for (auto s : saclay_amplitudes)
-    {
-        std::cout << std::real(s) << "," << std::imag(s) << std::endl;
-    }
-    */
-
-    // Compute the observable from the amplitudes
-    double obs_value;
-    // The A 00kk is an observable that is defined in terms of other vectors
-    // than the n,l,m. That is why the _lab function is used.
-    if (obs_name == "A 00kk") {
-        obs_value = sc::compute_observable_lab(saclay_amplitudes, q_on_shell, 
-                obs_name, theta*M_PI/180.0,program_const_);
-    } else if (obs_name == "SGT_int") {
-        obs_value = sc::compute_total_cross_section(chns_, 
-                T_vec, q_on_shell, J_max_in_pot_,false,program_const_);
-
-    } else {
-        obs_value = sc::compute_observable(saclay_amplitudes, q_on_shell, obs_name,
-                program_const_);
-    }
-
     // Delete the vector of on-shell T
-    while (!T_vec.empty())
+    while (!saved_T_vec_.empty())
     {
-        delete T_vec.back();
-        T_vec.pop_back();
+        delete saved_T_vec_.back();
+        saved_T_vec_.pop_back();
+    }
+    saved_T_vec_       =  T_vec;
+    saved_T_vec_T_lab_ = saved_T_lab_;
+}
+
+void nn_mwpc_dwb_interface::set_saved_T_vec_from_saved_decomp(double T_lab_check,
+        int T_lab_index, std::vector<double> LECs)
+{
+    if (std::abs(T_lab_check-saved_decomp_T_lab_[T_lab_index]) > 1e-4)
+    {
+        std::cout << "Error, T_lab does not match saved energy at given index"
+            << std::endl;
+        std::exit(1);
     }
 
-    return obs_value;
+    double T_lab = saved_decomp_T_lab_[T_lab_index];
+    std::vector<std::complex<double>*> T_vec;
+    
+    double mu, q_on_shell;
+    LS_Solver_->get_mu_q_on_shell(T_lab,chns_[0], &mu,&q_on_shell);
+   
+    const std::complex<double> imag_u(0.0,1.0);
+    std::complex<double> fac = -2.0*mu*imag_u*M_PI*q_on_shell;
+    
+    Potential_mwpc<gsl_matrix_complex>* pot_decomp = 
+            potentials_[saved_decomp_pot_name_];
+    int number_of_LECs = pot_decomp->LECs_in_use_.size();
+    
+    if (LECs.size() != number_of_LECs)
+    {
+        std::cout << "Error, number of LECs provided are not correct." << std::endl;
+        std::exit(1);
+        return;
+    }
+
+    for (int chn_index=0; chn_index < chns_.size(); chn_index++)
+    {
+        qs::quantum_channel chn = chns_[chn_index];
+        std::complex<double>* T = new std::complex<double>[3];
+        T[0] = (std::complex<double>)0.0;
+        T[1] = (std::complex<double>)0.0;
+        T[2] = (std::complex<double>)0.0;
+        
+        // This computes the T-matrix at order_decomp
+        
+        LECs.push_back(1.0); // To add also the constant part
+        for (int LEC_index=0; LEC_index < number_of_LECs+1; LEC_index++)
+        {
+            // To match the different saving format conventions
+            if (chn.coupled)
+            {
+                T[0] += fac*(*saved_decomp_ti_)[T_lab_index][chn_index][LEC_index][0]*LECs[LEC_index];
+                T[1] += fac*(*saved_decomp_ti_)[T_lab_index][chn_index][LEC_index][1]*LECs[LEC_index];
+                T[2] += fac*(*saved_decomp_ti_)[T_lab_index][chn_index][LEC_index][2]*LECs[LEC_index];
+            } else
+            {   
+                T[0] += fac*(*saved_decomp_ti_)[T_lab_index][chn_index][LEC_index][3]*LECs[LEC_index];
+            }
+        }
+        // This adds the T-matrix from the lower orders
+        if (chn.coupled)
+        {
+            T[0] += fac*(*saved_decomp_lower_order_T_)[T_lab_index][chn_index][0];
+            T[1] += fac*(*saved_decomp_lower_order_T_)[T_lab_index][chn_index][1];
+            T[2] += fac*(*saved_decomp_lower_order_T_)[T_lab_index][chn_index][2];
+        } else
+        {   
+            T[0] += fac*(*saved_decomp_lower_order_T_)[T_lab_index][chn_index][3];
+        }
+        
+        // Add the deconstructed channel
+        T_vec.push_back(&T[0]);
+    }
+
+    // If non-empty, delete the old vector
+    while (!saved_T_vec_.empty())
+    {
+        delete saved_T_vec_.back();
+        saved_T_vec_.pop_back();
+    }
+    // Set the new saved vector
+    saved_T_vec_      = T_vec;
+    saved_T_vec_T_lab_ = T_lab;
 }
+
+void nn_mwpc_dwb_interface::save_decomp_T_chn_PC(std::vector<double> T_lab_arr, 
+        std::vector<int> chn_index_LO, int order_decomp,
+        const std::string& V_LO_name, const std::string& V_NLO_name,
+        const std::string& V_N2LO_name, const std::string& V_N3LO_name)
+{
+    saved_decomp_T_lab_ = T_lab_arr;
+    saved_decomp_order_ = order_decomp;
+    if (order_decomp < 1 || order_decomp > 3)
+    {
+        std::cout << "Error, order_decomp out of bounds" << std::endl;
+        std::exit(1);
+        return;
+    }
+    if (saved_decomp_ti_ != nullptr) {
+        //std::cout << "Delete saved_decomp_ti_" << std::endl;
+        delete saved_decomp_ti_;
+    }
+    if (saved_decomp_lower_order_T_ != nullptr) {
+        //std::cout << "Delete saved_decomp_lower_order_T" << std::endl;
+        delete saved_decomp_lower_order_T_;
+    }
+
+    // Number of LECs in the potential with order=order_decomp
+    Potential_mwpc<gsl_matrix_complex>* pot_decomp;
+    if (order_decomp == 1) 
+    {
+        pot_decomp = potentials_[V_NLO_name];
+        saved_decomp_pot_name_ = V_NLO_name;
+    } else if (order_decomp == 2)
+    {
+        pot_decomp = potentials_[V_N2LO_name];
+        saved_decomp_pot_name_ = V_N2LO_name;
+    } else if (order_decomp == 3)
+    {
+        pot_decomp = potentials_[V_N3LO_name];
+        saved_decomp_pot_name_ = V_N3LO_name;
+    }
+    int number_of_LECs = pot_decomp->LECs_in_use_.size();
+
+    //std::cout << "order_decomp=" << order_decomp << std::endl;
+    //std::cout << "number_of_LECs=" << number_of_LECs << std::endl;
+    
+    saved_decomp_ti_         = create4DArray(T_lab_arr.size(),chns_.size(),number_of_LECs+1,4);
+    saved_decomp_lower_order_T_ = create3DArray(T_lab_arr.size(),chns_.size(),4);
+
+    
+    // Check that order_decomp is inside the bounds
+    for (int i = 0; i < T_lab_arr.size(); i++)
+    {
+        double T_lab = T_lab_arr[i];
+        // Set all LECs to zero
+        for (int k=0; k< pot_decomp->LEC_names_.size(); k++)
+        {
+            pot_decomp->LECs_[pot_decomp->LEC_names_[k]] = 0.0;
+        }
+        #pragma omp parallel for
+        for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
+        {
+            // Now compute the constant part
+            std::vector<std::complex<double>> t_const = 
+                    solve_T_PC(T_lab,chn_index,order_decomp, chn_index_LO, 
+                    V_LO_name, V_NLO_name,V_N2LO_name,V_N3LO_name);
+            
+            // Constant shift is on the last place in the array
+            for (int k=0; k < t_const.size(); k++) 
+            {
+                (*saved_decomp_ti_)[i][chn_index][number_of_LECs][k] = t_const[k];
+            }
+        }
+    }
+    
+    for (int i = 0; i < T_lab_arr.size(); i++)
+    {
+        double T_lab = T_lab_arr[i];
+        // Set each LEC to one and the others to zero
+        for (int LEC_index=0; LEC_index < pot_decomp->LECs_in_use_.size(); LEC_index++)
+        {
+            // Set all LECs to zero
+            for (int k=0; k< pot_decomp->LEC_names_.size(); k++)
+            {
+                pot_decomp->LECs_[pot_decomp->LEC_names_[k]] = 0.0;
+            }
+            
+            // Now set only one of the LECs to one
+            pot_decomp->LECs_[pot_decomp->LECs_in_use_[LEC_index]] = 1.0;
+
+            #pragma omp parallel for
+            for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
+            {
+                // Compute the amplitudes
+                std::vector<std::complex<double>> t =
+                    solve_T_PC(T_lab,chn_index,order_decomp, chn_index_LO, 
+                    V_LO_name, V_NLO_name,V_N2LO_name,V_N3LO_name);
+
+                // Constant shift is on the last place in the array
+                for (int k=0; k < t.size(); k++) 
+                {
+                    (*saved_decomp_ti_)[i][chn_index][LEC_index][k] = t[k]-
+                        (*saved_decomp_ti_)[i][chn_index][number_of_LECs][k];
+                }
+            }
+        }
+    }
+    // Compute the lower orders        
+    for (int i = 0; i < T_lab_arr.size(); i++)
+    {
+        double T_lab = T_lab_arr[i];
+        #pragma omp parallel for
+        for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
+        {
+            // Now populate the saved matrices that are all the 
+            // lower orders sumed up. These do not depend on the LECs
+            // at order=order_decomp and can be saved together.
+            for (int k=0; k<4; k++)
+            {
+                (*saved_decomp_lower_order_T_)[i][chn_index][k] = 0.0;
+            }
+            
+            for (int order=0; order < order_decomp; order++)
+            {
+                std::vector<std::complex<double>> t =
+                    solve_T_PC(T_lab,chn_index,order, chn_index_LO, 
+                    V_LO_name, V_NLO_name,V_N2LO_name,V_N3LO_name);
+                
+                for (int k=0; k<4; k++)
+                {   
+                    (*saved_decomp_lower_order_T_)[i][chn_index][k] += t[k];
+                }
+            }
+        }
+    }
+}
+/*
+void nn_mwpc_dwb_interface::save_decomp_T_chn_PC(std::vector<double> T_lab_arr, 
+        std::vector<int> chn_index_LO, int order_decomp,
+        const std::string& V_LO_name, const std::string& V_NLO_name,
+        const std::string& V_N2LO_name, const std::string& V_N3LO_name)
+{
+    saved_decomp_T_lab_ = T_lab_arr;
+    saved_decomp_order_ = order_decomp;
+    if (order_decomp < 1 || order_decomp > 3)
+    {
+        std::cout << "Error, order_decomp out of bounds" << std::endl;
+        std::exit(1);
+        return;
+    }
+    if (saved_decomp_ti_ != nullptr) {
+        //std::cout << "Delete saved_decomp_ti_" << std::endl;
+        delete saved_decomp_ti_;
+    }
+    if (saved_decomp_lower_order_T_ != nullptr) {
+        //std::cout << "Delete saved_decomp_lower_order_T" << std::endl;
+        delete saved_decomp_lower_order_T_;
+    }
+
+    // Number of LECs in the potential with order=order_decomp
+    Potential_mwpc<gsl_matrix_complex>* pot_decomp;
+    if (order_decomp == 1) 
+    {
+        pot_decomp = potentials_[V_NLO_name];
+        saved_decomp_pot_name_ = V_NLO_name;
+    } else if (order_decomp == 2)
+    {
+        pot_decomp = potentials_[V_N2LO_name];
+        saved_decomp_pot_name_ = V_N2LO_name;
+    } else if (order_decomp == 3)
+    {
+        pot_decomp = potentials_[V_N3LO_name];
+        saved_decomp_pot_name_ = V_N3LO_name;
+    }
+    int number_of_LECs = pot_decomp->LECs_in_use_.size();
+
+    //std::cout << "order_decomp=" << order_decomp << std::endl;
+    //std::cout << "number_of_LECs=" << number_of_LECs << std::endl;
+    
+    saved_decomp_ti_         = create4DArray(T_lab_arr.size(),chns_.size(),number_of_LECs+1,4);
+    saved_decomp_lower_order_T_ = create3DArray(T_lab_arr.size(),chns_.size(),4);
+
+    
+    // Check that order_decomp is inside the bounds
+    for (int i = 0; i < T_lab_arr.size(); i++)
+    {
+        double T_lab = T_lab_arr[i];
+        for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
+        {
+            qs::quantum_channel chn = chns_[chn_index];
+
+            // Set all LECs to zero
+            for (int k = 0; k < pot_decomp->LEC_names_.size(); k++)
+            {
+                pot_decomp->LECs_[pot_decomp->LEC_names_[k]] = 0.0;
+            }
+
+            // Now compute the constant part
+            std::vector<std::complex<double>> t_const = 
+                    solve_T_PC(T_lab,chn_index,order_decomp, chn_index_LO, 
+                    V_LO_name, V_NLO_name,V_N2LO_name,V_N3LO_name);
+            
+            // Constant shift is on the last place in the array
+            for (int k=0; k < t_const.size(); k++) 
+            {
+                (*saved_decomp_ti_)[i][chn_index][number_of_LECs][k] = t_const[k];
+            }
+            
+            // Set each LEC to one and the others to zero
+            for (int LEC_index=0; LEC_index < pot_decomp->LECs_in_use_.size(); LEC_index++)
+            {
+                // Set all LECs to zero
+                for (int k=0; k< pot_decomp->LEC_names_.size(); k++)
+                {
+                    pot_decomp->LECs_[pot_decomp->LEC_names_[k]] = 0.0;
+                }
+
+                pot_decomp->LECs_[pot_decomp->LECs_in_use_[LEC_index]] = 1.0;
+                
+            
+                std::vector<std::complex<double>> t =
+                    solve_T_PC(T_lab,chn_index,order_decomp, chn_index_LO, 
+                    V_LO_name, V_NLO_name,V_N2LO_name,V_N3LO_name);
+
+                // Constant shift is on the last place in the array
+                for (int k=0; k < t.size(); k++) 
+                {
+                    (*saved_decomp_ti_)[i][chn_index][LEC_index][k] = t[k]-t_const[k];
+                }
+            }
+            
+            // Now populate the saved matrices that are all the 
+            // lower orders sumed up. These do not depend on the LECs
+            // at order=order_decomp and can be saved together.
+            for (int k=0; k<4; k++)
+            {
+                (*saved_decomp_lower_order_T_)[i][chn_index][k] = 0.0;
+            }
+            
+            for (int order=0; order < order_decomp; order++)
+            {
+                std::vector<std::complex<double>> t =
+                    solve_T_PC(T_lab,chn_index,order, chn_index_LO, 
+                    V_LO_name, V_NLO_name,V_N2LO_name,V_N3LO_name);
+                
+                for (int k=0; k<4; k++)
+                {   
+                    (*saved_decomp_lower_order_T_)[i][chn_index][k] += t[k];
+                }
+            }
+        }
+    }
+}*/
 
 /*
  * ************************************************************
@@ -972,21 +1433,14 @@ void nn_mwpc_dwb_interface::save_potential_decomposition(
         const std::string& potential_name)
 {   
     // Save potential in all channels
-    //#pragma omp parallel
-   // {
-       //#pragma omp for
-        for (int i = 0; i < chns_.size(); i++)
-        {
-            //int tid = omp_get_thread_num();
-            //std::cout << "Hello from thread: " << tid << std::endl;
-            // std::cout << "chn_index=" << chn_index << std::endl;
-            qs::quantum_channel chn = chns_[i];
-            potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
-            if (print_) {
-                std::cout << potential_name << ", saved channel: " << i << std::endl;
-            }
+    for (int i = 0; i < chns_.size(); i++)
+    {
+        qs::quantum_channel chn = chns_[i];
+        potentials_[potential_name]->populate_saved_mtx(chn,rel_corr_);
+        if (print_) {
+            std::cout << potential_name << ", saved channel: " << i << std::endl;
         }
-    //}
+    }
 }
 
 void nn_mwpc_dwb_interface::print_potential_names()

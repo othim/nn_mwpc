@@ -5,26 +5,26 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-SYSTEM = MAC
-#SYSTEM = SUBATOM
+#SYSTEM = MAC
+SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
-#BLAS_LIB = MKL
-BLAS_LIB = GSL
+BLAS_LIB = MKL
+#BLAS_LIB = GSL
 # -------------------
 
 # Compiler
 # --------
-CC = g++
-#CC = icpc
+#CC = g++
+CC = icpc
 # --------
 
 # Optimization
 # ------------
-OPT = -O3 -g
+OPT = -O3
 # ------------
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -70,7 +70,13 @@ ifeq ($(BLAS_LIB), MKL)
 
 # Using this flag you can do when using the icpc compiler
 #
-LDFLAGS += -qmkl
+#LDFLAGS += -qmkl
+
+LDFLAGS += -Wl,--start-group \
+${MKLROOT}/lib/intel64/libmkl_intel_lp64.a \
+${MKLROOT}/lib/intel64/libmkl_sequential.a \
+${MKLROOT}/lib/intel64/libmkl_core.a \
+-Wl,--end-group \
 
 endif
 ifeq ($(BLAS_LIB), GSL)
