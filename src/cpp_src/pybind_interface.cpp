@@ -93,8 +93,11 @@ PYBIND11_MODULE(nn_mwpc, m)
                 &nn_mwpc_dwb_interface::save_DWBA_T_chn_PC,
                 py::return_value_policy::copy)
         
-        .def("observable_from_saved_T", 
-                &nn_mwpc_dwb_interface::observable_from_saved_T,
+        .def("observable_from_saved_T_vec", 
+                &nn_mwpc_dwb_interface::observable_from_saved_T_vec,
+                py::return_value_policy::copy)
+        .def("observable_arr_from_saved_T_vec", 
+                &nn_mwpc_dwb_interface::observable_arr_from_saved_T_vec,
                 py::return_value_policy::copy)
 
         .def("create_new_potential", 
@@ -123,6 +126,15 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("get_DWBA_T_matrix", 
                 &nn_mwpc_dwb_interface::get_DWBA_T_matrix,
                 py::return_value_policy::copy)
+        .def("save_decomp_T_chn_PC", 
+                &nn_mwpc_dwb_interface::save_decomp_T_chn_PC,
+                py::return_value_policy::copy)
+        .def("set_saved_T_vec_from_saved_decomp", 
+                &nn_mwpc_dwb_interface::set_saved_T_vec_from_saved_decomp,
+                py::return_value_policy::copy)
+        .def("set_saved_T_vec_from_saved_orders", 
+                &nn_mwpc_dwb_interface::set_saved_T_vec_from_saved_orders,
+                py::return_value_policy::copy)
 
         
 
@@ -147,6 +159,7 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("get_mpi", &nn_mwpc_dwb_interface::get_mpi, py::return_value_policy::copy)
         .def("get_Mp", &nn_mwpc_dwb_interface::get_Mp, py::return_value_policy::copy)
         .def("get_Mn", &nn_mwpc_dwb_interface::get_Mn, py::return_value_policy::copy);
+        
 }
 #endif
 

@@ -73,7 +73,7 @@ int main(int argc, char** argv)
      */
 
     double scale = 100.0;
-    unsigned int number_of_p_points = 60;   // Number of momentum-grid points
+    unsigned int number_of_p_points = 10;   // Number of momentum-grid points
     int          J_max              = 15;
  
     double       Lambda             = 500.0;
@@ -198,6 +198,12 @@ int main(int argc, char** argv)
             time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
         std::cout << "obs: " << obs_comp << std::endl;
     }
+
+
+    std::vector<double> T_lab_arr = {1.0,10.0,100.0};
+    int order_decomp = 3;
+    nn_dwb.save_decomp_T_chn_PC(T_lab_arr, chn_index_LO, order_decomp, "MLO", "MNLO","MN2LO","MN3LO");
+    nn_dwb.save_decomp_T_chn_PC(T_lab_arr, chn_index_LO, order_decomp, "MLO", "MNLO","MN2LO","MN3LO");
     
     
 
