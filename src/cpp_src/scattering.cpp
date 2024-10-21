@@ -618,7 +618,7 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
        
        // For each angle, compute the saclay amplitude and DSG
        
-       auto start_time = std::chrono::high_resolution_clock::now();
+       //auto start_time = std::chrono::high_resolution_clock::now();
        double SGT = 0;
 
        #pragma omp parallel
@@ -644,11 +644,13 @@ double compute_total_cross_section(std::vector<qs::quantum_channel> chns_vec,
        }
        // Add phi-integral factor
        SGT = SGT*2.0*M_PI;
+       /*
        auto end_time = std::chrono::high_resolution_clock::now();
        auto time = end_time - start_time;
        std::cout << "SGT int" << std::endl;
        std::cout << "Time: " << 
             time/(std::chrono::microseconds(1)*1000.0) << " ms" << std::endl;
+        */
        gsl_integration_fixed_free(int_ang_);
        //delete[] z_mesh;
        //delete[] w_z_mesh;
