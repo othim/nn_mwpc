@@ -42,6 +42,53 @@ std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min,
     return states;
 }
 
+
+std::vector<qs::quantum_NN_HO_state> get_states_NN_HO(int N_max,
+        int Tz_min, int Tz_max, bool print)
+{
+    std::vector<qs::quantum_NN_HO_state> states;
+    for (int Tz = Tz_min; Tz < Tz_max+1; Tz ++)
+    {
+        for (int n=0; n<N_max/2+1; n++)
+        {
+            for (int L=0; L<N_max-2*n+1; L++)
+            {
+                for (int S=0; S<2; S++)
+                {
+                    for (int T = std::abs(Tz); T < 2; T++)
+                    {
+                        if ( (L+S+T) % 2 != 0)
+                        {
+                            for (int J = std::abs(int(L-S)); J < L+S+1; J++)
+                            {
+                                qs::quantum_NN_HO_state qs = 
+                                {.J = J,
+                                .L=L,
+                                .S=S,
+                                .T=T,
+                                .Tz=Tz,
+                                .pi = (int)std::pow(-1,L),
+                                .n = n
+                                };
+                                if (print) {
+                                    std::cout << "State: " << "n=" << n << " L=" << L 
+                                        << " S=" << S << " J=" << J << " T="
+                                        << T << " Tz=" << Tz << " pi=" << qs.pi 
+                                        << std::endl;
+                                }
+                                states.push_back(qs);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return states;
+}
+
+
+
 std::vector<qs::quantum_channel> get_channels(
         std::vector<qs::quantum_NN_state> states, bool print)
 {

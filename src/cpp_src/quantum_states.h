@@ -40,6 +40,11 @@ namespace qs
 
     };
 
+    struct quantum_NN_HO_state
+    {
+        int n; int L; int S; int J; int T; int Tz; int pi;
+    };
+
 };
 
 struct Phase_shifts_chn {double delta_p; double delta_m; double epsilon; 
@@ -75,6 +80,9 @@ struct in_out_state { int J; int Li; int Lo; int S; int T; int Tz; int pi; };
     The Puli principle gives that (-1)^{s+l+t} = -1
 */
 std::vector<qs::quantum_NN_state> get_states_NN(int J_max, int J_min, 
+        int Tz_min, int Tz_max, bool print);
+
+std::vector<qs::quantum_NN_HO_state> get_states_NN_HO(int N_max,
         int Tz_min, int Tz_max, bool print);
 
 /*
