@@ -675,3 +675,31 @@ std::vector<std::complex<double>>
     }
     return return_vec;
 }
+
+
+double* ph::get_mom_HO_R(double* p_grid, int num_grid_points, int n, int l, 
+        double mN, double Omega)
+{
+    // Data array
+    double* R_nl   = (double*)malloc(num_grid_points*sizeof(double));
+
+    // HO length
+    double b = sqrt(1.0/(mN*Omega));
+    
+    gsl_sf_result result;
+    for (int i=0; i<num_grid_points; i++)
+    {
+        double p = p_grid[i];
+        // Gamma(x) = (x-1)! for integers
+        double sqrt_fac = sqrt((2.0*gsl_sf_fact((unsigned int)n)*pow(b,3))/
+            (gsl_sf_gamma(n+l+3.0/2.0)));
+        
+        // Compute the Laguerre polynomials
+        double x = p*p*b*b;
+        gsl_sf_laguerre_n_e(n, l+1.0/2.0, x, &result);
+        double L = result.val;
+        
+        R_nl[i] = pow(-1,n)*sqrt_fac*pow(sqrt(x),l)*exp(-(1.0/2.0)*x)*L;
+    }
+    return R_nl;   
+}

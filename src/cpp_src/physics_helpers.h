@@ -8,12 +8,16 @@
 #include "gsl_complex.h"
 #include "gsl_complex_math.h"
 #include "gsl_matrix_complex_double.h"
+#include "gsl_sf_laguerre.h"
+#include "gsl_sf_gamma.h"
 #include "wigxjpf.h"
 #include "quantum_states.h"
 #include "gsl_eigen.h"
 #include "gsl_blas.h"
 #include <stdio.h>
 #include <complex>
+//#include "potential.h"
+//#include "potential_ext.h"
 
 namespace ph {
 
@@ -235,6 +239,16 @@ std::vector<std::complex<double>>
  */
 std::vector<std::complex<double>> 
     get_complex_vector_from_matrix(gsl_matrix_complex* M);
+
+
+
+/*
+ *
+ * Computes the radial HO wave function R(p).
+ *
+ */
+double* get_mom_HO_R(double* p_grid, int num_grid_points, int n, int l, 
+        double mN, double Omega);
 }
 
 
