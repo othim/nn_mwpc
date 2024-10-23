@@ -9,9 +9,7 @@
  * Oliver Thim 2021-11 --
  * Department of Physics, Chalmers
  */
-
-#ifndef POT_EXT
-#define POT_EXT
+#pragma once
 
 #include "quantum_states.h"
 #include "gsl_matrix.h"
@@ -28,7 +26,8 @@ private:
      * Function pointer to the function that computes the matrix elements of
      * the potential.
      */ 
-    void (*my_element_V_arr)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr);
+    void (*my_element_V_arr)(double qi,double qo, bool coupled, int S, int J, 
+            int T, int Tz, double* V_arr);
     
     double* p_grid_;
     int mom_grid_size_;    
@@ -42,6 +41,8 @@ public:
     
     ~Potential_ext();
     
+    double get_pot_element_LSJ(double qi, double qo, int Li, int Lo,
+            int S, int J, int T, int Tz);
     /*
      * This function returns the potential matrix
      */
@@ -63,12 +64,18 @@ public:
             bool rel_correction);
     
     void print_LECs_and_params_info();
+    
+    double compute_HO_matrix_el(int no, int Lo, int ni, 
+            int Li, int S, int J, int T, int Tz, double* p_grid, 
+            double* w_grid, int num_grid_points, double mN, double Omega);
 };
 
 
 void cdbonn_correct_arg(double qi, double qo, bool coupled, int S, int J, 
         int T, int Tz,  double* V_arr);
 void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, 
+        int Tz,  double* V_arr);
+void idaho_n3lo_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, 
         int Tz,  double* V_arr);
 void nijm_OPE_correct_arg(double qi, double qo, bool coupled, int S, int J, 
         int T, int Tz,  double* V_arr);
@@ -94,4 +101,13 @@ extern "C" {
 			  int *Tz,
 			  double *pot);
 }
-#endif
+extern "C" {
+    void idaho_n3lo_fort_interface(double *qi,
+			  double *qo,
+			  int *coup,
+			  int *S,
+			  int *J,
+			  int *T,
+			  int *Tz,
+			  double *pot);
+}

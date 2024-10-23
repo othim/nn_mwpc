@@ -39,6 +39,23 @@ void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, i
 }
 
 
+extern "C" {
+    void idaho_n3lo_fort_interface(double *qi,
+			  double *qo,
+			  int *coup,
+			  int *S,
+			  int *J,
+			  int *T,
+			  int *Tz,
+			  double *pot);
+}
+
+void idaho_n3lo_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
+{
+    int coup = (int)coupled;
+    idaho_n3lo_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
+
+}
 
 /* These declarations are neccessary to be able to have the declarations
  * in a separate .cpp file.
@@ -66,6 +83,10 @@ template gsl_matrix* Potential_ext<gsl_matrix>::get_saved_matrix(double q_on_she
 
 template void Potential_ext<gsl_matrix>::print_LECs_and_params_info();
 
+template double Potential_ext<gsl_matrix>::compute_HO_matrix_el(int no, int Lo, int ni, 
+        int Li, int S, int J, int T, int Tz, double* p_grid, 
+        double* w_grid, int num_grid_points, double mN, double Omega);
+
 template <class gsl_m>
 Potential_ext<gsl_m>::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
         void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr))
@@ -80,6 +101,41 @@ Potential_ext<gsl_m>::Potential_ext(double* p_grid, int p_grid_length, double cu
 template <class gsl_m>
 Potential_ext<gsl_m>::~Potential_ext()
 {
+}
+
+template <class gsl_m>
+double Potential_ext<gsl_m>::get_pot_element_LSJ(double qi, double qo, int Li, 
+        int Lo, int S, int J, int T, int Tz)
+{
+    // 3P0 is a the only special case where the channel is uncoupled when 
+    // L != J.
+    bool coup = false;
+    int Vidx  = 0;
+    if (S == 1 && Li==1 && Lo==1 && J==0) // 3P0
+    {
+        coup = true;
+        Vidx = 2; // Take pp element in V_arr.
+    } else
+    {
+        if (Li==J && Lo == J) // We are in uncoupled channel
+        {
+            coup = false;
+            Vidx = S;
+        } else { // We are in a coupled channel
+            coup = true;
+            if (Li == J-1 && Lo == J-1) Vidx=3; // mm
+            if (Li == J-1 && Lo == J+1) Vidx=5; // mp
+            if (Li == J+1 && Lo == J-1) Vidx=4; // pm
+            if (Li == J+1 && Lo == J+1) Vidx=2; // pp
+        }
+    }
+    
+    double V_arr[6]; // Array for data
+    my_element_V_arr(qi,qo,coup,S, J, T, Tz, &V_arr[0]);
+    // Compute cutoff
+    double cutoff_regulator = exp(-gsl_pow_uint(qi/cutoff_Lambda_,6))*exp(-gsl_pow_uint(qo/cutoff_Lambda_,6));
+    //std::cout << "Vidx=" << Vidx << ", V=" << V_arr[Vidx] << std::endl;
+    return V_arr[Vidx]*cutoff_regulator;
 }
 
 template <class gsl_m>
@@ -285,4 +341,38 @@ template <class gsl_m>
 void Potential_ext<gsl_m>::print_LECs_and_params_info()
 {
     std::cout << "Potential_ext do not have any LECs or params." << std::endl;
+}
+
+
+template <class gsl_m>
+double Potential_ext<gsl_m>::compute_HO_matrix_el(int no, int Lo, int ni, 
+        int Li, int S, int J, int T, int Tz, double* p_grid, 
+        double* w_grid, int num_grid_points, double mN, double Omega)
+{
+    double matrix_element = 0.0;
+    
+    // Compute the HO basis functions on the p-grid
+    double *R_o, *R_i;
+    R_o   = ph::get_mom_HO_R(p_grid,num_grid_points,no,Lo,mN,Omega);
+    R_i   = ph::get_mom_HO_R(p_grid,num_grid_points,ni,Li,mN,Omega);
+
+    // Compute the integrals
+    for (int i=0; i<num_grid_points;i++)
+    {
+        double Ro = R_o[i];
+        double po = p_grid[i];
+        double wo = w_grid[i];
+        for (int j=0; j<num_grid_points;j++)
+        {
+            double Ri = R_i[j];
+            double pi = p_grid[j];
+            double wi = w_grid[j];
+            
+            double Vij = get_pot_element_LSJ(pi,po,Li,Lo,S,J,T,Tz);
+            matrix_element += wo*po*po*wi*pi*pi*Ro*Ri*Vij;
+        }
+    }
+    free(R_o);
+    free(R_i);
+    return matrix_element;
 }
