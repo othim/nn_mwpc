@@ -5,21 +5,21 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-#SYSTEM = MAC
-SYSTEM = SUBATOM
+SYSTEM = MAC
+#SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
-BLAS_LIB = MKL
-#BLAS_LIB = GSL
+#BLAS_LIB = MKL
+BLAS_LIB = GSL
 # -------------------
 
 # Compiler
 # --------
-#CC = g++
-CC = icpc
+CC = g++
+#CC = icpc
 # --------
 
 # Optimization
@@ -121,6 +121,7 @@ endif
 
 NIJM_FILES = nijmegen_interface.o pnijm.o # Compiled from fortran code
 CDBONN_FILES = cdbonn_interface.o cdbonn.o # Compiled separately from Fortran code
+IDAHO_N3LO_FILES = idaho-n3lo-interface.o idaho-n3lo.o # Compiled separately from Fortran code
 
 FILES_SO = pybind_interface.o Term.o potential.o\
 		   quantum_states.o LS_Solver.o scattering.o physics_helpers.o potential_ext.o \
@@ -128,7 +129,7 @@ FILES_SO = pybind_interface.o Term.o potential.o\
 		   pre_def_potentials.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(FILES_SO) -o libnn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
+	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(IDAHO_N3LO_FILES) $(FILES_SO) -o libnn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
 
 pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) $(FLAGS) -c pybind_interface.cpp

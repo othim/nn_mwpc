@@ -469,6 +469,8 @@ void check_binding(
     
     Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
             p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    //Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
+    //        p_grid, number_of_p_points, Lambda, &idaho_n3lo_correct_arg);
     
     gsl_matrix* pot_V_mtx = nijmegen.get_matrix_no_onshell(chn,false);
     ph::eigen_t diag_res = ph::solve_SE(p_grid, w_grid, 

@@ -87,6 +87,9 @@ template double Potential_ext<gsl_matrix>::compute_HO_matrix_el(int no, int Lo, 
         int Li, int S, int J, int T, int Tz, double* p_grid, 
         double* w_grid, int num_grid_points, double mN, double Omega);
 
+template double Potential_ext<gsl_matrix>::get_pot_element_LSJ(double qi, double qo, int Li, 
+        int Lo, int S, int J, int T, int Tz);
+
 template <class gsl_m>
 Potential_ext<gsl_m>::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
         void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr))
@@ -132,9 +135,16 @@ double Potential_ext<gsl_m>::get_pot_element_LSJ(double qi, double qo, int Li,
     
     double V_arr[6]; // Array for data
     my_element_V_arr(qi,qo,coup,S, J, T, Tz, &V_arr[0]);
+    
+    // OBS qi and qo reversed!!
+    
+    //my_element_V_arr(qo,qi,coup,S, J, T, Tz, &V_arr[0]);
     // Compute cutoff
     double cutoff_regulator = exp(-gsl_pow_uint(qi/cutoff_Lambda_,6))*exp(-gsl_pow_uint(qo/cutoff_Lambda_,6));
     //std::cout << "Vidx=" << Vidx << ", V=" << V_arr[Vidx] << std::endl;
+    //if (coup && std::abs(V_arr[5]-V_arr[4])>1e-10){
+    //    std::cout << "Error: " << V_arr[5] << ", " << V_arr[4] << std::endl;
+   // }
     return V_arr[Vidx]*cutoff_regulator;
 }
 
@@ -370,6 +380,16 @@ double Potential_ext<gsl_m>::compute_HO_matrix_el(int no, int Lo, int ni,
             
             double Vij = get_pot_element_LSJ(pi,po,Li,Lo,S,J,T,Tz);
             matrix_element += wo*po*po*wi*pi*pi*Ro*Ri*Vij;
+
+            // This code computes the full ME of the relative Hamiltonian
+            // also including the kinetic energy.
+            /*
+            // Include only if Lo = Li
+            if (Lo == Li && i==j)
+            {
+                matrix_element += wo*po*po*Ro*Ri*po*po/(mN);
+            }
+            */
         }
     }
     free(R_o);

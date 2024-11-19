@@ -684,7 +684,9 @@ double* ph::get_mom_HO_R(double* p_grid, int num_grid_points, int n, int l,
     double* R_nl   = (double*)malloc(num_grid_points*sizeof(double));
 
     // HO length
-    double b = sqrt(1.0/(mN*Omega));
+    // Scale by factor of two since the potential matrix elements are in a 
+    // basis which uses the relative momentum and not the Jacobi momentum.
+    double b = sqrt(1.0/(mN*Omega))*sqrt(2); 
     
     gsl_sf_result result;
     for (int i=0; i<num_grid_points; i++)
@@ -700,6 +702,7 @@ double* ph::get_mom_HO_R(double* p_grid, int num_grid_points, int n, int l,
         double L = result.val;
         
         R_nl[i] = pow(-1,n)*sqrt_fac*pow(sqrt(x),l)*exp(-(1.0/2.0)*x)*L;
+        //R_nl[i] = sqrt_fac*pow(sqrt(x),l)*exp(-(1.0/2.0)*x)*L;
     }
     return R_nl;   
 }

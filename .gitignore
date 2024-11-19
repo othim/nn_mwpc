@@ -27,3 +27,5 @@ nn_mwpc.so
 /python_module/figures
 
 data/out_*
+
+test_code/*.txt

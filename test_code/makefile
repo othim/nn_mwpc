@@ -5,21 +5,21 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-#SYSTEM = MAC
-SYSTEM = SUBATOM
+SYSTEM = MAC
+#SYSTEM = SUBATOM
 #SYSTEM=TETRALITH
 # ------------
 
 # Choose blas library
 # -------------------
-BLAS_LIB = MKL
-#BLAS_LIB = GSL
+#BLAS_LIB = MKL
+BLAS_LIB = GSL
 # -------------------
 
 # Compiler
 # --------
-#CC = g++
-CC = icpc
+CC = g++
+#CC = icpc
 # --------
 
 # Optimization
@@ -84,6 +84,9 @@ POT: test_potentials.o
 DWB: test_dwb.o
 	$(CC) -Wall -std=c++11 -o DWB $(LDPATH) test_dwb.o $(LDFLAGS)
 
+HO: test_HO_pot.o
+	$(CC) -Wall -std=c++11 -o HO $(LDPATH) test_HO_pot.o $(LDFLAGS)
+
 test_nijm_phase.o: test_nijm_phase.cpp
 	$(CC) $(CFLAGS) -c test_nijm_phase.cpp
 
@@ -99,6 +102,9 @@ test_potentials.o: test_potentials.cpp
 test_dwb.o: test_dwb.cpp
 	$(CC) $(CFLAGS) -c test_dwb.cpp
 
+test_HO_pot.o: test_HO_pot.cpp
+	$(CC) $(CFLAGS) -c test_HO_pot.cpp
+
 clean:
 	rm test_nijm_phase.o test_obs_nijmegen1.o test_potentials.o test_LO_WPC.o\
-		test_dwb.o
+		test_dwb.o test_HO_pot.o
