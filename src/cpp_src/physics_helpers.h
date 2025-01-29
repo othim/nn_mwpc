@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 #include "gsl_matrix.h"
 #include "gsl_integration.h"
@@ -32,6 +33,8 @@ typedef struct
     double MeVm2_to_mbarn; // Conversion factor from MeV^{-2} to mbarn
 
 } constants_struct;
+
+void print_constants_struct(ph::constants_struct* pc);
 
 /*
  * This function initialize relevant data that needs to be in memory 

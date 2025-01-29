@@ -14,6 +14,16 @@ void ph::physics_helpers_free()
     wig_table_free();
 }
 
+void ph::print_constants_struct(ph::constants_struct* pc)
+{
+    std::cout << std::setprecision(16);
+    std::cout << "fpi            = " << pc->fpi << " MeV" << std::endl;
+    std::cout << "mpi            = " << pc->mpi << " MeV" << std::endl;
+    std::cout << "Mp             = " << pc->Mp  << " MeV" << std::endl;
+    std::cout << "Mn             = " << pc->Mn  << " MeV" << std::endl;
+    std::cout << "inv_fm_to_MeV  = " << pc->inv_fm_to_MeV  << " MeV*fm" << std::endl;
+    std::cout << "MeVm2_to_mbarn = " << pc->MeVm2_to_mbarn  << " MeV^2*mb" << std::endl;
+}
 
 
 gsl_matrix_complex* ph::kronecker_product(gsl_matrix_complex* m1, gsl_matrix_complex* m2)
@@ -614,19 +624,19 @@ void ph::matrix_from_vector(gsl_matrix_complex* M,gsl_vector_complex* vec)
 
 double ph::get_mN(int Tz, double Mn, double Mp)
 {
-    if (Tz == -1)
+    if (Tz == 1)
     {
         return Mn; // nn
     } else if (Tz == 0)
     {
         return 2.0*Mn*Mp/(Mn+Mp); // np
 
-    } else if (Tz == 1)
+    } else if (Tz == -1)
     {
         return Mp; // pp
     } else 
     {
-        std::cout << "Error in get_mN(): Unknown isospin" << std::endl;
+        std::cout << "Error in get_mN(): Unknown isospin: " << Tz << std::endl;
         return -1;
     }
 }
