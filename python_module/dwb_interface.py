@@ -20,8 +20,8 @@ import sys
 
 
 def get_pwa93_phase_shifts(chn):
-    #path = '/Users/toliver/Documents/phd/projects/lo_lepage/data/pwa93/'
-    path = '/net/home/toliver/phd/projects/lo_lepage/data/pwa93/'
+    path = '/Users/toliver/Documents/phd/projects/lo_lepage/data/pwa93/'
+    #path = '/net/home/toliver/phd/projects/lo_lepage/data/pwa93/'
     filename = 'np_' + chn + '_pwa93.txt' # chn is the LS term
     
     try:
@@ -52,6 +52,8 @@ def plot_pwa93_phase_shifts(chn,ax):
                 ax[i].plot(x_axis, data[0:-1:2,idx[i]],color='black',\
                         linestyle='--')
         else:
+            #print(x_axis)
+            #print(data[0:-1:2,1])
             ax.plot(x_axis, data[0:-1:2,1],color='black',\
                     linestyle='--',label='pwa93')
     except:

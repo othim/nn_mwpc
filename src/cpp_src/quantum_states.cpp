@@ -220,3 +220,19 @@ std::string quantum_channel_to_string(qs::quantum_channel chn)
 
     return s_s + s_LS + s_j;
 }
+
+bool chn_in_chns(qs::quantum_channel chn, std::vector<qs::quantum_channel> chns)
+{
+    for (int i = 0; i < chns.size(); i++)
+    {
+        if (chns[i].J       == chn.J &&
+            chns[i].S       == chn.S &&
+            chns[i].T       == chn.T &&
+            chns[i].Tz      == chn.Tz &&
+            chns[i].coupled == chn.coupled) 
+        {
+            return true;
+        }
+    }
+    return false;
+}

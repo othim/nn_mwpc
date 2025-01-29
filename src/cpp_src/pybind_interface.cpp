@@ -114,6 +114,15 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("save_potential_decomposition", 
                 &nn_mwpc_dwb_interface::save_potential_decomposition,
                 py::return_value_policy::copy)
+        .def("save_ho_me_decomp", 
+                &nn_mwpc_dwb_interface::save_ho_me_decomp,
+                py::return_value_policy::copy)
+        .def("save_ho_me", 
+                &nn_mwpc_dwb_interface::save_ho_me,
+                py::return_value_policy::copy)
+        .def("save_ho_me_diff_chn", 
+                &nn_mwpc_dwb_interface::save_ho_me_diff_chn,
+                py::return_value_policy::copy)
         .def("print_potential_names", 
                 &nn_mwpc_dwb_interface::print_potential_names,
                 py::return_value_policy::copy)
@@ -651,6 +660,19 @@ std::vector<double> nn_mwpc_interface::compute_phase_shift(int chn_number, doubl
         
     gsl_matrix* pot_V_mtx = Pot_->get_saved_matrix(q_on_shell, chn, rel_corr_);
 
+    /*
+    // Some print
+    std::cout << "p_grid" << std::endl;
+    for (int i=0; i<number_of_p_points_; i++) {
+        std::cout << p_grid_[i] << std::endl;
+    }
+    std::cout << "pot" << std::endl;
+    for (int i=0; i<number_of_p_points_; i++) {
+        double pot = 0;
+        pot = gsl_matrix_get(pot_V_mtx,i,i);
+        std::cout << i << "," << pot << std::endl;
+    }
+    */
     Phase_shifts_chn phases = LS_Solver_->solve_in_chn_R(T_lab,chn,pot_V_mtx);
         
     gsl_matrix_free(pot_V_mtx);

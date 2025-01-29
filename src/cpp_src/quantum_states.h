@@ -93,4 +93,6 @@ std::vector<qs::quantum_channel> get_channels(
 
 std::string quantum_channel_to_string(qs::quantum_channel chn); 
 
+bool chn_in_chns(qs::quantum_channel chn, std::vector<qs::quantum_channel> chns);
+
 #endif

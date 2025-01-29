@@ -163,6 +163,7 @@ void check_observable(
     double Tl = 30.0;
     double C1S0	= -0.1/100.0; 
     double C3S1	= -0.13/100.0;
+    //double C3S1	= -0.072/100.0;
     
     // Open file
     std::string data = "../data/PB_30_MeV_Andreas_original.txt";
@@ -272,6 +273,7 @@ void check_chn(
     // Set the constants to the values Andreas use
     
     double C1S0	= -0.1/100.0; 
+    //double C1S0	= 0;//-0.1/100.0; 
     double C3S1	= -0.13/100.0;
     
     nn_mwpc_interface interface = nn_mwpc_interface("WPC_LO",J_max,
@@ -389,6 +391,7 @@ void check_chn(
         {
             D_phase = D_1S0;
             C_phase = phases.delta_uncoupled*180.0/M_PI;
+            //std::cout << Tl << "\t" << C_phase << std::endl;
             
         } else if (chn_string == "1P1")
         {
@@ -481,6 +484,7 @@ void check_binding(
     
     double C1S0	= -0.1/100.0; 
     double C3S1	= -0.13/100.0;
+    //double C3S1	= -0.072/100.0;
     
     nn_mwpc_interface interface = nn_mwpc_interface("WPC_LO",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
