@@ -394,7 +394,7 @@ public:
      * *********************************************
      */
     void create_new_potential(const std::string& potential_name, 
-            std::string pre_def_name, double lam_SFR);
+            std::string pre_def_name, std::string loop_reg, double lam_SFR);
     
     void print_potential_info(const std::string& potential_name);
 
@@ -404,6 +404,17 @@ public:
             const std::vector<double>& params);
 
     void save_potential_decomposition(const std::string& potential_name);
+
+    void save_ho_me_decomp(std::string save_dir, int Nmax, 
+        int hbar_omega, std::string& pot_name, bool from_saved_mtx);
+    
+    void save_ho_me(std::string file_name, int Nmax, 
+            int hbar_omega, std::string& pot_name, bool from_saved_mtx);
+
+    void save_ho_me_diff_chn(std::string file_name, 
+            int Nmax, int hbar_omega, bool from_saved_mtx, 
+            std::string& pot_name_LO, std::string& pot_name_other, 
+            std::vector<int> chn_index_LO);
 
     void print_potential_names();
     

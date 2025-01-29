@@ -6,6 +6,7 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         double* w_grid_, int number_of_p_points_, int J_max_in_pot_,
         double cutoff_, int cut_pow_, bool sharp_cutoff_, 
         double sharp_cutoff_add_, bool cut_on_shell_,
+        std::string loop_reg, double lam_SFR,
         ph::constants_struct* program_const_)
 {
     if (pre_def_name == "Yamaguchi_1S0")
@@ -25,7 +26,7 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, 
-                inc_weights_in_pot, cut_on_shell_,"DR",700.0,program_const_);
+                inc_weights_in_pot, cut_on_shell_,loop_reg,lam_SFR,program_const_);
 
         return pot_complex_weights;
     
@@ -49,7 +50,7 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,"DR",700.0,program_const_);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
 
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_LO_SP")
@@ -69,7 +70,7 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
                 new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
                 w_grid_, number_of_p_points_,J_max_in_pot_,
                 cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
-                cut_on_shell_,"DR",700.0,program_const_);
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
     } else if (pre_def_name == "MWPC_NLO_SP")
@@ -80,8 +81,6 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("D1S0");
         
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "DR";
-        double lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -124,8 +123,6 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
 
 
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "DR";
-        double lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -174,8 +171,6 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
 
 
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "DR";
-        double lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -228,8 +223,6 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
 
 
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "DR";
-        double lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -283,8 +276,8 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("D_DS");
         
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "DR";
-        double lam_SFR = 700.0;
+        loop_reg    = "DR";
+        lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -317,8 +310,8 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("D_DS");
         
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "SFR";
-        double lam_SFR = 700.0;
+        loop_reg    = "SFR";
+        lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -360,8 +353,8 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("D_DS");
         
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "DR";
-        double lam_SFR = 700.0;
+        loop_reg    = "DR";
+        lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -403,8 +396,8 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("D_DS");
         
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "SFR";
-        double lam_SFR = 700.0;
+        loop_reg    = "SFR";
+        lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -455,8 +448,8 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("D_DS");
         
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "SFR";
-        double lam_SFR = 700.0;
+        loop_reg    = "SFR";
+        lam_SFR = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
@@ -493,8 +486,8 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("D_DS");
         
         bool inc_weights_in_pot = true; // This is always true
-        std::string loop_reg    = "SFR";
-        double lam_SFR          = 700.0;
+        loop_reg    = "SFR";
+        lam_SFR     = 700.0;
 
         // Make the potential complex
         Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 

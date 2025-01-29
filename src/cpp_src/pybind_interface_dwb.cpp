@@ -1105,7 +1105,7 @@ void nn_mwpc_dwb_interface::save_decomp_T_chn_PC(std::vector<double> T_lab_arr,
     }
 
     // Number of LECs in the potential with order=order_decomp
-    Potential_mwpc<gsl_matrix_complex>* pot_decomp;
+    Potential_mwpc<gsl_matrix_complex>* pot_decomp = nullptr;
     if (order_decomp == 1) 
     {
         pot_decomp = potentials_[V_NLO_name];
@@ -1380,13 +1380,13 @@ std::vector<double> nn_mwpc_dwb_interface::compute_binding_energy(int chn_number
  * *********************************************
  */
 void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_name, 
-        std::string pre_def_name, double lam_SFR)
+        std::string pre_def_name, std::string loop_reg, double lam_SFR)
 {
     // Make a new potential of this type
     Potential_mwpc<gsl_matrix_complex>* pot = pre_def_pot::create_pre_def_pot(pre_def_name, 
             ang_int_points_,p_grid_,w_grid_,number_of_p_points_,J_max_in_pot_,
             cutoff_,cut_pow_,sharp_cutoff_,sharp_cutoff_add_,
-            cut_on_shell_,program_const_);
+            cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
     //Potential_mwpc<gsl_matrix_complex>* pot =  load_pre_def_pot(pre_def_name, lam_SFR);
 
@@ -1476,6 +1476,101 @@ std::vector<std::complex<double>> nn_mwpc_dwb_interface::get_V_matrix(double T_l
 
     return vec;
 }
+
+void nn_mwpc_dwb_interface::save_ho_me_decomp(std::string save_dir, int Nmax, 
+        int hbar_omega, std::string& potential_name, bool from_saved_mtx)
+{
+    potentials_[potential_name]->save_ho_me_decomp(save_dir,Nmax,hbar_omega,
+            from_saved_mtx);
+}
+
+void nn_mwpc_dwb_interface::save_ho_me(std::string file_name, int Nmax, 
+            int hbar_omega, std::string& potential_name, bool from_saved_mtx)
+{
+    potentials_[potential_name]->print_meta_data(file_name,Nmax,
+            hbar_omega,false);
+    potentials_[potential_name]->save_ho_me_chns(file_name,Nmax,hbar_omega,
+            from_saved_mtx, true, chns_,false); // chns_ does not matter when all_chn=true
+}
+
+void nn_mwpc_dwb_interface::save_ho_me_diff_chn(std::string file_name, int Nmax, 
+            int hbar_omega, bool from_saved_mtx, std::string& pot_name_LO, 
+            std::string& pot_name_other, std::vector<int> chn_index_LO)
+{
+    std::vector<qs::quantum_channel> chns_LO;
+    std::vector<qs::quantum_channel> chns_other;
+
+    // Make vector of LO channels, and all other channels
+    for (int chn_index = 0; chn_index < chns_.size(); chn_index++) 
+    {
+        // If it is a LO channel
+        if ( std::find(chn_index_LO.begin(), chn_index_LO.end(), chn_index) 
+                    != chn_index_LO.end())
+        {
+            chns_LO.push_back(chns_[chn_index]);
+        } else {
+            chns_other.push_back(chns_[chn_index]);
+        }
+    }
+    // Open the file and write the meta data
+    std::ofstream outfile;
+    try {
+        outfile.open(file_name);
+    } catch (const std::ifstream::failure& e) {
+        std::cout << "Error opening file: " + file_name << std::endl;
+        return;
+    }
+    outfile << "Potential file created with:" << std::endl;
+    outfile << "pot_LO    = " << pot_name_LO << std::endl;
+    outfile << "pot_other = " << pot_name_other << std::endl;
+    outfile << "chn_index_LO = ";
+    for (int i = 0; i < chn_index_LO.size(); i++)
+        outfile << "(" << chn_index_LO[i] << "," << 
+            quantum_channel_to_string(chns_[chn_index_LO[i]]) << "), "; 
+    outfile << std::endl << std::endl;
+
+    outfile << "Meta data for potentials != 'none' will follow. \n";
+    outfile << "A potential == 'none' is equivalent to a zero potential." << std::endl;
+
+    // Print meta data for both potentials
+    outfile << "***************  pot_LO    = " << std::setw(10) << 
+        pot_name_LO << "  *****************" << std::endl; 
+    outfile << "**********************************************************\n" 
+        << std::endl << std::endl;
+    outfile.close();
+    if (pot_name_LO != "none") {
+        potentials_[pot_name_LO]->print_meta_data(file_name,Nmax,hbar_omega,true);
+    }
+
+    outfile.open(file_name,std::ios_base::app);
+    outfile << "***************  pot_other = " << std::setw(10) << 
+        pot_name_other << "  *****************" << std::endl;
+    outfile << "**********************************************************\n" 
+        << std::endl << std::endl;
+    outfile.close();
+    if (pot_name_other != "none") {
+        potentials_[pot_name_other]->print_meta_data(file_name,Nmax,hbar_omega,true);
+    }
+    outfile.open(file_name,std::ios_base::app);
+    outfile << "DATA:" << std::endl;
+    outfile.close();
+    
+    // Note, if the other potential is zero for some reason the other 
+    // quantum numbers are still printed with ME = 0
+    
+    // Save HO ME for the LO channels
+    if (pot_name_LO != "none") {
+        potentials_[pot_name_LO]->save_ho_me_chns(file_name,Nmax,hbar_omega,
+                from_saved_mtx, false, chns_LO, (pot_name_other == "none"));
+    }
+    // Save HO ME for the other channels
+    if (pot_name_other != "none") {
+        potentials_[pot_name_other]->save_ho_me_chns(file_name,Nmax,hbar_omega,
+                from_saved_mtx, false, chns_other, (pot_name_LO == "none"));
+    }
+    return;
+}
+
 
 /*
  * **********************************
