@@ -56,6 +56,29 @@ template double Potential_mwpc<gsl_matrix>::get_rel_cut(double p_in,
 template double Potential_mwpc<gsl_matrix_complex>::get_rel_cut(double p_in, 
         double p_out, double mu, bool rel_correction);
 
+template void Potential_mwpc<gsl_matrix_complex>::save_ho_me_decomp(std::string save_dir, 
+        int Nmax, int hbar_omega, bool from_saved_mtx);
+
+template void Potential_mwpc<gsl_matrix_complex>::print_meta_data(
+        std::string file_name, int Nmax, int hbar_omega, bool append);
+template void Potential_mwpc<gsl_matrix_complex>::save_ho_me_chns(std::string 
+            file_name, int Nmax,
+            int hbar_omega, bool from_saved_mtx, bool all_chns, 
+            std::vector<qs::quantum_channel> chns,
+            bool print_zero_in_unused_chn);
+
+template void Potential_mwpc<gsl_matrix_complex>::get_chn_block_from_qn(int L, 
+        int Lp, int S, int J, int T, qs::quantum_channel* chn, int* block_index);
+
+template double Potential_mwpc<gsl_matrix_complex>::calc_element_LSJ_full(
+        double p, double pp, int L, int Lp, int S, int J, int T, int Tz);
+
+
+template double Potential_mwpc<gsl_matrix_complex>::compute_HO_matrix_el(
+        int no, int Lo, int ni, int Li, int S, int J, int T, int Tz, 
+        double* p_grid, double* w_grid, int num_grid_points, double mN, 
+        double Omega);
+
 template <class gsl_m>
 Potential_mwpc<gsl_m>::Potential_mwpc(std::vector<std::string> terms, 
    unsigned int N_GLI_PWA,double* p_grid, 
@@ -237,13 +260,6 @@ int Potential_mwpc<gsl_m>::isoFac(int L,int S)
    return res; // Return factor from \tau_i \cdot \tau_2 in terms of T
 }
 
-
-template <class gsl_m>
-double Potential_mwpc<gsl_m>::calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz)
-{
-   // TODO implement
-   return 0;
-}
 
 template <class gsl_m>
 double Potential_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int l, 
@@ -434,6 +450,51 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr_full(double qi,double qo,
         }
     }
 }
+
+template <class gsl_m>
+double Potential_mwpc<gsl_m>::calc_element_LSJ_full(double p, double pp, int L,
+       int Lp, int S, int J, int T, int Tz)
+{
+    // 3P0 is a the only special case where the channel is uncoupled when 
+    // L != J.
+    bool coup = false;
+    int Vidx  = 0;
+    int Li = Lp;
+    int Lo = L;
+    if (S == 1 && Li==1 && Lo==1 && J==0) // 3P0
+    {
+        coup = true;
+        Vidx = 2; // Take pp element in V_arr.
+    } else
+    {
+        if (Li==J && Lo == J) // We are in uncoupled channel
+        {
+            coup = false;
+            Vidx = S;
+        } else { // We are in a coupled channel
+            coup = true;
+            if (Li == J-1 && Lo == J-1) Vidx=3; // mm
+            if (Li == J-1 && Lo == J+1) Vidx=5; // mp
+            if (Li == J+1 && Lo == J-1) Vidx=4; // pm
+            if (Li == J+1 && Lo == J+1) Vidx=2; // pp
+        }
+    }
+    qs::quantum_channel chn;
+    chn.S  = S;
+    chn.J  = J;
+    chn.T  = T;
+    chn.Tz = Tz;
+    chn.coupled = coup;
+    
+    double V_arr[6]; // Array for data
+    calc_element_V_arr(pp, p, chn, &V_arr[0]);
+    
+    double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0; // Default
+    double tot_fac = get_total_rel_cut_weight_factor(pp,0,p,mom_grid_size_,mu,false);
+    
+    return V_arr[Vidx]*tot_fac;
+}
+
 /*
    This funtion performs the partial wave decomposition, which depends on the tensor structure of the 
    respective term in the potential.
@@ -1319,4 +1380,426 @@ void Potential_mwpc<gsl_m>::print_LECs_and_params_info()
         "#####################################################################" 
         << std::endl << std::endl;
 
+}
+
+template <class gsl_m>
+void Potential_mwpc<gsl_m>::save_ho_me_decomp(std::string save_dir, int Nmax, 
+        int hbar_omega, bool from_saved_mtx)
+{
+    // Check if directory exist, otherwise create that directory.
+    //std::filesystem::current_path(std::filesystem::temp_directory_path());
+    
+    // If directory already exist, this operation will simply return false
+    // and no error is caused.
+    //std::filesystem::create_directory(save_dir);
+    
+    // Set all LECs to zero
+    for (std::size_t j = 0; j < LEC_names_.size(); j++)
+    {
+        LECs_[LEC_names_[j]] = 0.0;
+    }
+
+    // Save the const special case:
+    std::string file_name = save_dir +"/pot_mwpc_Nmax_" + std::to_string(Nmax) + "_hw_" 
+        + std::to_string(hbar_omega) + "_LEC_const.txt";
+    
+    save_ho_me_chns(file_name,Nmax,hbar_omega,from_saved_mtx,true);
+    
+    // For all LECs, set one LEC to one and the oter to zero
+    // Set each lec=1 and the rest to 0
+    for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
+    {
+        // Reset ALL lecs to zero, just to be sure
+        // Would suffice to do it for all LECs in use
+        for (std::size_t j = 0; j < LEC_names_.size(); j++)
+        {
+          LECs_[LEC_names_[j]] = 0.0;
+        }
+
+        // Set one LEC to 1.0;
+        LECs_[LECs_in_use_[i]] = 1.0;
+    
+        // Create the file name 
+        std::string file_name = save_dir+"/pot_mwpc_Nmax_" + std::to_string(Nmax) + "_hw_" 
+            + std::to_string(hbar_omega) + "_LEC_" + LECs_in_use_[i] + ".txt";
+        
+        // Call save_ho_me(file,Nmax,hbar_omega)
+        save_ho_me_chns(file_name,Nmax,hbar_omega,from_saved_mtx,true);
+    }
+}
+
+/*
+template <class gsl_m>
+void Potential_mwpc<gsl_m>::save_ho_me_from_decomp(std::string decomp_save_dir, 
+        int Nmax, int hbar_omega)
+{   
+    // For all the active LECs in the potential: Read in the saved file and 
+    // print a new file with ME corresponding to the correct set of LECs.
+    
+    // Here, Nmax must be lower or equal that of the Nmax in the saved files.
+    
+    // Must assume that the states in states_HO are in the same order. Can be good
+    // to be able to call this with a lower Nmax than the save MEs
+    
+    // For each line in the files
+
+    std::vector<ifstream> LEC_files; // Same order as LECs_in_use_
+
+    for (std::size_t i = 0; i < LECs_in_use_.size(); i++)
+    {
+        std::string file_name = decomp_save_dir+"/pot_mwpc_Nmax_" + std::to_string(Nmax) + "_hw_" 
+            + std::to_string(hbar_omega) + "_LEC_" + LECs_in_use_[i] + ".txt";
+        try {
+            LEC_files[i].open(file_name);
+        } catch (const std::ifstream::failure& e) {
+            std::cout << "Error opening file: " + file_name << std::endl;
+            return;
+        }
+    }
+    // Assume that the file have the same length of the meta data
+    // as they must!!!
+    
+    // Print meta data
+    
+    // Get through the meta data
+    std::string line;
+    do {
+        for (auto LEC_file : LEC_files)
+        {
+            std::get_line(LEC_file,line);
+        }
+    } while (line != "n   l   np  lp  S   J   Tz  ME")
+
+    // Now, the next line will be the data lines
+    bool success = true;
+    int n,l,np,lp,S,J,Tz;
+    double ME;
+
+    while (success)
+    {
+        std::vector<double> ME_vec;
+        for (i=0; i < LEC_files.size(); i++)
+        {
+        
+            bool file_succ = std::get_line(LEC_files[i],line);
+            if (file_succ) {
+                std::stringstream line_stram(line);
+                line_stream >> n >> l >> np >> lp >> S >> J >> Tz >> ME;
+                ME_vec.append(ME*LECs_[LECs_in_use_[i]]);
+            }
+        }
+
+        double ME_full = 0;
+        for (i=0; i < LECs_in_use_.size(); i++)
+        {
+            // Subtract the constant from all and multiply by the LEC
+            ME_full += (ME_vec[i]-ME_vec[ME_vec.size()-1])*LECs_[LECs_in_use_[i]];
+        }
+        // Finally, add the constant
+        ME_full += ME_vec[ME_vec.size()-1];
+        
+
+        outfile << bra.n << "\t" <<  bra.L << "\t" << ket.n << "\t" <<
+            ket.L << "\t" << bra.S << "\t" << bra.J << "\t" << bra.Tz << 
+            "\t" << ME_full << std::endl;
+
+        success = (success && file_succ); // All files mut succeed.
+    }
+
+    
+    // Can have a flag here that calculates Nmax for the saved quantum numbers,
+    // and if it is higher it just continues to the next line
+
+    // Add LEC*saved_ME and save the full ME
+
+    
+
+}
+*/
+template <class gsl_m>
+void Potential_mwpc<gsl_m>::print_meta_data(std::string file_name, int Nmax,
+        int hbar_omega, bool append)
+{
+    // Open the file and write the meta data
+    std::ofstream outfile;
+    try {
+        if (append) {
+            outfile.open(file_name,std::ios_base::app);
+        } else {
+            outfile.open(file_name);
+        }
+    } catch (const std::ifstream::failure& e) {
+        std::cout << "Error opening file: " + file_name << std::endl;
+        return;
+    }
+
+    // Backup streambuffers of  cout
+    std::streambuf* stream_buffer_cout = std::cout.rdbuf();
+ 
+    // Get the streambuffer of the file
+    std::streambuf* stream_buffer_file = outfile.rdbuf();
+ 
+    // Redirect cout to file
+    std::cout.rdbuf(stream_buffer_file);
+
+    // Initialize
+    std::cout << "Interaction file created with nn_mwpc from the Potential_mwpc class." << std::endl;
+    std::cout << "Conventions:" << std::endl;
+    std::cout << "- Machleidt convention for the potential is used." << std::endl; 
+    std::cout << "- The harmonic oscillator wave functions have the (-1)^n factor in\n  momentum space.\n\n"; 
+    
+    // Print meta data
+    print_LECs_and_params_info();
+
+    std::cout << "Program const:" << std::endl;
+    std::cout << "--------------" << std::endl;
+
+    ph::print_constants_struct(program_const_);
+    std::cout << std::endl;
+    // Print other relevant parameters
+    std::cout << "Other parameters:" << std::endl;
+    std::cout << "-----------------" << std::endl;
+    std::cout << "Nmax                   = " << Nmax << std::endl;
+    std::cout << "hbar_omega             = " << hbar_omega << " MeV" << std::endl;
+    std::cout << "N_GLI_PWA              = " << N_GLI_PWA_ << std::endl;
+    std::cout << "mom_grid_size          = " << mom_grid_size_ << std::endl;
+    std::cout << "Lambda                 = " << cutoff_Lambda_ << " MeV" << std::endl;
+    std::cout << "cut_pow                = " << cut_pow_ << std::endl;
+    std::cout << "sharp_cutoff           = " << std::to_string(sharp_cutoff_) << std::endl;
+    std::cout << "sharp_cutoff_add       = " << sharp_cutoff_add_ << " MeV" << std::endl;
+    std::cout << "inc_grid_weighs_in_pot = " << inc_grid_weights_in_pot_ << std::endl;
+    std::cout << "cut_on_shell           = " << cut_on_shell_ << std::endl;
+    std::cout << "loop_reg               = " << loop_reg_ << std::endl;
+    std::cout << "lam_SFR                = " << lam_SFR_ << " MeV" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << "FORMAT:" << std::endl;
+    std::cout  << "n" << "\t" <<  "l" << "\t" << "np" << "\t" <<
+            "lp" << "\t" << "S" << "\t" << "J" << "\t" << "Tz" << 
+            "\t" << "ME" << std::endl;
+    // Redirect cout back to screen
+    std::cout.rdbuf(stream_buffer_cout);
+    outfile.close();
+}
+
+template <class gsl_m>
+void Potential_mwpc<gsl_m>::save_ho_me_chns(std::string file_name, int Nmax, 
+        int hbar_omega, bool from_saved_mtx, bool all_chns, 
+        std::vector<qs::quantum_channel> chns, bool print_zero_in_unused_chn)
+{
+    bool rel_correction = false;
+    // Compute quantum states for that given Nmax
+    bool print = false; // If this is true, the program will not terminate when 
+                        // run from python for some reson...........
+    std::vector<qs::quantum_NN_HO_state> states_HO = get_states_NN_HO(
+            Nmax,0,0,print);
+    // Open the file and write the meta data
+    
+    std::ofstream outfile;
+    
+    try {
+        outfile.open(file_name,std::ios_base::app);
+    } catch (const std::ifstream::failure& e) {
+        std::cout << "Error opening file: " + file_name << std::endl;
+        return;
+    }
+    outfile << std::setprecision(16);
+
+    // Loop over the quantum states and compute the harmonic oscillator ME
+    for (auto bra : states_HO)
+    {   
+        for (auto ket : states_HO)
+        {
+            // Check so that the conserved ingoing and outgoing quantum numbers
+            // are the same
+            if (bra.S == ket.S && bra.J == ket.J && bra.T == ket.T && 
+                    bra.Tz==ket.Tz) 
+            {
+                // Check the quantum channel that these quantum numbers belong to
+                qs::quantum_channel chn;
+                int block_index;
+                get_chn_block_from_qn(bra.L, ket.L, bra.S, bra.J, bra.T,
+                        &chn, &block_index);
+                chn.Tz = bra.Tz; // Tz cannot be calculated from block structure
+                
+                // Do the computation ONLY for channels
+                // that are in chns if all_chns == false
+                bool compute_ME = false;
+                
+                if (all_chns) {
+                    compute_ME = true;
+                } else if (chn_in_chns(chn,chns)) {
+                    compute_ME = true;
+                } else {
+                    compute_ME = false;
+                    if (print_zero_in_unused_chn) {
+                        // Print a zero the the file
+                        // n l n’ l’ S J Tz ME
+                        double ME = 0;
+                        outfile << bra.n << "\t" <<  bra.L << "\t" << ket.n << "\t" <<
+                            ket.L << "\t" << bra.S << "\t" << bra.J << "\t" << bra.Tz << 
+                            "\t" << ME << std::endl;
+                    }
+                }
+
+                if (compute_ME)
+                {
+                    // Define nucleon mass, depends on the isospin
+                    double mN = ph::get_mN(bra.Tz,program_const_->Mn,program_const_->Mp);
+                    // Compute the radial wave functions. Check here
+                    // if the potential includes the weight and momentum factors.
+                    // either option is fine. It will only modify which factors
+                    // are included in the HO wave functions.
+                    double *R_o, *R_i;
+                    R_o = ph::get_mom_HO_R(p_grid_,mom_grid_size_,bra.n,bra.L,mN,hbar_omega);
+                    R_i = ph::get_mom_HO_R(p_grid_,mom_grid_size_,ket.n,ket.L,mN,hbar_omega);
+                    
+                    // Get the correct matrix, or matrix part.
+                    double q_on_shell = 0.0; // Just a dummy variable
+
+                    // Get either saved matrix, or compute it.
+                    gsl_m* V_full;
+                    if (from_saved_mtx) {
+                        V_full = get_saved_matrix(q_on_shell, chn, rel_correction);
+                    } else {
+                        V_full = get_matrix(q_on_shell, chn, rel_correction);
+                    }
+
+                    double ME = 0;
+                    // Compute the integrals
+                    for (int i=0; i<mom_grid_size_;i++)
+                    {
+                        double R = R_o[i];
+                        double p = p_grid_[i];
+                        double w = w_grid_[i];
+                        for (int j=0; j<mom_grid_size_;j++)
+                        {
+                            double Rp = R_i[j];
+                            double pp = p_grid_[j];
+                            double wp = w_grid_[j];
+                            
+                            // Add to the indices depending on which block
+                            // the one is addes since the potential matrix 
+                            // contains the on-shell point also
+                            int ii = i;
+                            int jj = j;
+                            if (block_index == 2) {
+                                jj = j + mom_grid_size_ + 1;
+                            } else if (block_index == 3) {
+                                ii = i + mom_grid_size_ + 1;
+                            } else if (block_index == 4) {
+                                ii = i + mom_grid_size_ + 1;
+                                jj = j + mom_grid_size_ + 1;
+                            }
+                            double Vij = GSL_REAL(gsl_matrix_complex_get(V_full,ii,jj));
+                            //std::cout << Vij << std::endl;
+                            
+                            if (inc_grid_weights_in_pot_) {
+                                ME += std::sqrt(w)*p*std::sqrt(wp)*pp*R*Rp*Vij;
+                            } else {
+                                ME += w*p*p*wp*pp*pp*R*Rp*Vij;
+                            }
+                        }
+                    }
+                    ph::matrix_free(V_full);
+                    // Print quantum numbers and ME to the file
+                    // n l n’ l’ S J Tz ME
+                    outfile << bra.n << "\t" <<  bra.L << "\t" << ket.n << "\t" <<
+                        ket.L << "\t" << bra.S << "\t" << bra.J << "\t" << bra.Tz << 
+                        "\t" << ME << std::endl;
+                    
+                    free(R_o);
+                    free(R_i);
+                }
+            }
+        }
+    }
+    outfile.close();
+}
+
+
+template <class gsl_m>
+void Potential_mwpc<gsl_m>::get_chn_block_from_qn(int L, int Lp, int S, int J, 
+    int T, qs::quantum_channel* chn, int* block_index)
+{
+// These quantum numbers must agree
+chn->S  = S;
+    chn->J  = J;
+    chn->T  = T;
+    
+    // Now, check if the channel is coupled of not. 
+    // NOTE: 3P0 count as not coupled!
+    bool coupled = false;
+    
+    // 3P0 special case
+    if (S == 1 && L == 1 && Lp == 1 && J == 0) {
+        coupled = false;
+    // Otherwise, channel is always coupled if L != J
+    } else if ( L != J || Lp != J) {
+        coupled = true;
+    // If not, channel is uncoupled
+    } else {
+        coupled = false;
+    }
+    chn->coupled = coupled;
+    
+    // Calculate block index. If uncoupled it is equal to zero. For a coupled
+    // channel we have: 1|2
+    //                  ---
+    //                  3|4
+
+    if (chn->coupled == false) {
+        *block_index = 0;
+    } else if ( L == J - 1 && Lp == J - 1) {
+        *block_index = 1;
+    } else if ( L == J - 1 && Lp == J + 1) {
+        *block_index = 2;
+    } else if ( L == J + 1 && Lp == J - 1) {
+        *block_index = 3;
+    } else if ( L == J + 1 && Lp == J + 1) {
+        *block_index = 4;
+    }
+}
+
+
+
+
+template <class gsl_m>
+double Potential_mwpc<gsl_m>::compute_HO_matrix_el(int no, int Lo, int ni, 
+        int Li, int S, int J, int T, int Tz, double* p_grid, 
+        double* w_grid, int num_grid_points, double mN, double Omega)
+{
+    double matrix_element = 0.0;
+    
+    // Compute the HO basis functions on the p-grid
+    double *R_o, *R_i;
+    R_o   = ph::get_mom_HO_R(p_grid,num_grid_points,no,Lo,mN,Omega);
+    R_i   = ph::get_mom_HO_R(p_grid,num_grid_points,ni,Li,mN,Omega);
+
+    // Compute the integrals
+    for (int i=0; i<num_grid_points;i++)
+    {
+        double Ro = R_o[i];
+        double po = p_grid[i];
+        double wo = w_grid[i];
+        for (int j=0; j<num_grid_points;j++)
+        {
+            double Ri = R_i[j];
+            double pi = p_grid[j];
+            double wi = w_grid[j];
+            
+            double Vij = calc_element_LSJ_full(po,pi,Lo,Li,S,J,T,Tz);
+            
+            if (inc_grid_weights_in_pot_) {
+                matrix_element = 0;
+                std::cout << "Error in compute_HO_matrix_el, inc_weights must be false" << std::endl;
+                return -1;
+            } else {
+                matrix_element += wo*po*po*wi*pi*pi*Ro*Ri*Vij;
+            }
+        }
+    }
+    free(R_o);
+    free(R_i);
+    return matrix_element;
 }

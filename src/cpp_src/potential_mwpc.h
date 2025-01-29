@@ -10,6 +10,9 @@
    The class ha functionality to be able to compute and return specific matrix
    elements.
 
+   General information about definitions, convention and notation are
+   specified in comments above the respective function decalarations.
+
    Oliver Thim 2021-09 --
    Department of Physics, Chalmers
 */
@@ -19,12 +22,14 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <cmath>
 #include <string>
 #include <map>
 #include <set>
 #include <unordered_map>
+//#include <filesystem>
 #include "gsl_sf_legendre.h"
 #include "gsl_integration.h" 
 #include "gsl_matrix.h"
@@ -196,8 +201,12 @@ public:
     void calc_element_V_arr_full(double qi,double qo, qs::quantum_channel chn,
            bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr);
     
-    // TODO: implement
-    double calc_element_JLS(double qi,double qo, int J, int L, int S, int Tz);
+    /*
+     *
+     * NOTE! Can not be used when cut_on_shell_ = false
+     */
+    double calc_element_LSJ_full(double p, double pp, int L, int Lp, int S, 
+            int J, int T, int Tz);
 
     /* 
       This function returns a mom_grid_size_ + 1 x mom_grid_size_ + 1 matrix IF the channel is uncoupled
@@ -237,5 +246,41 @@ public:
      * Print info about LECs and params in the potential
      */
     void print_LECs_and_params_info();
+    
+    /*
+     * ************************************************************************
+     * This part contains functionality to export the potential matrix elements
+     * in an harmonic oscillator basis.
+     * ************************************************************************
+     *
+     */
+    
+    /*
+     *
+     * Save harmonic oscillator matrix elements.
+     *
+     */
+    void save_ho_me_decomp(std::string save_dir, int Nmax, int hbar_omega,
+            bool from_saved_mtx);
+    void print_meta_data(std::string file_name, int Nmax, int hbar_omega,
+            bool append);
+    void save_ho_me_chns(std::string file_name, int Nmax, 
+            int hbar_omega, bool from_saved_mtx, bool all_chns, 
+            std::vector<qs::quantum_channel> chns = 
+            std::vector<qs::quantum_channel>(), 
+            bool print_zero_in_unused_chn = false);
+
+    int  save_ho_me_from_saved(std::string file_name, std::vector<double> LECs);
+
+    // <l|V|lp>_sjt. l - outgoing, lp - ingoing.
+    void get_chn_block_from_qn(int L, int Lp, int S, int J, int T, 
+            qs::quantum_channel* chn, int* block_indexT);
+
+    double compute_HO_matrix_el(int no, int Lo, int ni, 
+        int Li, int S, int J, int T, int Tz, double* p_grid, 
+        double* w_grid, int num_grid_points, double mN, double Omega);
+
+    void get_sub_matrix();
+
  };
 #endif
