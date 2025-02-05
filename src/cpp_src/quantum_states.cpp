@@ -62,13 +62,14 @@ std::vector<qs::quantum_NN_HO_state> get_states_NN_HO(int N_max,
                             for (int J = std::abs(int(L-S)); J < L+S+1; J++)
                             {
                                 qs::quantum_NN_HO_state qs = 
-                                {.J = J,
+                                {
+                                .n=n,
                                 .L=L,
                                 .S=S,
+                                .J = J,
                                 .T=T,
                                 .Tz=Tz,
-                                .pi = (int)std::pow(-1,L),
-                                .n = n
+                                .pi = (int)std::pow(-1,L)
                                 };
                                 if (print) {
                                     std::cout << "State: " << "n=" << n << " L=" << L 
