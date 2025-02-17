@@ -108,6 +108,9 @@ PYBIND11_MODULE(nn_mwpc, m)
         .def("set_LECs_in_potential", 
                 &nn_mwpc_dwb_interface::set_LECs_in_potential,
                 py::return_value_policy::copy)
+        .def("get_LECs_in_potential", 
+                &nn_mwpc_dwb_interface::get_LECs_in_potential,
+                py::return_value_policy::copy)
         .def("set_params_in_potential", 
                 &nn_mwpc_dwb_interface::set_params_in_potential,
                 py::return_value_policy::copy)
