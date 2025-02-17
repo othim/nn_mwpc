@@ -261,6 +261,7 @@ void check_chn(
         finite_grid, bool inc_weights_in_pot, bool cut_on_shell, 
         ph::constants_struct* program_const, std::string chn_string, bool print)
 {
+    print = false;
     std::cout << "------------------------------------------------" << std::endl;
     std::cout << "Testing  phase shifts with the WPC_LO potential." << std::endl;
     std::cout << "------------------------------------------------" << std::endl;

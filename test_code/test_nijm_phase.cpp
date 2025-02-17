@@ -226,11 +226,13 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns,
             gsl_matrix* pot_V_mtx = nijmegen.get_matrix(q_on_shell, chn, false);
          
             Phase_shifts_chn phases   = solver.solve_in_chn_R(T_lab,chn,pot_V_mtx);
-            //Phase_shifts_chn phases_T = solver.solve_in_chn_T(T_lab,chn,pot_V_mtx);
             
-
-            //std::cout << phases.delta_uncoupled << "   ";
-            //std::cout << phases_T.delta_uncoupled << std::endl;
+            if (print_all) {
+                Phase_shifts_chn phases_T = solver.solve_in_chn_T(T_lab,chn,pot_V_mtx);
+                std::cout << std::setprecision(10);
+                std::cout <<"R: " <<  phases.delta_uncoupled << ",   T:";
+                std::cout << phases_T.delta_uncoupled << std::endl;
+            }
 
             gsl_matrix_free(pot_V_mtx);
          
