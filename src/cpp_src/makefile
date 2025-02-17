@@ -5,8 +5,9 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-SYSTEM = MAC
+#SYSTEM = MAC
 #SYSTEM = SUBATOM
+SYSTEM = SUBFY
 #SYSTEM=TETRALITH
 # ------------
 
@@ -88,6 +89,37 @@ CFLAGS = -Wall -fopenmp -fPIC -std=c++11 $(OPT) \
 		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
 		 -I/net/home/toliver/wigxjpf-1.11/inc \
 		 -I/net/home/toliver/gsl-2.7/gsl
+endif 
+
+# For SUBFY
+# -----------
+ifeq ($(SYSTEM), SUBFY)
+
+CFLAGS2 = -Wall -std=c++11 $(OPT)
+
+# Linker flags for the wigxjpf and gsl libraries
+LDFLAGS =  -L/chalmers/users/toliver/wigxjpf-1.13/lib -L/chalmers/users/toliver/gsl/lib -L/usr/local/lib -fopenmp
+
+ifeq ($(BLAS_LIB), MKL)
+
+
+LDFLAGS += -Wl,--start-group \
+${MKLROOT}/lib/intel64/libmkl_intel_lp64.a \
+${MKLROOT}/lib/intel64/libmkl_sequential.a \
+${MKLROOT}/lib/intel64/libmkl_core.a \
+-Wl,--end-group \
+
+endif
+
+ifeq ($(BLAS_LIB), GSL)
+LDFLAGS += -lgslcblas
+endif
+
+CFLAGS = -Wall -fopenmp -fPIC -std=c++11 $(OPT) \
+		 -I$(HOME)/miniconda3/include/python3.8 \
+		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
+		 -I$(HOME)/wigxjpf-1.13/inc \
+		 -I$(HOME)/gsl/include/gsl
 endif 
 
 
