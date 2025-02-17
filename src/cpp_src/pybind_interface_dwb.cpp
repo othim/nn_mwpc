@@ -111,7 +111,7 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
 
     // Construct a LS_Solver
     LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_,
-            program_const_);
+            finite_grid_max_, program_const_);
     
     
     // Initialize all the saved T-matrix elements to zero

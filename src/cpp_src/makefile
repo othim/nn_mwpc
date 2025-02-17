@@ -5,9 +5,9 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-#SYSTEM = MAC
+SYSTEM = MAC
 #SYSTEM = SUBATOM
-SYSTEM = SUBFY
+#SYSTEM = SUBFY
 #SYSTEM=TETRALITH
 # ------------
 

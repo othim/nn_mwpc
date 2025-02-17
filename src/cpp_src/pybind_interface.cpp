@@ -266,7 +266,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct LS Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
-                finite_grid_,program_const_);
+                finite_grid_,finite_grid_max_,program_const_);
 
     } else if("MWPC_LO_1"==model_name)
     { 
@@ -304,7 +304,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct LS Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
-                finite_grid_,program_const_);
+                finite_grid_,finite_grid_max_,program_const_);
 
     } else if("MWPC_LO_J"==model_name)
     { 
@@ -362,7 +362,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct LS Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
-                finite_grid_, program_const_);
+                finite_grid_,finite_grid_max_, program_const_);
 
     } else if("nijmegen1"==model_name)
     {
@@ -404,7 +404,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct LS Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
-                finite_grid_,program_const_);
+                finite_grid_,finite_grid_max_,program_const_);
 
     } else if ("cdbonn"==model_name)
     {
@@ -420,7 +420,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         // Can't precompute this potential (which is kind of stupid...)
         // Construct the LS_Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
-                finite_grid_,program_const_);
+                finite_grid_,finite_grid_max_,program_const_);
     } else if ("Yamaguchi_1S0" == model_name)
     {
 
@@ -458,7 +458,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
 
         // Construct LS Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
-                finite_grid_,program_const_);
+                finite_grid_,finite_grid_max_,program_const_);
     } else
     {
         std::cout << "Error, not a valid potential model name" << std::endl;

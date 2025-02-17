@@ -4,8 +4,9 @@
 
 // Constructor
 LS_Solver::LS_Solver(unsigned int mom_grid_size,
-    double* p_grid, double* w_grid, bool finite_grid,ph::constants_struct*
-    program_const)
+    double* p_grid, double* w_grid, bool finite_grid, 
+    double finite_grid_max,
+    ph::constants_struct* program_const)
 {
     #ifdef ENABLE_DEBUG
         std::cout << "LS_Solver()" << std::endl;
@@ -20,12 +21,12 @@ LS_Solver::LS_Solver(unsigned int mom_grid_size,
     // integral needs to be added. It is important that the potential is
     // set to zero when the momenta are larger than finite_grid_max
     finite_grid_     = finite_grid;
-    finite_grid_max_ = 0.0; // Default value
-    if (finite_grid)
-    {
-        // The max-value of the grid is the last element
-        finite_grid_max_ = p_grid[mom_grid_size_-1];
-    }
+    finite_grid_max_ = finite_grid_max;
+    //if (finite_grid)
+    //{
+    //    // The max-value of the grid is the last element
+    //    finite_grid_max_ = p_grid[mom_grid_size_-1];
+    //}
 }
 
 // Destructor
@@ -651,14 +652,23 @@ gsl_vector_complex* LS_Solver::setup_G0_vector_complex(double q_on_shell, bool c
     // This is the counterterm that comes fromt that the integral is not computed
     // to infinity for a finite grid. This part compenstates for this by
     // adding the last part of the integral analytically.
+    //std::cout << std::setprecision(16);
+    //std::cout << "sum: " << sum << std::endl; 
+
     if (finite_grid_)
     {
         double counterterm = -std::atanh(q_on_shell/finite_grid_max_)/q_on_shell;
         sum += counterterm;
+        //std::cout << "q_on_shell " << q_on_shell << std::endl; 
+        //std::cout << "Lambda " << finite_grid_max_ << std::endl; 
+        //std::cout << "q/Lambda " << q_on_shell/finite_grid_max_ << std::endl; 
+        //std::cout << "counterterm: " << counterterm << std::endl; 
     }
     
-    
     double re_el = -2.0*mu*q2_on_shell*sum;
+    
+    //std::cout << "re_el: " << re_el << std::endl; 
+    //std::cout << "-2*mu*q^2: " << re_el/sum << std::endl; 
 
     double im_el = -M_PI*mu*q_on_shell;
 
