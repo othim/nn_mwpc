@@ -268,9 +268,13 @@ public:
             int hbar_omega, bool from_saved_mtx, bool all_chns, 
             std::vector<qs::quantum_channel> chns = 
             std::vector<qs::quantum_channel>(), 
-            bool print_zero_in_unused_chn = false);
+            bool print_zero_in_unused_chn = false,
+            bool proj_out_spurious_states = false);
 
     int  save_ho_me_from_saved(std::string file_name, std::vector<double> LECs);
+
+    void project_out_spurious_states(gsl_m* V_full,qs::quantum_channel chn,
+        bool rel_correction, double lambda);
 
     // <l|V|lp>_sjt. l - outgoing, lp - ingoing.
     void get_chn_block_from_qn(int L, int Lp, int S, int J, int T, 
