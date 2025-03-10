@@ -11,4 +11,3 @@ dependencies:
 - mkl-service
 - pybind11
 - pip
-- pip:
