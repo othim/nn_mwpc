@@ -59,13 +59,18 @@ template double Potential_mwpc<gsl_matrix_complex>::get_rel_cut(double p_in,
 template void Potential_mwpc<gsl_matrix_complex>::save_ho_me_decomp(std::string save_dir, 
         int Nmax, int hbar_omega, bool from_saved_mtx);
 
+template void Potential_mwpc<gsl_matrix_complex>::project_out_spurious_states(
+        gsl_matrix_complex* V_full,qs::quantum_channel chn,
+        bool rel_correction, double lambda);
+
 template void Potential_mwpc<gsl_matrix_complex>::print_meta_data(
         std::string file_name, int Nmax, int hbar_omega, bool append);
 template void Potential_mwpc<gsl_matrix_complex>::save_ho_me_chns(std::string 
             file_name, int Nmax,
             int hbar_omega, bool from_saved_mtx, bool all_chns, 
             std::vector<qs::quantum_channel> chns,
-            bool print_zero_in_unused_chn);
+            bool print_zero_in_unused_chn,
+            bool project_out_spurious_states);
 
 template void Potential_mwpc<gsl_matrix_complex>::get_chn_block_from_qn(int L, 
         int Lp, int S, int J, int T, qs::quantum_channel* chn, int* block_index);
@@ -1339,10 +1344,19 @@ void Potential_mwpc<gsl_m>::print_LECs_and_params_info()
     {
         std::cout << T.term_name_ << std::endl;
     }    
-
     std::cout << 
         "---------------------------------------------------------------------"
         << std::endl;
+    std::cout << "Regularization of pion loops:" <<  std::endl;
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+    std::cout << "loop_reg=" << loop_reg_ << std::endl;
+    std::cout << "lam_SFR =" << lam_SFR_ << std::endl;
+    std::cout << 
+        "---------------------------------------------------------------------"
+        << std::endl;
+    
     std::cout << std::endl << "The LECs in the same order as they must be set in the"
               << " set functions:" << std::endl;
     std::cout << "Current set LEC values are shown (All units in powers of MeV)" 
@@ -1585,7 +1599,8 @@ void Potential_mwpc<gsl_m>::print_meta_data(std::string file_name, int Nmax,
 template <class gsl_m>
 void Potential_mwpc<gsl_m>::save_ho_me_chns(std::string file_name, int Nmax, 
         int hbar_omega, bool from_saved_mtx, bool all_chns, 
-        std::vector<qs::quantum_channel> chns, bool print_zero_in_unused_chn)
+        std::vector<qs::quantum_channel> chns, bool print_zero_in_unused_chn,
+        bool proj_out_spurious_states)
 {
     bool rel_correction = false;
     // Compute quantum states for that given Nmax
@@ -1654,15 +1669,26 @@ void Potential_mwpc<gsl_m>::save_ho_me_chns(std::string file_name, int Nmax,
                     R_o = ph::get_mom_HO_R(p_grid_,mom_grid_size_,bra.n,bra.L,mN,hbar_omega);
                     R_i = ph::get_mom_HO_R(p_grid_,mom_grid_size_,ket.n,ket.L,mN,hbar_omega);
                     
-                    // Get the correct matrix, or matrix part.
-                    double q_on_shell = 0.0; // Just a dummy variable
 
-                    // Get either saved matrix, or compute it.
                     gsl_m* V_full;
-                    if (from_saved_mtx) {
-                        V_full = get_saved_matrix(q_on_shell, chn, rel_correction);
-                    } else {
-                        V_full = get_matrix(q_on_shell, chn, rel_correction);
+                    // Project out spurious state if it exist, then the 
+                    // potential is loaded with no on-shell point. If not, we 
+                    // load the saved potential and also have an extra 
+                    // on-shell point.
+                    if (proj_out_spurious_states)
+                    {
+                        double lambda = 1e6;
+                        V_full = get_matrix_no_onshell(chn, rel_correction);
+                        // V_full -> V_full + \lambda |s><s|, for all spurious states.
+                        project_out_spurious_states(V_full,chn,rel_correction,lambda);
+                    } else
+                    {
+                        double q_on_shell = 0.0; // Just a dummy variable
+                        if (from_saved_mtx) {
+                            V_full = get_saved_matrix(q_on_shell, chn, rel_correction);
+                        } else {
+                            V_full = get_matrix(q_on_shell, chn, rel_correction);
+                        }
                     }
 
                     double ME = 0;
@@ -1683,14 +1709,21 @@ void Potential_mwpc<gsl_m>::save_ho_me_chns(std::string file_name, int Nmax,
                             // contains the on-shell point also
                             int ii = i;
                             int jj = j;
+                            
+                            // Add depending on what size V has, since both
+                            // the V with and without the on-shell point 
+                            // can be loaded.
+                            int add = V_full->size1/2;
+                            
                             if (block_index == 2) {
-                                jj = j + mom_grid_size_ + 1;
+                                jj = j + add;
                             } else if (block_index == 3) {
-                                ii = i + mom_grid_size_ + 1;
+                                ii = i + add;
                             } else if (block_index == 4) {
-                                ii = i + mom_grid_size_ + 1;
-                                jj = j + mom_grid_size_ + 1;
+                                ii = i + add;
+                                jj = j + add;
                             }
+
                             double Vij = GSL_REAL(gsl_matrix_complex_get(V_full,ii,jj));
                             //std::cout << Vij << std::endl;
                             
@@ -1717,6 +1750,76 @@ void Potential_mwpc<gsl_m>::save_ho_me_chns(std::string file_name, int Nmax,
     outfile.close();
 }
 
+template <class gsl_m>
+void Potential_mwpc<gsl_m>::project_out_spurious_states(gsl_m* V_full,qs::quantum_channel chn,
+        bool rel_correction, double lambda)
+{
+    //std::cout << "Searching for spurious states in channel: " <<
+    //        quantum_channel_to_string(chn) << std::endl;
+
+    // Diagonalize T + V_full
+    ph::eigen_t_herm diag_res = ph::solve_SE_complex_weights(p_grid_, w_grid_, 
+            mom_grid_size_, chn, V_full,program_const_->Mn,
+            program_const_->Mp);
+    
+    //std::cout << "Eigenvalues: " << std::endl;
+    std::vector<double> eigenvalues;
+    std::vector<int> spurious_idx;
+    for (int i = 0; i < (int)V_full->size1; i++) {
+        double eig = gsl_vector_get(diag_res.eigenvalues,i);
+        //std::cout << eig << std::endl;
+        if (eig < -20) {
+            //std::cout << "Found spurious: " << eig << std::endl;
+            spurious_idx.push_back(i);
+        }
+    }
+
+    //if (spurious_idx.size()>0) {
+    //    std::cout << "Found spurious states:" << std::endl;
+    //}
+       
+    // Get all eigenstates and eigenvalues of the spurious states
+    
+    // For each of the spurious states, add \lambda |s><s| to the potential
+    for (auto idx : spurious_idx)
+    {
+        // Construct the outer product of |s>
+        for (int i=0; i < V_full->size1; i++)
+        {
+            for (int j=0; j < V_full->size2; j++)
+            {
+                double Vij = GSL_REAL(gsl_matrix_complex_get(V_full,i,j));
+                double ei  = GSL_REAL(gsl_matrix_complex_get(
+                            diag_res.eigenvectors,i,idx));
+                double ej  = GSL_REAL(gsl_matrix_complex_get(
+                            diag_res.eigenvectors,j,idx));
+
+                double el = Vij + lambda*ei*ej;
+                ph::matrix_set(
+                        V_full,i,j,gsl_complex_rect(el,0));
+            
+            }
+        }
+    }
+    /*
+    // Diagonalize T + V_full
+    diag_res = ph::solve_SE_complex_weights(p_grid_, w_grid_, 
+            mom_grid_size_, chn, V_full,program_const_->Mn,
+            program_const_->Mp);
+    
+    std::cout << "Eigenvalues: " << std::endl;
+    for (int i = 0; i < (int)V_full->size1; i++) {
+        double eig = gsl_vector_get(diag_res.eigenvalues,i);
+        std::cout << eig << std::endl;
+        if (eig < -20) {
+            std::cout << "Found spurious: " << eig << std::endl;
+        }
+    }
+*/
+    // Done!
+    gsl_matrix_complex_free(diag_res.eigenvectors);
+    gsl_vector_free(diag_res.eigenvalues); 
+}
 
 template <class gsl_m>
 void Potential_mwpc<gsl_m>::get_chn_block_from_qn(int L, int Lp, int S, int J, 

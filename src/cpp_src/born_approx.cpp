@@ -500,10 +500,11 @@ void dwba::make_tests(std::string chn_string)
      */
     double* p_grid;
     double* w_grid;
+    double finite_grid_max = Lambda + 300.0;
     if (FINITE_GRID)
     {
         ph::gauss_legendre_finite_mesh(number_of_p_points,0,
-                Lambda + 300.0,&p_grid,&w_grid);
+                finite_grid_max,&p_grid,&w_grid);
     } else 
     {
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
@@ -557,7 +558,7 @@ void dwba::make_tests(std::string chn_string)
     
     // Solve for the T-matrix
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,
-            program_const);
+            finite_grid_max,program_const);
    
     double q_on_shell;
     double mu;
@@ -710,10 +711,11 @@ void dwba::make_tests_DWBA(std::string chn_string)
      */
     double* p_grid;
     double* w_grid;
+    double finite_grid_max = Lambda + 300.0;
     if (FINITE_GRID)
     {
         ph::gauss_legendre_finite_mesh(number_of_p_points,0,
-                Lambda + 300.0,&p_grid,&w_grid);
+                finite_grid_max,&p_grid,&w_grid);
     } else 
     {
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
@@ -745,7 +747,7 @@ void dwba::make_tests_DWBA(std::string chn_string)
     
     // Solve for the T-matrix
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,
-            program_const);
+            finite_grid_max,program_const);
    
     double q_on_shell;
     double mu;
@@ -944,10 +946,11 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     // ---------------------------------
     double* p_grid;
     double* w_grid;
+    double finite_grid_max = Lambda + 300.0;
     if (FINITE_GRID)
     {
         ph::gauss_legendre_finite_mesh(number_of_p_points,0,
-                Lambda + 300.0,&p_grid,&w_grid);
+                finite_grid_max,&p_grid,&w_grid);
     } else 
     {
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
@@ -1043,7 +1046,7 @@ void dwba::make_tests_DWBA_3(std::string chn_string)
     solve_DWB_from_potentials(pot1_real_noweights, pot1_complex_weights,
         pot2_real_noweights, pot2_complex_weights,
         number_of_p_points,
-        p_grid, w_grid, FINITE_GRID, Tl, chn, REL_CORR,program_const);
+        p_grid, w_grid, FINITE_GRID, finite_grid_max,Tl, chn, REL_CORR,program_const);
     
 }
 
@@ -1083,14 +1086,16 @@ void dwba::solve_DWB_from_potentials(Potential_mwpc<gsl_matrix>& pot1_real_nowei
     Potential_mwpc<gsl_matrix>& pot2_real_noweights,
     Potential_mwpc<gsl_matrix_complex>& pot2_complex_weights, 
     double number_of_p_points,
-    double* p_grid, double* w_grid, bool FINITE_GRID, double Tl, 
+    double* p_grid, double* w_grid, bool FINITE_GRID, 
+    double finite_grid_max, double Tl, 
     qs::quantum_channel chn, double REL_CORR, 
     ph::constants_struct* program_const)
 {
     std::string DATA_DIR = "../../../projects/dwb/data/";
     // Construct a LS-solver for the T-matrix
     // ---------------------------------
-    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,program_const);
+    LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,
+            finite_grid_max,program_const);
     // ---------------------------------
     // ---------------------------------
     
@@ -1338,10 +1343,11 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     // ---------------------------------
     double* p_grid;
     double* w_grid;
+    double finite_grid_max = Lambda + 300.0;
     if (FINITE_GRID)
     {
         ph::gauss_legendre_finite_mesh(number_of_p_points,0,
-                Lambda + 300.0,&p_grid,&w_grid);
+                finite_grid_max,&p_grid,&w_grid);
     } else 
     {
         ph::gauss_legendre_inf_mesh(number_of_p_points,scale,&p_grid,&w_grid);
@@ -1408,7 +1414,7 @@ void dwba::make_tests_DWBA_2(std::string chn_string)
     // Construct a LS-solver for the T-matrix
     // ---------------------------------
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid,FINITE_GRID,
-            program_const);
+            finite_grid_max,program_const);
     // ---------------------------------
     // ---------------------------------
     

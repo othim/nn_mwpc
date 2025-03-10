@@ -400,6 +400,9 @@ public:
 
     void set_LECs_in_potential(const std::string& potential_name, 
             const std::vector<double>& LECs);
+    
+    std::vector<double> get_LECs_in_potential(const std::string& potential_name);
+
     void set_params_in_potential(const std::string& potential_name, 
             const std::vector<double>& params);
 
@@ -414,7 +417,8 @@ public:
     void save_ho_me_diff_chn(std::string file_name, 
             int Nmax, int hbar_omega, bool from_saved_mtx, 
             std::string& pot_name_LO, std::string& pot_name_other, 
-            std::vector<int> chn_index_LO);
+            std::vector<int> chn_index_LO,
+            bool project_out_spurious_states);
 
     void print_potential_names();
     

@@ -89,6 +89,7 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     if (print_) 
     {   
         std::cout << "p, w" << std::endl;
+        std::cout << std::setprecision(16);
         for (int i=0; i<number_of_p_points_; i++) 
         {
             std::cout << p_grid_[i] << ", " << w_grid_[i] << std::endl;
@@ -110,7 +111,7 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
 
     // Construct a LS_Solver
     LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,finite_grid_,
-            program_const_);
+            finite_grid_max_, program_const_);
     
     
     // Initialize all the saved T-matrix elements to zero
@@ -1417,6 +1418,18 @@ void nn_mwpc_dwb_interface::set_LECs_in_potential(const std::string& potential_n
          potentials_[potential_name]->LECs_[it] = LECs[i++];
     }
 }
+std::vector<double> nn_mwpc_dwb_interface::get_LECs_in_potential
+            (const std::string& potential_name)
+{
+    // Set the LECs 
+    std::vector<double> LECs;
+
+    for (auto& it: potentials_[potential_name]->LECs_in_use_)
+    {
+         LECs.push_back(potentials_[potential_name]->LECs_[it]);
+    }
+    return LECs;
+}
 
 void nn_mwpc_dwb_interface::set_params_in_potential(const std::string& potential_name, 
             const std::vector<double>& params)
@@ -1495,7 +1508,8 @@ void nn_mwpc_dwb_interface::save_ho_me(std::string file_name, int Nmax,
 
 void nn_mwpc_dwb_interface::save_ho_me_diff_chn(std::string file_name, int Nmax, 
             int hbar_omega, bool from_saved_mtx, std::string& pot_name_LO, 
-            std::string& pot_name_other, std::vector<int> chn_index_LO)
+            std::string& pot_name_other, std::vector<int> chn_index_LO,
+            bool project_out_spurious_states)
 {
     std::vector<qs::quantum_channel> chns_LO;
     std::vector<qs::quantum_channel> chns_other;
@@ -1561,12 +1575,13 @@ void nn_mwpc_dwb_interface::save_ho_me_diff_chn(std::string file_name, int Nmax,
     // Save HO ME for the LO channels
     if (pot_name_LO != "none") {
         potentials_[pot_name_LO]->save_ho_me_chns(file_name,Nmax,hbar_omega,
-                from_saved_mtx, false, chns_LO, (pot_name_other == "none"));
+                from_saved_mtx, false, chns_LO, (pot_name_other == "none"),
+                project_out_spurious_states);
     }
     // Save HO ME for the other channels
     if (pot_name_other != "none") {
         potentials_[pot_name_other]->save_ho_me_chns(file_name,Nmax,hbar_omega,
-                from_saved_mtx, false, chns_other, (pot_name_LO == "none"));
+                from_saved_mtx, false, chns_other, (pot_name_LO == "none"),false);
     }
     return;
 }

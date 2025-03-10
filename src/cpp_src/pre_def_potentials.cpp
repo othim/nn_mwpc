@@ -73,6 +73,46 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
                 cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
+    } else if (pre_def_name == "MWPC_LO_SP_LESS_SINGULAR")
+    {
+        // Choose terms in potential
+        std::vector<std::string> terms;
+        terms.push_back("W_T_1pi_nu_0_less_singular");
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        
+        bool inc_weights_in_pot = true; // This is always true
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
+    
+        return pot_complex_weights;
+    
+    } else if (pre_def_name == "MWPC_LO_SP_NO_PIONS")
+    {
+        // Choose terms in potential
+        std::vector<std::string> terms;
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        
+        bool inc_weights_in_pot = true; // This is always true
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
+    
+        return pot_complex_weights;
     } else if (pre_def_name == "MWPC_NLO_SP")
     {
         // Choose terms in potential
@@ -99,6 +139,43 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
         terms.push_back("W_C_2pi_nu_2");
         
         // TODO: Maybe add 1pi correction here
+
+        // LO pert corr
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        
+        // NLO pert corr
+        terms.push_back("D1S0");
+
+        // N2LO contacts
+        terms.push_back("D3S1");
+        terms.push_back("D_SD");
+        terms.push_back("D_DS");
+        terms.push_back("D1P1");
+        terms.push_back("D3P1");
+        terms.push_back("E1S0");
+        terms.push_back("E3P0");
+        terms.push_back("E3P2");
+        terms.push_back("E_PF");
+        terms.push_back("E_FP");
+
+
+        bool inc_weights_in_pot = true; // This is always true
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
+    
+        return pot_complex_weights;
+    } else if (pre_def_name == "MWPC_N2LO_SP_NO_PIONS")
+    {
+        // Choose terms in potential
+        std::vector<std::string> terms;
 
         // LO pert corr
         terms.push_back("C1S0");

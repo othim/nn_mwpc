@@ -54,7 +54,8 @@ private:
 public:
 
     LS_Solver(unsigned int mom_grid_size, double* p_grid, double* w_grid, 
-            bool finite_grid,ph::constants_struct* program_const);
+            bool finite_grid, double finite_grid_max,
+            ph::constants_struct* program_const);
 
     ~LS_Solver();
     void gauss_legendre_inf_mesh(unsigned int Numper_of_points, 

@@ -212,22 +212,32 @@ Jmax               = 14
 cutoff             = 5000.0     # MeV
 cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
 sharp_cutoff       = False      # If true the potential is zer to zero for p>Lambda + 300
-precompute_pot     = True       # Precompute and store potential
+precompute_pot     = False       # Precompute and store potential
 rel_correction     = False      # If relativistic corrections are implemented
 num_grid_points    = 120        # Number of momentum grid points
 finite_grid        = False      # If finte momentum grid 
 inc_weights_in_pot = False      # Include w and p in potential matrix
 cut_on_shell       = True       # Implement the cutoff also on on-shell elements
 # -----------------------------
+
+fpi = 92.1 
+mpi = 138.039
+Mp  = 938.2720880259
+Mn  = 939.5654203856
+inv_fm_to_MeV = 197.3269804
+
 obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
         precompute_pot,rel_correction,num_grid_points,finite_grid,\
-        inc_weights_in_pot,cut_on_shell)
+        inc_weights_in_pot,cut_on_shell,fpi,mpi,Mp,Mn,inv_fm_to_MeV)
+#obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
+#        precompute_pot,rel_correction,num_grid_points,finite_grid,\
+#        inc_weights_in_pot,cut_on_shell)
 
 # Print info
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 
-DATA_DIR = 'data/'
+DATA_DIR = '../data/'
 test_PB(obj,50.0)
 
 energies = [0.1,10,50,200]

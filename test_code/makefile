@@ -75,6 +75,9 @@ LDFLAGS =  -lnn_mwpc -lgsl -lm  -lwigxjpf -lgfortran -lgslcblas
 LDPATH = -L/usr/local/lib -L./ -L$(HOME)/gsl/lib -L$(HOME)/wigxjpf-1.13/lib
 endif
 
+COMPOBS: compute_obs_old.o
+	$(CC) -Wall -std=c++11 -o NPHASE $(LDPATH) test_nijm_phase.o $(LDFLAGS)
+
 NPHASE: test_nijm_phase.o
 	$(CC) -Wall -std=c++11 -o NPHASE $(LDPATH) test_nijm_phase.o $(LDFLAGS)
 
@@ -92,6 +95,8 @@ DWB: test_dwb.o
 
 HO: test_HO_pot.o
 	$(CC) -Wall -std=c++11 -o HO $(LDPATH) test_HO_pot.o $(LDFLAGS)
+compute_obs_old.o: compute_obs_old.cpp
+	$(CC) $(CFLAGS) -c compute_obs_old.cpp
 
 test_nijm_phase.o: test_nijm_phase.cpp
 	$(CC) $(CFLAGS) -c test_nijm_phase.cpp

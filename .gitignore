@@ -29,3 +29,7 @@ nn_mwpc.so
 data/out_*
 
 test_code/*.txt
+
+test_code/out/
+test_code/tmp/
+test_code/test_logfiles/
