@@ -12,6 +12,14 @@ Term::Term(std::string name)
         my_v_alpha = &Term::v_alpha_OPEP; // Make my_v_alpha point to the correct function for OPEP
         params_in_term_.push_back("gA");
         isovector_ = true;
+    } else if (name == "W_T_1pi_nu_0_less_singular")
+    {
+        term_name_ = name;
+        spin_structure_ = "T";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::v_alpha_OPEP_less_singular;
+        params_in_term_.push_back("gA");
+        isovector_ = true;
     } else if (name == "V_T_2pi_nu_2")
     {
         term_name_ = name;
@@ -549,6 +557,28 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z, int z_le
     }
 	return tmp;
 }
+
+// OPEP
+std::vector<double> Term::v_alpha_OPEP_less_singular(double qi, double qo, double* z, int z_len, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
+{
+    double lec = params["gA"];
+    std::vector<double> tmp(z_len);
+    double q2;
+    //std::cout << "lec:" << lec << std::endl;   
+    for (int i = 0; i < (int)z_len; i++)
+    {
+        q2 = qi*qi + qo*qo - 2*qi*qo*z[i];
+        tmp[i] = -program_const->mpi*(lec*lec/(4.0*program_const->fpi*program_const->fpi))*(1.0/
+                ((q2+program_const->mpi*program_const->mpi)*std::sqrt(q2+program_const->mpi*program_const->mpi)));
+    }
+	return tmp;
+}
+
+
 
 /*
  * Leading order contact terms in chiral EFT
