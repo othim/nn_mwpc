@@ -440,6 +440,8 @@ def phase_shift_pert_coup_N2_3LO_S(S11,S12,S22,eps_0,d1_0,d2_0):
 
     # Set up matrix
     A = get_derivative_matrix(eps_0,d1_0,d2_0)
+    #print(f'AA={A}')
+    #print(f'SS={S}')
     #print(S.shape)
     #print(A.shape)
     # Invert system to get phase shift corrections
@@ -475,6 +477,7 @@ def phase_shift_pert_coup_N2LO_S(S11,S12,S22,eps_0,d1_0,d2_0,eps_1,d1_1,d2_1):
     
     # Set up matrix
     A = get_derivative_matrix(eps_0,d1_0,d2_0)
+    #print(f'AA={A}')
     #print(S.shape)
     #print(A.shape)
     # Invert system to get phase shift corrections
