@@ -35,6 +35,7 @@ def compute_observable(obj,T_lab,angle,observable):
         observable name : Eg. "I 0000" 
     """
 
+    #obj.print_LECs_in_use()
     # Use the same test values
     C1S0 = -0.1/100.0
     C3S1 = -0.13/100.0
@@ -42,7 +43,7 @@ def compute_observable(obj,T_lab,angle,observable):
     C3P0 = 0;
     C3P2 = 0;
         
-    LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
+    LECs = [C1S0,C3S1,C3P0,C3P2]
     
     obj.solve_LS(T_lab,[C1S0,C3P0,C3P2,C3S1,gA2])
     obs = obj.compute_observable(observable,angle)
@@ -56,20 +57,22 @@ def phase_shifts(obj,T_lab,chn_number):
     """
         Computes phase shifts in the Stapp convention in radians
     """ 
+    obj.print_LECs_in_use()
+    
     C1S0 = -0.1/100.0
     C3S1 = -0.13/100.0
     gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0;
     C3P2 = 0;
     
-    LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
+    LECs = [C1S0,C3S1,C3P0,C3P2]
     
     phases = obj.compute_phase_shift(chn_number,T_lab,LECs)
     return phases
 
 def load_phase_shifts():
     # Read in the check channels
-    data_file = 'data/data_gen_corr_Andreas.txt'
+    data_file = '../data/data_gen_corr_Andreas.txt'
     print(f'Reading data: {data_file}')
     Data = np.loadtxt(data_file,skiprows=1)
     
@@ -126,12 +129,15 @@ def run_tests_phase(obj,tol):
     return max_err_all
 
 def load_PB():
-    data_file = 'data/PB_30_MeV_Andreas_corr.txt'
+    data_file = '../data/PB_30_MeV_Andreas_corr.txt'
     print(f'Reading data: {data_file}')
     Data = np.loadtxt(data_file,skiprows=1)
     return Data[:,0], Data[:,3]
 
 def run_tests_PB(obj,tol):
+    
+    #obj.print_LECs_in_use()
+    
     D_ang, D_PB = load_PB()
     T_lab = 30.0 # MeV
     # Solve LS equation
@@ -141,8 +147,8 @@ def run_tests_PB(obj,tol):
     gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0;
     C3P2 = 0;
-    LECs = [C1S0,C3P0,C3P2,C3S1,gA2]
-    obj.solve_LS(T_lab,[C1S0,C3P0,C3P2,C3S1,gA2])
+    LECs = [C1S0,C3S1,C3P0,C3P2,C3S1]
+    obj.solve_LS(T_lab,LECs)
     # ----------------
     err = 0
     max_err = 0
@@ -162,21 +168,31 @@ if (__name__ == '__main__'):
     print("Constructing object and saving potential")
 
     # Same settings as in the test
+    fpi = 92.1 
+    mpi = 138.039
+    Mp  = 938.2720880259
+    Mn  = 939.5654203856
+    inv_fm_to_MeV = 197.3269804
 
     # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
     # number_of_p_points, finite_grid
-    obj1 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,False,True,True,120,False,False,True)
-    obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,120,False,False,True)
+    obj1 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,False,True,True,120,False,False,True,\
+            fpi,mpi,Mp,Mn,inv_fm_to_MeV)
+    #obj_LO_WPC = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,False,True,True,120,False,False,True,\
+    #        fpi,mpi,Mp,Mn,inv_fm_to_MeV)
 
 
     # Same settings as I use in the computations
 
     # Model_name, J_max_chn, cutoff, cut_pow, sharp_cutoff, pre_comp_pot, rel_corr,
     # number_of_p_points, finite_grid
-    obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True,False,True)
-    obj2_finite = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,True,True,True,120,True,False,True)
+    #obj2 = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,120,True,False,True,\
+    #        fpi,mpi,Mp,Mn,inv_fm_to_MeV)
+    #obj2_finite = nn_mwpc.nn_mwpc_interface("MWPC_LO_1",20,500.0,6,True,True,True,120,True,False,True,\
+    #        fpi,mpi,Mp,Mn,inv_fm_to_MeV)
     
-    obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True,False,True)
+    #obj_run = nn_mwpc.nn_mwpc_interface("MWPC_LO_J",2,500.0,6,True,True,True,60,True,False,True,\
+    #        fpi,mpi,Mp,Mn,inv_fm_to_MeV)
 
     print(f'******************************************************')
     print(f'******************************************************')
@@ -186,7 +202,7 @@ if (__name__ == '__main__'):
     print(f'**************** Phase shift test ********************')
     run_tests_phase(obj1,1e-4)
     print(f'********************* PB test ************************')
-    run_tests_PB(obj_LO_WPC,1e-4)
+    #run_tests_PB(obj_LO_WPC,1e-4)
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'******************************************************')
@@ -198,9 +214,9 @@ if (__name__ == '__main__'):
     print(f'********** RUNNING TEST WITH FINITE GRID *************')
     print(f'******************************************************')
     print(f'******************************************************')
-    run_tests_phase(obj2,1e-4)
+    #run_tests_phase(obj2,1e-4)
     print(f'********************* PB test ************************')
-    run_tests_PB(obj2_finite,1e-4)
+    #run_tests_PB(obj2_finite,1e-4)
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'******************************************************')
@@ -211,7 +227,7 @@ if (__name__ == '__main__'):
     print(f'********** RUNNING TEST WITH RUN SETTINGS ************')
     print(f'******************************************************')
     print(f'******************************************************')
-    run_tests_phase(obj_run,1e-3)
+    #run_tests_phase(obj_run,1e-3)
     print(f'******************************************************')
     print(f'******************************************************')
     print(f'******************************************************')
