@@ -5,8 +5,9 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-SYSTEM = MAC
+#SYSTEM = MAC
 #SYSTEM = SUBATOM
+SYSTEM = SUBFY
 #SYSTEM=TETRALITH
 # ------------
 
@@ -57,16 +58,21 @@ CFLAGS = -Wall -fopenmp -fPIC -std=c++11 \
 		 -I/net/home/toliver/wigxjpf-1.11/inc \
 		 -I/net/home/toliver/gsl-2.7/gsl
 
-#LDFLAGS = -lnn_mwpc -lgsl -lm -lwigxjpf -lgfortran -lgslcblas -fopenmp
-
-#LDPATH = -L../src/cpp_src/\
-		 -L/net/home/toliver/wigxjpf-1.11/lib/\
-		 -L/net/home/toliver/gsl-2.7/lib\
-		 -L/usr/local/lib\
-		 -L./
-
 LDFLAGS = -lnn_mwpc -lm  -fopenmp
 LDPATH = -L/usr/local/lib -L./
+endif
+
+ifeq ($(SYSTEM), SUBFY)
+
+CFLAGS = -Wall -fopenmp -fPIC -std=c++11 \
+		 -I../src/cpp_src/\
+		 -I$(HOME)/miniconda3/include/python3.8 \
+		 -I$(HOME)/miniconda3/envs/nn-mwpc-env/include \
+		 -I$(HOME)/wigxjpf-1.13/inc \
+		 -I$(HOME)/gsl/include/gsl
+
+LDFLAGS =  -lnn_mwpc -lgsl -lm  -lwigxjpf -lgfortran -lgslcblas
+LDPATH = -L/usr/local/lib -L./ -L$(HOME)/gsl/lib -L$(HOME)/wigxjpf-1.13/lib
 endif
 
 COMPOBS: compute_obs_old.o

@@ -85,20 +85,19 @@ LDFLAGS += -lgslcblas
 endif
 
 CFLAGS = -Wall -fopenmp -fPIC -std=c++11 $(OPT) \
-		 -I/net/home/toliver/miniconda3/include/python3.8 \
-		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
 		 -I/net/home/toliver/wigxjpf-1.11/inc \
 		 -I/net/home/toliver/gsl-2.7/gsl
 endif 
 
 # For SUBFY
-# -----------
+# ---------
 ifeq ($(SYSTEM), SUBFY)
 
 CFLAGS2 = -Wall -std=c++11 $(OPT)
 
 # Linker flags for the wigxjpf and gsl libraries
-LDFLAGS =  -L/chalmers/users/toliver/wigxjpf-1.13/lib -L/chalmers/users/toliver/gsl/lib -L/usr/local/lib -fopenmp
+LDFLAGS =  -L/chalmers/users/toliver/wigxjpf-1.13/lib -L/chalmers/users/toliver/gsl/lib \
+		   -L/usr/local/lib -fopenmp
 
 ifeq ($(BLAS_LIB), MKL)
 
@@ -112,12 +111,16 @@ ${MKLROOT}/lib/intel64/libmkl_core.a \
 endif
 
 ifeq ($(BLAS_LIB), GSL)
-LDFLAGS += -lgslcblas
+#LDFLAGS += -lgslcblas
 endif
 
-CFLAGS = -Wall -fopenmp -fPIC -std=c++11 $(OPT) \
-		 -I$(HOME)/miniconda3/include/python3.8 \
-		 -I/net/home/toliver/miniconda3/envs/nn-mwpc-env/include \
+#CFLAGS = -Wall -fopenmp -fPIC -std=c++11 $(OPT) $(python3.8-config --includes) $(python3 -m pybind11 --includes) \
+#		 -I$(HOME)/wigxjpf-1.13/inc \
+#		 -I$(HOME)/gsl/include/gsl
+
+CFLAGS = -Wall -fopenmp -fPIC -std=c++11 \
+		 -I/chalmers/users/toliver/miniconda3/envs/env_test/include/python3.8 -I/chalmers/users/toliver/miniconda3/envs/env_test/include/python3.8 \
+		 -I/chalmers/users/toliver/miniconda3/envs/env_test/include/python3.8 -I/chalmers/users/toliver/miniconda3/envs/env_test/lib/python3.8/site-packages/pybind11/include \
 		 -I$(HOME)/wigxjpf-1.13/inc \
 		 -I$(HOME)/gsl/include/gsl
 endif 
@@ -161,7 +164,7 @@ FILES_SO = pybind_interface.o Term.o potential.o\
 		   pre_def_potentials.o
 
 so: $(FILES_SO)
-	$(CC) -Wall -std=c++11 -shared $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(IDAHO_N3LO_FILES) $(FILES_SO) -o libnn_mwpc.so -lgsl -lm  -lwigxjpf -lgfortran 
+	$(CC) -Wall -std=c++11 -shared  $(LDFLAGS) $(CDBONN_FILES) $(NIJM_FILES) $(IDAHO_N3LO_FILES) $(FILES_SO) -o libnn_mwpc.so -lgsl -lgslcblas -lm -lwigxjpf -lgfortran 
 
 pybind_interface.o: pybind_interface.cpp
 	$(CC) $(CFLAGS) $(PY_BIND) $(FLAGS) -c pybind_interface.cpp
