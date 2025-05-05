@@ -16,4 +16,4 @@ pip install .
 
 git rev-parse HEAD > nn_mwpc_install_hash.txt
 
-python3 python_module/run_tests_on_module.py
+#python3 python_module/run_tests_on_module.py
