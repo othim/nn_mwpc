@@ -126,7 +126,7 @@ nijmegen1 and cdbonn potential. This is done by running
 - Make a basic conda enviroment from the `conda_environments/env_test.yml` file.
    Install pybind11 (in the same conda enviroment, it can be installed via both pip
    and conda I think.) Other python packages in the `conda_environments/envirnoment.yml`
-   file are needes, but it is best to install them manually from your minimal
+   file are needed, but it is best to install them manually from your minimal
    environment env_test. I think that the python version needs to be 3.8.
 
 - Install gsl and wigxjpf, and optionally intel MKL.
@@ -154,19 +154,19 @@ optimal performance.
 for phase shifts, so if you just solve in one channel it might be beneficial
 to increase the number of threads given to MKL
 
-6. Testing the code can be done `test_code/run_tests.sh`. This will compile the
-code in the `src/cpp_src` folder into an `.so` file and link it to various codes
+6. Testing the code can be done by running `$ test_code/run_tests.sh`. This will compiles the
+code in the `src/cpp_src` directory into an `.so` file and link it to various codes
 in the directory `test_code`. (see the shell script). You will get various output
-files to inspect.
+files that you can inspect.
 
 ## Compiling and Installing Python Module
 
 1. Install and activate the conda environment that you have created, e.g.
-- `conda activate env_test` (or make a better name)
+- `$ conda activate env_test` (or make a better name)
 
 2.
 - Run `bash install.sh`, which is a shell script that will compile the
-  C++ code to a `.so` file and then making it into a python module with
+  C++ code to a `.so` file and then make it into a python module with
   the use of pybind11.
 
 - If you run `$ conda list` you should find a module named `nn-mwpc`.
@@ -179,9 +179,10 @@ $ export MKL_NUM_THREADS=1
 $ export OMP_NUM_THREADS=16
 ```
 
-4. Testing the module
-
-- Run `$ python3 python_module/run_tests_on_module.py`
+4. To test that the module is installed correctly, you should be able to run
+ ```
+ $ python3 python_module/run_tests_on_module.py
+ ```
 
 # Using the Python Module
 
