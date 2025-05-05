@@ -5,9 +5,9 @@
 # -----------------------------------------------------------------------------
 # Choose sytem
 # ------------
-#SYSTEM = MAC
+SYSTEM = MAC
 #SYSTEM = SUBATOM
-SYSTEM = SUBFY
+#SYSTEM = SUBFY
 #SYSTEM=TETRALITH
 # ------------
 
@@ -75,8 +75,8 @@ LDFLAGS =  -lnn_mwpc -lgsl -lm  -lwigxjpf -lgfortran -lgslcblas
 LDPATH = -L/usr/local/lib -L./ -L$(HOME)/gsl/lib -L$(HOME)/wigxjpf-1.13/lib
 endif
 
-COMPOBS: compute_obs_old.o
-	$(CC) -Wall -std=c++11 -o NPHASE $(LDPATH) test_nijm_phase.o $(LDFLAGS)
+#COMPOBS: compute_obs_old.o
+#	$(CC) -Wall -std=c++11 -o NPHASE $(LDPATH) test_nijm_phase.o $(LDFLAGS)
 
 NPHASE: test_nijm_phase.o
 	$(CC) -Wall -std=c++11 -o NPHASE $(LDPATH) test_nijm_phase.o $(LDFLAGS)

@@ -158,7 +158,9 @@ void check_observable(
 
     nn_mwpc_interface interface = nn_mwpc_interface("WPC_LO",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
-         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+         finite_grid, inc_weights_in_pot, cut_on_shell,
+         program_const->fpi,program_const->mpi,program_const->Mp,
+         program_const->Mn,program_const->inv_fm_to_MeV);   
 
     double Tl = 30.0;
     double C1S0	= -0.1/100.0; 
@@ -279,7 +281,9 @@ void check_chn(
     
     nn_mwpc_interface interface = nn_mwpc_interface("WPC_LO",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
-         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+         finite_grid, inc_weights_in_pot, cut_on_shell,
+         program_const->fpi,program_const->mpi,program_const->Mp,
+         program_const->Mn,program_const->inv_fm_to_MeV);   
     // -----------------------
     
     // Open file
@@ -489,7 +493,9 @@ void check_binding(
     
     nn_mwpc_interface interface = nn_mwpc_interface("WPC_LO",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
-         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+         finite_grid, inc_weights_in_pot, cut_on_shell,
+         program_const->fpi,program_const->mpi,program_const->Mp,
+         program_const->Mn,program_const->inv_fm_to_MeV);   
     // -----------------------
         
     std::vector<double> LECs = {C1S0,C3S1};

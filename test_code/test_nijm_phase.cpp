@@ -154,7 +154,7 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns,
             p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
 
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid, FINITE_GRID,
-            program_const);
+            finite_grid_max, program_const);
 
     double mu;
     double q_on_shell;

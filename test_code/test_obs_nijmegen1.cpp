@@ -183,7 +183,9 @@ void check_observable(
 
     nn_mwpc_interface interface = nn_mwpc_interface("nijmegen1",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
-         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+         finite_grid, inc_weights_in_pot, cut_on_shell,
+         program_const->fpi,program_const->mpi,program_const->Mp,
+         program_const->Mn,program_const->inv_fm_to_MeV);   
 
     double energies1[3] = {10.0,50.0, 200.0};
     double energies2[3] = {125.0, 200.0,350.0};
@@ -285,7 +287,9 @@ void check_M_el(
 
     nn_mwpc_interface interface = nn_mwpc_interface("nijmegen1",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
-         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+         finite_grid, inc_weights_in_pot, cut_on_shell,
+         program_const->fpi,program_const->mpi,program_const->Mp,
+         program_const->Mn,program_const->inv_fm_to_MeV);   
 
     double energies[3] = {10.0,50.0, 200.0};
     for (int j=0; j<3; j++)
@@ -384,7 +388,9 @@ void check_observable_noang(
 
     nn_mwpc_interface interface = nn_mwpc_interface("nijmegen1",J_max,
          Lambda,cut_pow,sharp_cutoff,pre_comp_pot,rel_corr,number_of_p_points,
-         finite_grid, inc_weights_in_pot, cut_on_shell,program_const);   
+         finite_grid, inc_weights_in_pot, cut_on_shell,  
+         program_const->fpi,program_const->mpi,program_const->Mp,
+         program_const->Mn,program_const->inv_fm_to_MeV);   
 
     //
     // Load data    

@@ -111,22 +111,22 @@ int main(int argc, char** argv)
             program_const->inv_fm_to_MeV);
 
 
-    nn_dwb.create_new_potential("MLO","MWPC_LO_SP",700.0);
+    nn_dwb.create_new_potential("MLO","MWPC_LO_SP","DR",700.0);
     nn_dwb.print_potential_info("MLO");
     std::vector<double> params = {1.29};
     nn_dwb.set_params_in_potential("MLO",params);
     
-    nn_dwb.create_new_potential("MNLO","MWPC_NLO_SP",700.0);
+    nn_dwb.create_new_potential("MNLO","MWPC_NLO_SP","DR",700.0);
     nn_dwb.print_potential_info("MNLO");
     params = {1.29};
     nn_dwb.set_params_in_potential("MNLO",params);
     
-    nn_dwb.create_new_potential("MN2LO","MWPC_N2LO_SP",700.0);
+    nn_dwb.create_new_potential("MN2LO","MWPC_N2LO_SP","DR",700.0);
     nn_dwb.print_potential_info("MN2LO");
     params = {1.29};
     nn_dwb.set_params_in_potential("MN2LO",params);
     
-    nn_dwb.create_new_potential("MN3LO","MWPC_N3LO_SP",700.0);
+    nn_dwb.create_new_potential("MN3LO","MWPC_N3LO_SP","DR",700.0);
     nn_dwb.print_potential_info("MN3LO");
     params = {1.29};
     nn_dwb.set_params_in_potential("MN3LO",params);
@@ -191,7 +191,8 @@ int main(int argc, char** argv)
     for (auto order : orders)
     {
         start_time = std::chrono::high_resolution_clock::now();
-        std::complex<double> obs_comp = nn_dwb.observable_from_saved_T("I 0000",theta_cm,order);
+        nn_dwb.set_saved_T_vec_from_saved_orders(order);
+        std::complex<double> obs_comp = nn_dwb.observable_from_saved_T_vec("I 0000",theta_cm);
         end_time = std::chrono::high_resolution_clock::now();
         time = end_time - start_time;
         std::cout <<"order: " << order <<  ". Time to compute obs    : " << 
