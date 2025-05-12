@@ -302,8 +302,8 @@ public:
      * Function that does the same as 'solve_DWBA_T_PC()' but saves the 
      * T-matrix in the saved data.
      */
-    void solve_save_T_chn_PC(double T_lab, std::vector<int> chn_index_LO,
-            std::vector<int> orders, 
+    void solve_save_T_chn_PC(double T_lab, 
+            std::vector<int> chn_index_LO, std::vector<int> orders,
             const std::string& V_LO_name, const std::string& V_NLO_name,
             const std::string& V_N2LO_name, const std::string& V_N3LO_name);
     

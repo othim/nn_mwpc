@@ -13,7 +13,7 @@ PYBIND11_MODULE(nn_mwpc, m)
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
         .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,
-                bool,bool,bool>())
+                bool,bool,bool,double,double,double,double,double>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
         .def("solve_LS_ext_pot", &nn_mwpc_interface::solve_LS_ext_pot,
@@ -181,7 +181,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         int J_max_chn, double cutoff, int cut_pow, 
         bool sharp_cutoff, bool pre_comp_pot, bool rel_corr,
         int number_of_p_points,bool finite_grid,bool inc_weights_in_pot,
-        bool cut_on_shell, ph::constants_struct* program_const)
+        bool cut_on_shell, double fpi, double mpi, double Mp, double Mn,
+        double inv_fm_to_MeV)
 {
 
     // ------ CONSTANTS TO CHANGE ------
@@ -200,7 +201,19 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     inc_weights_in_pot_ = inc_weights_in_pot;
     cut_on_shell_ = cut_on_shell;
     
-    program_const_ = program_const;
+    // Set constants
+    // **********************
+    program_const_ = new ph::constants_struct;
+    
+    program_const_->fpi            = fpi;
+    program_const_->mpi            = mpi; // Average of +,-,0 
+    program_const_->Mp             = Mp; 
+    program_const_->Mn             = Mn;
+    program_const_->inv_fm_to_MeV  = inv_fm_to_MeV;
+
+    program_const_->MeVm2_to_mbarn = (program_const_->inv_fm_to_MeV)
+        * (program_const_->inv_fm_to_MeV)*10.0;
+    // ***********************
     
     J_pot_ext_cut_ = 5000;
     Pot_ext_aux_ = nullptr;
@@ -290,7 +303,9 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         //        number_of_p_points_,J_max_in_pot_,cutoff_, cut_pow_,sharp_cutoff_);
         Pot_ = new Potential_mwpc<gsl_matrix>(terms,ang_int_points_,p_grid_,w_grid_,
             number_of_p_points_,J_max_in_pot_,cutoff_,cut_pow_,sharp_cutoff_,
-            300.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
+            1500.0,inc_weights_in_pot_,cut_on_shell_,"DR",700.0,program_const_);
+        double ga = 1.276;
+        Pot_->params_["gA"] = ga;
         Pot_ext_ = nullptr;
 
         if (pre_comp_pot_)

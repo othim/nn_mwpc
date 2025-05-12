@@ -135,6 +135,7 @@ void check_potentials(int ang_int_points_, double* p_grid_,
             w_grid_, number_of_p_points_, J_max_in_pot_,
             cutoff_, cut_pow_, sharp_cutoff_, 
             sharp_cutoff_add_, cut_on_shell_,
+            "DR",700.0,
             program_const_);
     
     pot->print_LECs_and_params_info();
@@ -186,6 +187,7 @@ void check_potentials(int ang_int_points_, double* p_grid_,
             w_grid_, number_of_p_points_, J_max_in_pot_,
             cutoff_, cut_pow_, sharp_cutoff_, 
             sharp_cutoff_add_, cut_on_shell_,
+            "SFR", 700.0,
             program_const_);
 
     pot2->print_LECs_and_params_info();
