@@ -37,7 +37,7 @@ template gsl_matrix_complex* Potential_mwpc<gsl_matrix_complex>::get_matrix(doub
 template gsl_matrix_complex* Potential_mwpc<gsl_matrix_complex>::get_matrix_no_onshell(
         qs::quantum_channel chn, bool rel_correction);
 
-template void Potential_mwpc<gsl_matrix_complex>::calc_element_V_arr_full(double qi,double qo, 
+template void Potential_mwpc<gsl_matrix_complex>::calc_element_V_arr_full(double qo,double qi, 
         qs::quantum_channel chn, bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr);
 
 template Potential_mwpc<gsl_matrix_complex>::~Potential_mwpc();
@@ -76,7 +76,7 @@ template void Potential_mwpc<gsl_matrix_complex>::get_chn_block_from_qn(int L,
         int Lp, int S, int J, int T, qs::quantum_channel* chn, int* block_index);
 
 template double Potential_mwpc<gsl_matrix_complex>::calc_element_LSJ_full(
-        double p, double pp, int L, int Lp, int S, int J, int T, int Tz);
+        double qo, double qi, int Lo, int Li, int S, int J, int T, int Tz);
 
 
 template double Potential_mwpc<gsl_matrix_complex>::compute_HO_matrix_el(
@@ -267,7 +267,7 @@ int Potential_mwpc<gsl_m>::isoFac(int L,int S)
 
 
 template <class gsl_m>
-double Potential_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int l, 
+double Potential_mwpc<gsl_m>::compute_A_integral(int J,int l, 
         std::vector<double> v_alpha_arr)
 {
    #ifdef ENABLE_DEBUG
@@ -289,19 +289,9 @@ double Potential_mwpc<gsl_m>::compute_A_integral(double qi, double qo, int J,int
    return integral*M_PI;
 }
 
-/*
-   This function returns in the V_arr pointer, an array of lengt 6 which include the potential 
-   elemetns V_arr = [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp] where 
-   S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc.
-
-   The potential elements are in the same normalization as in the input terms that are entered in 
-   the class Term. This is a relativistic normalization (see README.md). This means that to, for example,
-   construct a motential matrix in a momentum basis <p'|p> = \delta^3(p'-p) a relativistic factor
-   needs to be added. The  (2\pi)^{-3} factor ARE included.
-*/
 
 template <class gsl_m>
-void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo, 
+void Potential_mwpc<gsl_m>::calc_element_V_arr(double qo,double qi, 
         qs::quantum_channel chn, double* V_arr)
 {
     bool coupled = chn.coupled;
@@ -324,6 +314,7 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
          #endif
          // Compute v_alpha array. Just make this function call ONCE!
          //std::cout << "Term: " << terms_in_pot_[i].get_term_name() << std::endl;
+         // Args should be qi, qo for now!
          std::vector<double> v_alpha_arr = 
              terms_in_pot_[i].my_v_alpha(qi,qo,z_mesh,len_z_mesh,LECs_,params_,
                      chn,loop_reg_,lam_SFR_,program_const_);
@@ -334,7 +325,7 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
          double tmp_arr[6];
          //std::cout << terms_in_pot_[i].get_spin_structure() << " " << 
          //    terms_in_pot_[i].get_isovector() << std::endl;
-         pwa(qi,qo,coupled,J,terms_in_pot_[i].get_spin_structure(),
+         pwa(qo,qi,coupled,J,terms_in_pot_[i].get_spin_structure(),
                  terms_in_pot_[i].get_isovector(),v_alpha_arr,&tmp_arr[0]);
          
          V_uncoupled_S0 += tmp_arr[0];
@@ -364,19 +355,19 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
          {
             if (coupled)
             {
-               if (LS_term.Li == J-1 && LS_term.Lo == J-1) // --
+               if (LS_term.Lo == J-1 && LS_term.Li == J-1) // --
                {
                   V_coupled_mm += 
                       terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
-               } else if (LS_term.Li == J+1 && LS_term.Lo == J+1) // ++
+               } else if (LS_term.Lo == J+1 && LS_term.Li == J+1) // ++
                {
                   V_coupled_pp += 
                       terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
-               } else if (LS_term.Li == J-1 && LS_term.Lo == J+1) // -+
+               } else if (LS_term.Lo == J-1 && LS_term.Li == J+1) // -+
                {
                   V_coupled_mp += 
                       terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
-               } else if (LS_term.Li == J+1 && LS_term.Lo == J-1) // +-
+               } else if (LS_term.Lo == J+1 && LS_term.Li == J-1) // +-
                {
                   V_coupled_pm += 
                       terms_in_pot_[i].get_v_alpha_well_def_pw(qi,qo,LECs_,params_);
@@ -428,7 +419,7 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr(double qi,double qo,
 }
 
 template <class gsl_m>
-void Potential_mwpc<gsl_m>::calc_element_V_arr_full(double qi,double qo, 
+void Potential_mwpc<gsl_m>::calc_element_V_arr_full(double qo,double qi, 
         qs::quantum_channel chn, bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr)
 {
     // This function is not safe to use when cut_on_shell = false
@@ -446,7 +437,7 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr_full(double qi,double qo,
             fac = get_rel_cut(qi,qo,mu,rel_correction);
         }
         // Compute the potential matrix element without these factors
-        calc_element_V_arr(qi,qo,chn,&V_arr[0]);
+        calc_element_V_arr(qo,qi,chn,&V_arr[0]);
         
         // Multiply all elements by the total factor
         for (int i=0; i<6; i++)
@@ -457,15 +448,13 @@ void Potential_mwpc<gsl_m>::calc_element_V_arr_full(double qi,double qo,
 }
 
 template <class gsl_m>
-double Potential_mwpc<gsl_m>::calc_element_LSJ_full(double p, double pp, int L,
-       int Lp, int S, int J, int T, int Tz)
+double Potential_mwpc<gsl_m>::calc_element_LSJ_full(double qo, double qi, int Lo,
+       int Li, int S, int J, int T, int Tz)
 {
     // 3P0 is a the only special case where the channel is uncoupled when 
     // L != J.
     bool coup = false;
     int Vidx  = 0;
-    int Li = Lp;
-    int Lo = L;
     if (S == 1 && Li==1 && Lo==1 && J==0) // 3P0
     {
         coup = true;
@@ -478,10 +467,10 @@ double Potential_mwpc<gsl_m>::calc_element_LSJ_full(double p, double pp, int L,
             Vidx = S;
         } else { // We are in a coupled channel
             coup = true;
-            if (Li == J-1 && Lo == J-1) Vidx=3; // mm
-            if (Li == J-1 && Lo == J+1) Vidx=5; // mp
-            if (Li == J+1 && Lo == J-1) Vidx=4; // pm
-            if (Li == J+1 && Lo == J+1) Vidx=2; // pp
+            if (Lo == J-1 && Li == J-1) Vidx=3; // mm
+            if (Lo == J-1 && Li == J+1) Vidx=5; // mp
+            if (Lo == J+1 && Li == J-1) Vidx=4; // pm
+            if (Lo == J+1 && Li == J+1) Vidx=2; // pp
         }
     }
     qs::quantum_channel chn;
@@ -492,10 +481,10 @@ double Potential_mwpc<gsl_m>::calc_element_LSJ_full(double p, double pp, int L,
     chn.coupled = coup;
     
     double V_arr[6]; // Array for data
-    calc_element_V_arr(pp, p, chn, &V_arr[0]);
+    calc_element_V_arr(qo, qi, chn, &V_arr[0]);
     
     double mu = ph::get_mN(chn.Tz,program_const_->Mn,program_const_->Mp)/2.0; // Default
-    double tot_fac = get_total_rel_cut_weight_factor(pp,0,p,mom_grid_size_,mu,false);
+    double tot_fac = get_total_rel_cut_weight_factor(qi,0,qo,mom_grid_size_,mu,false);
     
     return V_arr[Vidx]*tot_fac;
 }
@@ -505,7 +494,7 @@ double Potential_mwpc<gsl_m>::calc_element_LSJ_full(double p, double pp, int L,
    respective term in the potential.
 */
 template <class gsl_m>
-void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int, 
+void Potential_mwpc<gsl_m>::pwa(double qo,double qi, bool coupled, int J_int, 
         std::string spin_struct,
         bool isovector, std::vector<double>& v_alpha_arr,double* V_arr)
 {
@@ -560,7 +549,7 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
+            double A_0 = compute_A_integral(J_int,0,v_alpha_arr);
 
             V_uncoupled_S0 = 2.0*A_0;
             V_uncoupled_S1 = 2.0*A_0;
@@ -568,11 +557,11 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         
         if (coupled || J_int == 0)
         {
-            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
+            double A_P = compute_A_integral(J_int+1,0,v_alpha_arr);
             V_coupled_pp = 2.0*A_P;
             if (J_int > 0)
             {
-                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
+                double A_M = compute_A_integral(J_int-1,0,v_alpha_arr);
                 V_coupled_mm = 2.0*A_M;
                 V_coupled_mp = 0.0;
                 V_coupled_pm = 0.0;
@@ -583,18 +572,18 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
+            double A_0 = compute_A_integral(J_int,0,v_alpha_arr);
             V_uncoupled_S0 = -6.0*A_0;
             V_uncoupled_S1 = 2.0*A_0;
         } 
         
         if (coupled || J_int == 0)
         {
-            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
+            double A_P = compute_A_integral(J_int+1,0,v_alpha_arr);
             V_coupled_pp = 2.0*A_P;
             if (J_int>0)
             {
-                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
+                double A_M = compute_A_integral(J_int-1,0,v_alpha_arr);
                 V_coupled_mm = 2.0*A_M;
                 V_coupled_mp = 0.0;
                 V_coupled_pm = 0.0;
@@ -605,11 +594,11 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
+            double A_P = compute_A_integral(J_int+1,0,v_alpha_arr);
             double A_M = 0;
             if (J_int>0)
             {
-                A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
+                A_M = compute_A_integral(J_int-1,0,v_alpha_arr);
             }
             V_uncoupled_S0 = 0;
             V_uncoupled_S1 = 2.0*qo*qi*(1.0/(2*J+1))*(A_P - A_M);
@@ -617,8 +606,8 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         
         if (coupled || J_int == 0)
         {
-            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
-            double A_P2 = compute_A_integral(qi,qo,J_int+2,0,v_alpha_arr);
+            double A_0 = compute_A_integral(J_int,0,v_alpha_arr);
+            double A_P2 = compute_A_integral(J_int+2,0,v_alpha_arr);
             
             V_coupled_pp = 2.0*qo*qi*((J+2)/(2*J+3))*(A_P2 - A_0);
             if (J_int>0)
@@ -626,7 +615,7 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
                 double A_M2 = 0;
                 if (J_int>1)
                 {
-                    A_M2 = compute_A_integral(qi,qo,J_int-2,0,v_alpha_arr);
+                    A_M2 = compute_A_integral(J_int-2,0,v_alpha_arr);
                 }  
                 V_coupled_mm = 2.0*qo*qi*((J-1)/(2*J-1))*(A_M2 - A_0);
                 V_coupled_mp = 0.0;
@@ -640,13 +629,13 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         // channel
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
-            double A_1 = compute_A_integral(qi,qo,J_int,1,v_alpha_arr);
-            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
+            double A_0 = compute_A_integral(J_int,0,v_alpha_arr);
+            double A_1 = compute_A_integral(J_int,1,v_alpha_arr);
+            double A_P = compute_A_integral(J_int+1,0,v_alpha_arr);
             double A_M = 0;
             if (J_int>0)
             {
-                A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
+                A_M = compute_A_integral(J_int-1,0,v_alpha_arr);
             }
 
             V_uncoupled_S0 = 2.0 * (-(qo*qo+qi*qi)*A_0 + 2.0*qo*qi*A_1);
@@ -659,18 +648,18 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         // V_coupled_mm matrix element.
         if (coupled || J_int == 0)
         {
-            double A_P = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
-            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
+            double A_P = compute_A_integral(J_int+1,0,v_alpha_arr);
+            double A_0 = compute_A_integral(J_int,0,v_alpha_arr);
             
             V_coupled_pp = (2.0/(2.0*J+1.0)) * (-(qo*qo+qi*qi)*A_P + 2.0*qo*qi*A_0);
             if (J_int>0)
             {
-                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
-
+                double A_M = compute_A_integral(J_int-1,0,v_alpha_arr);
+                //std::cout << "A_P=" << A_P << ", A_M=" << A_M << ", A_0=" << A_0 << std::endl;
                 V_coupled_mm = (2.0/(2.0*J+1.0)) * ((qo*qo+qi*qi)*A_M - 2*qo*qi*A_0);
-                V_coupled_mp = (4.0*sqrt(J*(J+1.0))/(2.0*J+1.0)) * 
+                V_coupled_pm = (4.0*sqrt(J*(J+1.0))/(2.0*J+1.0)) * 
                     (qi*qi*A_P + qo*qo*A_M - 2*qo*qi*A_0);
-                V_coupled_pm = (4.0*sqrt(J*(J+1))/(2.0*J+1.0)) * 
+                V_coupled_mp = (4.0*sqrt(J*(J+1))/(2.0*J+1.0)) * 
                     (qi*qi*A_M + qo*qo*A_P - 2*qo*qi*A_0);
             }
         }
@@ -679,14 +668,14 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
     {
         if (!coupled)
         {
-            double A_0 = compute_A_integral(qi,qo,J_int,0,v_alpha_arr);
-            double A_2 = compute_A_integral(qi,qo,J_int,2,v_alpha_arr);
+            double A_0 = compute_A_integral(J_int,0,v_alpha_arr);
+            double A_2 = compute_A_integral(J_int,2,v_alpha_arr);
             double A_M_1 = 0;
             if (J_int>0)
             {
-                A_M_1 = compute_A_integral(qi,qo,J_int-1,1,v_alpha_arr);
+                A_M_1 = compute_A_integral(J_int-1,1,v_alpha_arr);
             }
-            double A_P_1 = compute_A_integral(qi,qo,J_int+1,1,v_alpha_arr);
+            double A_P_1 = compute_A_integral(J_int+1,1,v_alpha_arr);
             
             V_uncoupled_S0 = 2.0*qo*qo*qi*qi*(A_2-A_0);
             V_uncoupled_S1 = 2.0*qo*qo*qi*qi*(-A_0 + ((J-1.0)/(2.0*J+1.0))*
@@ -695,16 +684,16 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         
         if (coupled || J_int == 0)
         {
-            double A_1   = compute_A_integral(qi,qo,J_int,1,v_alpha_arr);
-            double A_P   = compute_A_integral(qi,qo,J_int+1,0,v_alpha_arr);
-            double A_P_2 = compute_A_integral(qi,qo,J_int+1,2,v_alpha_arr);
+            double A_1   = compute_A_integral(J_int,1,v_alpha_arr);
+            double A_P   = compute_A_integral(J_int+1,0,v_alpha_arr);
+            double A_P_2 = compute_A_integral(J_int+1,2,v_alpha_arr);
 
             V_coupled_pp = 2.0*qo*qo*qi*qi*( ((2.0*J+3)/(2.0*J+1))*A_P -
                         ((2.0)/(2.0*J+1))*A_1 - A_P_2);
             if (J_int>0)
             {
-                double A_M = compute_A_integral(qi,qo,J_int-1,0,v_alpha_arr);
-                double A_M_2 = compute_A_integral(qi,qo,J_int-1,2,v_alpha_arr);
+                double A_M = compute_A_integral(J_int-1,0,v_alpha_arr);
+                double A_M_2 = compute_A_integral(J_int-1,2,v_alpha_arr);
                 
                 V_coupled_mm = 2.0*qo*qo*qi*qi*( ((2.0*J-1)/(2.0*J+1))*A_M +
                         ((2.0)/(2.0*J+1))*A_1 - A_M_2);
@@ -734,8 +723,8 @@ void Potential_mwpc<gsl_m>::pwa(double qi,double qo, bool coupled, int J_int,
         V_coupled_pm   *= isoFac(J_int+1,1);
         V_coupled_mp   *= isoFac(J_int-1,1);
         V_coupled_pp   *= isoFac(J_int+1,1);
+        //std::cout << "isoFac: " <<  isoFac(J_int+1,1) << ", " << isoFac(J_int-1,1) << std::endl;
     }
-
     // Populate the array
     V_arr[0] = V_uncoupled_S0;
     V_arr[1] = V_uncoupled_S1;
@@ -802,18 +791,18 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
          double V_arr[6]; // Array for data
          
          // Outgoing momentum is row index
-         double p_in  = 0;
          double p_out = 0;
+         double p_in  = 0;
 
-        if (j < mom_grid_size_) {
-            p_in  = p_grid_[j];
-         } else {
-            p_in = q_on_shell;
-         }
          if (i < mom_grid_size_) {
             p_out = p_grid_[i];
          } else {
             p_out = q_on_shell;
+         }
+         if (j < mom_grid_size_) {
+            p_in  = p_grid_[j];
+         } else {
+            p_in = q_on_shell;
          }
 
          // Get the factor from the relativistic corrections
@@ -821,7 +810,7 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
          double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i,mu,rel_correction);
          
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
-         calc_element_V_arr(p_in,p_out,chn,&V_arr[0]);
+         calc_element_V_arr(p_out,p_in,chn,&V_arr[0]);
          //std::cout << "Rel fac: " << rel_fac << std::endl;
          //for (int i= 0; i < 6; i++)
          //{
@@ -832,17 +821,17 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-                ph::matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
+                ph::matrix_set(matrix_data,i,j,V_arr[0]*tot_fac);
                //std::cout << "Pot el S0: " << V_arr[0]*rel_fac << std::endl;
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                   ph::matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
+                   ph::matrix_set(matrix_data,i,j,V_arr[1]*tot_fac);
                } else // For J=0,S=1,L=1 case
                {
-                   ph::matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
+                   ph::matrix_set(matrix_data,i,j,V_arr[2]*tot_fac); // Take pp element to get L=1
                }
                
             }
@@ -850,15 +839,15 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix(double q_on_shell,qs::quantum_channel c
          {
              //std::cout << "tot_fac=" << tot_fac << std::endl;
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-             ph::matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
+             ph::matrix_set(matrix_data,i,j,V_arr[3]*tot_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-             ph::matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*tot_fac); //mp
-             ph::matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*tot_fac); //pm
-             ph::matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*tot_fac); //pp
+             ph::matrix_set(matrix_data,i,j+(mom_grid_size_+1),V_arr[5]*tot_fac); //mp
+             ph::matrix_set(matrix_data,i+(mom_grid_size_+1),j,V_arr[4]*tot_fac); //pm
+             ph::matrix_set(matrix_data,i+(mom_grid_size_+1),j+(mom_grid_size_+1),V_arr[2]*tot_fac); //pp
 
          }
       }
@@ -1025,7 +1014,7 @@ gsl_m* Potential_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_ch
             p_in = q_on_shell;
          }
          double p_out = q_on_shell; // row is fixed
-         calc_element_V_arr(p_in,p_out, chn, &tmp_arr[0]);
+         calc_element_V_arr(p_out,p_in, chn, &tmp_arr[0]);
 
 
          // Get the factor from the relativistic corrections
@@ -1093,7 +1082,7 @@ gsl_m* Potential_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_ch
          }
          // column index
          double p_out = q_on_shell; // row is fixed
-         calc_element_V_arr(p_in,p_out, chn, &tmp_arr[0]);
+         calc_element_V_arr(p_out,p_in, chn, &tmp_arr[0]);
 
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
@@ -1106,18 +1095,18 @@ gsl_m* Potential_mwpc<gsl_m>::get_saved_matrix(double q_on_shell, qs::quantum_ch
 
          // Take mm element and insert it into the matrix
          // mm
-         ph::matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]*tot_fac); // Column
-         ph::matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]*tot_fac); // Row
+         ph::matrix_set(matrix_saved_sum,mom_grid_size_,i,tmp_arr[3]*tot_fac); // Row
+         ph::matrix_set(matrix_saved_sum,i,mom_grid_size_,tmp_arr[3]*tot_fac); // Column
 
          // Take mp element one and insert it into the matrix
          // mp 
-         ph::matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[4]*tot_fac); // Column
-         ph::matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[5]*tot_fac); // Row 
+         ph::matrix_set(matrix_saved_sum,mom_grid_size_,i+mom_grid_size_+1,tmp_arr[5]*tot_fac); // Column
+         ph::matrix_set(matrix_saved_sum,i,2*mom_grid_size_+1,tmp_arr[4]*tot_fac); // Row 
 
          // Take pm element one and insert it into the matrix
          // pm
-         ph::matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[5]*tot_fac); // Column
-         ph::matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[4]*tot_fac); // Row 
+         ph::matrix_set(matrix_saved_sum,2*mom_grid_size_+1,i,tmp_arr[4]*tot_fac); // Row
+         ph::matrix_set(matrix_saved_sum,i+mom_grid_size_+1,mom_grid_size_,tmp_arr[5]*tot_fac); // Row 
 
          // Take pp element one and insert it into the matrix
          // pp
@@ -1171,45 +1160,45 @@ gsl_m* Potential_mwpc<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
          double V_arr[6]; // Array for data
          
          // Outgoing momentum is row index
-         double p_in  = p_grid_[j];
          double p_out = p_grid_[i];
+         double p_in  = p_grid_[j];
          
          // Get the factor from the relativistic corrections
          // the cutoff and the grid
          double tot_fac = get_total_rel_cut_weight_factor(p_in,j,p_out,i,mu,rel_correction);
          
-         calc_element_V_arr(p_in, p_out, chn, &V_arr[0]);
+         calc_element_V_arr(p_out, p_in, chn, &V_arr[0]);
      
          if (!chn.coupled)
          {
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-                ph::matrix_set(matrix_data,j,i,V_arr[0]*tot_fac);
+                ph::matrix_set(matrix_data,i,j,V_arr[0]*tot_fac);
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                   ph::matrix_set(matrix_data,j,i,V_arr[1]*tot_fac);
+                   ph::matrix_set(matrix_data,i,j,V_arr[1]*tot_fac);
                } else // For J=0,S=1,L=1 case
                {
-                   ph::matrix_set(matrix_data,j,i,V_arr[2]*tot_fac); // Take pp element to get L=1
+                   ph::matrix_set(matrix_data,i,j,V_arr[2]*tot_fac); // Take pp element to get L=1
                }
             }
 
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-             ph::matrix_set(matrix_data,j,i,V_arr[3]*tot_fac); //mm
+             ph::matrix_set(matrix_data,i,j,V_arr[3]*tot_fac); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-             ph::matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*tot_fac); //mp
-             ph::matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*tot_fac); //pm
-             ph::matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*tot_fac); //pp
+             ph::matrix_set(matrix_data,i,j+(mom_grid_size_),V_arr[5]*tot_fac); //mp
+             ph::matrix_set(matrix_data,i+(mom_grid_size_),j,V_arr[4]*tot_fac); //pm
+             ph::matrix_set(matrix_data,i+(mom_grid_size_),j+(mom_grid_size_),V_arr[2]*tot_fac); //pp
          }
       }
    }
@@ -1825,8 +1814,8 @@ template <class gsl_m>
 void Potential_mwpc<gsl_m>::get_chn_block_from_qn(int L, int Lp, int S, int J, 
     int T, qs::quantum_channel* chn, int* block_index)
 {
-// These quantum numbers must agree
-chn->S  = S;
+    // These quantum numbers must agree
+    chn->S  = S;
     chn->J  = J;
     chn->T  = T;
     

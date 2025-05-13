@@ -104,7 +104,7 @@ private:
       This method computes the \mathcal{A}-integrals (see Erkelenz). The method takes an
       array of v_alpha-values (see Erkelenz) to speed up the computation.
    */
-   double compute_A_integral(double qi, double qo, int J,int l, 
+   double compute_A_integral(int J,int l, 
            std::vector<double> v_alpha_arr);
    
    /*
@@ -113,12 +113,17 @@ private:
       using compute_A_integral(), and then computing the matrix elemetnts of the form
 
       V_arr = [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
-      where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
+      where S0-> S=0, S1-> S=1, mm-> L_out=L_in=J-1, mp-> L_out=J-1, L_in=J+1, 
+      etc.
 
-      following the formulas in Erkelenz for a given spin structure. (NOTE some formulas are wrong
-      is is pointed out in an appendix in one of Machleidts papers)
+      following the formulas in Erkelenz for a given spin structure.
+      
+      NOTE: some formulas are wrong which is pointed out in an Appendix in 
+      one of Machleidts papers.
+
+
    */
-   void pwa(double qi,double qo, bool coupled, int J_int, std::string spin_struct,
+   void pwa(double qo,double qi, bool coupled, int J_int, std::string spin_struct,
            bool isovector,std::vector<double>& v_alpha_arr, double* V_arr);
    
    
@@ -181,31 +186,42 @@ public:
       Destructor
     */ 
     ~Potential_mwpc();
+
     /*
       This function computes matrix elements of the potential. NOTE that this is done with the
       CURRENT values of LECs_, so be sure to set them to the correct values prior
       to computation. There is no guarantee that the LECs_ values are laft untouched by
       routines in the class.
 
-      The elements are on the form [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
-      where S0-> S=0, S1-> S=1, mm-> l=l'=J-1, mp-> l=J-1, l'=J+1, etc
-      NOTE: There is no minus sign on the off-diagonal elements as in some conventions!
+      V_arr = [V_S0, V_S1, V_pp, V_mm, V_pm, V_mp]
+      where S0-> S=0, S1-> S=1, mm-> L_out=L_in=J-1, mp-> L_out=J-1, L_in=J+1, 
+      etc.
+      
+      NOTE: There is a minus sign added in V_pm and V_mp compared to the 
+      formular in Erkelenz. This match the convention used by Machleidt.
+      This same convention is used in the cdbonn.f, pnijm.f idaho_n3lo.f
+      and the ns-opt code by Andreas.
+
+      This minus sign will then also appear in the M-matrix relation and 
+      when calculation HO-matrix elements.
+
+      Also a (2 pi)^{-3} factor is added.
     */
-    void calc_element_V_arr(double qi,double qo, qs::quantum_channel chn, 
+    void calc_element_V_arr(double qo,double qi, qs::quantum_channel chn, 
             double* V_arr);
 
     /*
      * Same as above bu includes the cutoff, relativistic and weights factors.
      * NOTE! Can not be used when cut_on_shell_ = false.
      */
-    void calc_element_V_arr_full(double qi,double qo, qs::quantum_channel chn,
+    void calc_element_V_arr_full(double qo,double qi, qs::quantum_channel chn,
            bool rel_correction, bool inc_reg_cut_and_rel, double* V_arr);
     
     /*
      *
      * NOTE! Can not be used when cut_on_shell_ = false
      */
-    double calc_element_LSJ_full(double p, double pp, int L, int Lp, int S, 
+    double calc_element_LSJ_full(double qo, double qi, int Lo, int Li, int S, 
             int J, int T, int Tz);
 
     /* 
@@ -276,7 +292,7 @@ public:
     void project_out_spurious_states(gsl_m* V_full,qs::quantum_channel chn,
         bool rel_correction, double lambda);
 
-    // <l|V|lp>_sjt. l - outgoing, lp - ingoing.
+    // <L|V|Lp>_sjt. L - outgoing, Lp - ingoing.
     void get_chn_block_from_qn(int L, int Lp, int S, int J, int T, 
             qs::quantum_channel* chn, int* block_indexT);
 
