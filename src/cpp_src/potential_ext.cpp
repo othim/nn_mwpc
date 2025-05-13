@@ -1,8 +1,9 @@
 #include "potential_ext.h"
 
 extern "C" {
-    void cdbonn_fort_interface(double *qi,
-			  double *qo,
+    void cdbonn_fort_interface(
+              double *p_out,
+			  double *p_in,
 			  int *coup,
 			  int *S,
 			  int *J,
@@ -12,16 +13,17 @@ extern "C" {
 }
 
 // This function is not complete!!!
-void cdbonn_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
+void cdbonn_correct_arg(double p_out, double p_in, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
 {
     int coup = (int)coupled;
-    cdbonn_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
+    cdbonn_fort_interface(&p_out, &p_in, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
 }
 
 extern "C" {
-    void nijmegen_fort_interface(double *qi,
-			  double *qo,
+    void nijmegen_fort_interface(
+              double *p_out,
+			  double *p_in,
 			  int *coup,
 			  int *S,
 			  int *J,
@@ -31,17 +33,18 @@ extern "C" {
 }
 
 // This function is not complete!!!
-void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
+void nijm_correct_arg(double p_out, double p_in, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
 {
     int coup = (int)coupled;
-    nijmegen_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
+    nijmegen_fort_interface(&p_out, &p_in, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
 }
 
 
 extern "C" {
-    void idaho_n3lo_fort_interface(double *qi,
-			  double *qo,
+    void idaho_n3lo_fort_interface(
+              double *p_out,
+			  double *p_in,
 			  int *coup,
 			  int *S,
 			  int *J,
@@ -50,10 +53,10 @@ extern "C" {
 			  double *pot);
 }
 
-void idaho_n3lo_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
+void idaho_n3lo_correct_arg(double p_out, double p_in, bool coupled, int S, int J, int T, int Tz,  double* V_arr)
 {
     int coup = (int)coupled;
-    idaho_n3lo_fort_interface(&qi, &qo, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
+    idaho_n3lo_fort_interface(&p_out, &p_in, &coup, &S, &J, &T, &Tz, &V_arr[0]); 
 
 }
 
@@ -63,7 +66,7 @@ void idaho_n3lo_correct_arg(double qi, double qo, bool coupled, int S, int J, in
 
 template Potential_ext<gsl_matrix>::Potential_ext(double* p_grid, int p_grid_length, 
         double cutoff_Lambda, 
-        void (*f)(double qi,double qo, bool coupled, int S, int J, int T, 
+        void (*f)(double p_out,double p_in, bool coupled, int S, int J, int T, 
             int Tz, double* V_arr));
 
 template Potential_ext<gsl_matrix>::~Potential_ext();
@@ -87,12 +90,13 @@ template double Potential_ext<gsl_matrix>::compute_HO_matrix_el(int no, int Lo, 
         int Li, int S, int J, int T, int Tz, double* p_grid, 
         double* w_grid, int num_grid_points, double mN, double Omega);
 
-template double Potential_ext<gsl_matrix>::get_pot_element_LSJ(double qi, double qo, int Li, 
-        int Lo, int S, int J, int T, int Tz);
+template double Potential_ext<gsl_matrix>::get_pot_element_LSJ(double p_out, 
+        double p_in, int L_out, 
+        int L_in, int S, int J, int T, int Tz);
 
 template <class gsl_m>
 Potential_ext<gsl_m>::Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
-        void (*f)(double qi,double qo, bool coupled, int S, int J, int T, int Tz, double* V_arr))
+        void (*f)(double p_out,double p_in, bool coupled, int S, int J, int T, int Tz, double* V_arr))
 {
     // Set the function opinter to the correct function
     my_element_V_arr = f; 
@@ -107,40 +111,38 @@ Potential_ext<gsl_m>::~Potential_ext()
 }
 
 template <class gsl_m>
-double Potential_ext<gsl_m>::get_pot_element_LSJ(double qi, double qo, int Li, 
-        int Lo, int S, int J, int T, int Tz)
+double Potential_ext<gsl_m>::get_pot_element_LSJ(double p_out, double p_in, 
+        int L_out, int L_in, int S, int J, int T, int Tz)
 {
     // 3P0 is a the only special case where the channel is uncoupled when 
     // L != J.
     bool coup = false;
     int Vidx  = 0;
-    if (S == 1 && Li==1 && Lo==1 && J==0) // 3P0
+    if (S == 1 && L_out==1 && L_in==1 && J==0) // 3P0
     {
         coup = true;
         Vidx = 2; // Take pp element in V_arr.
     } else
     {
-        if (Li==J && Lo == J) // We are in uncoupled channel
+        if (L_out==J && L_in == J) // We are in uncoupled channel
         {
             coup = false;
             Vidx = S;
         } else { // We are in a coupled channel
             coup = true;
-            if (Li == J-1 && Lo == J-1) Vidx=3; // mm
-            if (Li == J-1 && Lo == J+1) Vidx=5; // mp
-            if (Li == J+1 && Lo == J-1) Vidx=4; // pm
-            if (Li == J+1 && Lo == J+1) Vidx=2; // pp
+            if (L_out == J-1 && L_in == J-1) Vidx=3; // mm
+            if (L_out == J-1 && L_in == J+1) Vidx=5; // mp
+            if (L_out == J+1 && L_in == J-1) Vidx=4; // pm
+            if (L_out == J+1 && L_in == J+1) Vidx=2; // pp
         }
     }
     
     double V_arr[6]; // Array for data
-    my_element_V_arr(qi,qo,coup,S, J, T, Tz, &V_arr[0]);
+    my_element_V_arr(p_out,p_in,coup,S, J, T, Tz, &V_arr[0]);
     
-    // OBS qi and qo reversed!!
-    
-    //my_element_V_arr(qo,qi,coup,S, J, T, Tz, &V_arr[0]);
     // Compute cutoff
-    double cutoff_regulator = exp(-gsl_pow_uint(qi/cutoff_Lambda_,6))*exp(-gsl_pow_uint(qo/cutoff_Lambda_,6));
+    double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))
+        *exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
     //std::cout << "Vidx=" << Vidx << ", V=" << V_arr[Vidx] << std::endl;
     //if (coup && std::abs(V_arr[5]-V_arr[4])>1e-10){
     //    std::cout << "Error: " << V_arr[5] << ", " << V_arr[4] << std::endl;
@@ -170,7 +172,8 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix(double q_on_shell,
 
    // For each grid point, including qi, and qo
    
-   // i: row index, j: column index
+   // i : row index : p_out, 
+   // j: column index : p_in
    // These loops populate the matrices everywhere except where
    // the on-shell part will go later.
    for (int i = 0; i < (int)mom_grid_size_+1; i++)
@@ -180,28 +183,29 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix(double q_on_shell,
          double V_arr[6]; // Array for data
          
          // Outgoing momentum is row index
-         double p_in  = 0;
          double p_out = 0;
+         double p_in  = 0;
 
-         if (j < (int)mom_grid_size_) {
-            p_in  = p_grid_[j];
-         } else {
-            p_in = q_on_shell;
-         }
          if (i < (int)mom_grid_size_) {
             p_out = p_grid_[i];
          } else {
             p_out = q_on_shell;
          }
+         if (j < (int)mom_grid_size_) {
+            p_in  = p_grid_[j];
+         } else {
+            p_in = q_on_shell;
+         }
          // THESE LINES DIFFER FROM THE FUNCTION IN POT_NN_MWPC
          //
          // Compute cutoff
-         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))*exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
+         double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))
+             *exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
       
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          
          //std::cout << chn.coupled << " " << chn.J << " " <<  chn.S << " " << chn.T << std::endl << " ------- " << std::endl;
-         my_element_V_arr(p_in,p_out,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
+         my_element_V_arr(p_out,p_in,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
          //std::cout << "-----" << std::endl;
          //---------------------------------------------------
          //std::cout << "Rel fac: " << rel_fac << std::endl;
@@ -215,18 +219,18 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix(double q_on_shell,
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-               gsl_matrix_set(matrix_data,j,i,V_arr[0]*cutoff_regulator);
+               gsl_matrix_set(matrix_data,i,j,V_arr[0]*cutoff_regulator);
               // std::cout << "Pot el S0: " << std::endl;
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*cutoff_regulator);
+                  gsl_matrix_set(matrix_data,i,j,V_arr[1]*cutoff_regulator);
                 //  std::cout << "1" << std::endl;
                } else // For J=0,S=1,L=1 case
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*cutoff_regulator); // Take pp element to get L=1
+                  gsl_matrix_set(matrix_data,i,j,V_arr[2]*cutoff_regulator); // Take pp element to get L=1
 
                   //std::cout << "2" << std::endl;
                }
@@ -237,15 +241,15 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix(double q_on_shell,
              
             //std::cout << "3" << std::endl;
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            gsl_matrix_set(matrix_data,j,i,V_arr[3]*cutoff_regulator); //mm
+            gsl_matrix_set(matrix_data,i,j,V_arr[3]*cutoff_regulator); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_+1),V_arr[5]*cutoff_regulator); //mp
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i,V_arr[4]*cutoff_regulator); //pm
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_+1),i+(mom_grid_size_+1),V_arr[2]*cutoff_regulator); //pp
+            gsl_matrix_set(matrix_data,i,j+(mom_grid_size_+1),V_arr[5]*cutoff_regulator); //mp
+            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j,V_arr[4]*cutoff_regulator); //pm
+            gsl_matrix_set(matrix_data,i+(mom_grid_size_+1),j+(mom_grid_size_+1),V_arr[2]*cutoff_regulator); //pp
          }
       }
    }
@@ -286,14 +290,14 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
          double V_arr[6]; // Array for data
          
          // Outgoing momentum is row index
-         double p_in  = p_grid_[j];
          double p_out = p_grid_[i];
+         double p_in  = p_grid_[j];
 
          // Compute relativistic factors
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))
              *exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
          
-         my_element_V_arr(p_in,p_out,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
+         my_element_V_arr(p_out,p_in,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
         
          // This is the same as in pot_nn_mwpc
          // ---------------------------------- 
@@ -302,31 +306,31 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
             if (chn.S==0) 
             {
                // Take S=0 element of V_arr and multiply by the relativistic factor
-               gsl_matrix_set(matrix_data,j,i,V_arr[0]*cutoff_regulator);
+               gsl_matrix_set(matrix_data,i,j,V_arr[0]*cutoff_regulator);
             } else if (chn.S==1)
             {
                // Take S=1 element of V_arr
                if (chn.J != 0)
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[1]*cutoff_regulator);
+                  gsl_matrix_set(matrix_data,i,j,V_arr[1]*cutoff_regulator);
                } else // For J=0,S=1,L=1 case
                {
-                  gsl_matrix_set(matrix_data,j,i,V_arr[2]*cutoff_regulator); // Take pp element to get L=1
+                  gsl_matrix_set(matrix_data,i,j,V_arr[2]*cutoff_regulator); // Take pp element to get L=1
                }
             }
 
          } else 
          {
             // The matrix is constructed as [[mm,mp],[pm,pp]]
-            gsl_matrix_set(matrix_data,j,i,V_arr[3]*cutoff_regulator); //mm
+            gsl_matrix_set(matrix_data,i,j,V_arr[3]*cutoff_regulator); //mm
             // Offsett with mom_grid_size_+1, sinze the one is for the
             // on-shell part of the matrix that will be added later
             
             //std::cout << "element=" << V_arr[5] << " rel_fac=" << rel_fac << std::endl;
             //std::cout << p_in << " " << p_out << std::endl;
-            gsl_matrix_set(matrix_data,j,i+(mom_grid_size_),V_arr[5]*cutoff_regulator); //mp
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i,V_arr[4]*cutoff_regulator); //pm
-            gsl_matrix_set(matrix_data,j+(mom_grid_size_),i+(mom_grid_size_),V_arr[2]*cutoff_regulator); //pp
+            gsl_matrix_set(matrix_data,i,j+(mom_grid_size_),V_arr[5]*cutoff_regulator); //mp
+            gsl_matrix_set(matrix_data,i+(mom_grid_size_),j,V_arr[4]*cutoff_regulator); //pm
+            gsl_matrix_set(matrix_data,i+(mom_grid_size_),j+(mom_grid_size_),V_arr[2]*cutoff_regulator); //pp
          }
          // ---------------------------------
       }
@@ -378,7 +382,7 @@ double Potential_ext<gsl_m>::compute_HO_matrix_el(int no, int Lo, int ni,
             double pi = p_grid[j];
             double wi = w_grid[j];
             
-            double Vij = get_pot_element_LSJ(pi,po,Li,Lo,S,J,T,Tz);
+            double Vij = get_pot_element_LSJ(po,pi,Lo,Li,S,J,T,Tz);
             matrix_element += wo*po*po*wi*pi*pi*Ro*Ri*Vij;
 
             // This code computes the full ME of the relative Hamiltonian

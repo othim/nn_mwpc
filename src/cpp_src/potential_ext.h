@@ -3,8 +3,8 @@
  * This file is part of the nn_mwpc project.
  *
  * This class is a potential class that computes potential
- * matrices from a given function for computing matrix
- * elements that is given.
+ * matrices from a given function for computing potential 
+ * matrix elements.
  *
  * Oliver Thim 2021-11 --
  * Department of Physics, Chalmers
@@ -26,7 +26,7 @@ private:
      * Function pointer to the function that computes the matrix elements of
      * the potential.
      */ 
-    void (*my_element_V_arr)(double qi,double qo, bool coupled, int S, int J, 
+    void (*my_element_V_arr)(double p_out,double p_in, bool coupled, int S, int J, 
             int T, int Tz, double* V_arr);
     
     double* p_grid_;
@@ -36,12 +36,12 @@ private:
 public:
 
     Potential_ext(double* p_grid, int p_grid_length, double cutoff_Lambda, 
-            void (*f)(double qi,double qo, bool coupled, int S, int J, int T, 
+            void (*f)(double p_out,double p_in, bool coupled, int S, int J, int T, 
                 int Tz,  double* V_arr));
     
     ~Potential_ext();
     
-    double get_pot_element_LSJ(double qi, double qo, int Li, int Lo,
+    double get_pot_element_LSJ(double p_out, double p_in, int L_out, int L_in,
             int S, int J, int T, int Tz);
     /*
      * This function returns the potential matrix
@@ -71,18 +71,19 @@ public:
 };
 
 
-void cdbonn_correct_arg(double qi, double qo, bool coupled, int S, int J, 
+void cdbonn_correct_arg(double p_out, double p_in, bool coupled, int S, int J, 
         int T, int Tz,  double* V_arr);
-void nijm_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, 
+void nijm_correct_arg(double p_out, double p_in, bool coupled, int S, int J, int T, 
         int Tz,  double* V_arr);
-void idaho_n3lo_correct_arg(double qi, double qo, bool coupled, int S, int J, int T, 
+void idaho_n3lo_correct_arg(double p_out, double p_in, bool coupled, int S, int J, int T, 
         int Tz,  double* V_arr);
-void nijm_OPE_correct_arg(double qi, double qo, bool coupled, int S, int J, 
+void nijm_OPE_correct_arg(double p_out, double p_in, bool coupled, int S, int J, 
         int T, int Tz,  double* V_arr);
 
 extern "C" {
-    void cdbonn_fort_interface(double *qi,
-			  double *qo,
+    void cdbonn_fort_interface(
+              double *p_out,
+			  double *p_in,
 			  int *coup,
 			  int *S,
 			  int *J,
@@ -92,8 +93,9 @@ extern "C" {
 }
 
 extern "C" {
-    void nijmegen_fort_interface(double *qi,
-			  double *qo,
+    void nijmegen_fort_interface(
+              double *p_out,
+			  double *p_in,
 			  int *coup,
 			  int *S,
 			  int *J,
@@ -101,9 +103,11 @@ extern "C" {
 			  int *Tz,
 			  double *pot);
 }
+
 extern "C" {
-    void idaho_n3lo_fort_interface(double *qi,
-			  double *qo,
+    void idaho_n3lo_fort_interface(
+              double *p_out,
+			  double *p_in,
 			  int *coup,
 			  int *S,
 			  int *J,
