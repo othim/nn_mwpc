@@ -74,6 +74,7 @@ int main(int argc, char** argv)
     unsigned int J_max_in_pot       = 50;    // Maximum J that is stored for L-polynomials
  
     double       Lambda             = 500.0;
+    //double       Lambda             = 10000.0;
     int          cut_pow            = 6;
     bool         sharp_cutoff       = false;
     bool         rel_corr           = true;
@@ -145,6 +146,8 @@ void check_potentials(int ang_int_points_, double* p_grid_,
     // Define a quantum channel (3S-D1)
     qs::quantum_channel chn_3S1 = {chn_3S1.J = 1, chn_3S1.S=1,chn_3S1.T=0,chn_3S1.Tz=0,
             chn_3S1.coupled=true};
+    //qs::quantum_channel chn_3S1 = {chn_3S1.J = 2, chn_3S1.S=1,chn_3S1.T=1,chn_3S1.Tz=0,
+    //        chn_3S1.coupled=true};
     qs::quantum_channel chn_1S0 = {chn_1S0.J = 0, chn_1S0.S=0,chn_1S0.T=1,
         chn_1S0.Tz=0, chn_1S0.coupled=false};
     
@@ -152,19 +155,23 @@ void check_potentials(int ang_int_points_, double* p_grid_,
     // in the calc_element_V_arr_full. If false, only the raw potential
     // is returned.
     bool inc_reg_cut_and_rel = true;
-    double qi = 10.0;
-    double qo = 10.0;
+    double qo = 100.0;
+    double qi = 200.0;
 
     
     // Set params and LECs, this info can be collected from the 
     // print statement above.
+    
     pot->params_["gA"] = 1.29;
     pot->LECs_["C1S0"] = -0.1/100.0;
     pot->LECs_["C3S1"] = -0.13/100.0;
-
-
+    
+    /*pot->params_["gA"] = 1.29;
+    pot->LECs_["C1S0"] = -0.1/100.0;
+    pot->LECs_["C3S1"] = 0.0;
+    */
     // Compute the potential elements
-    pot->calc_element_V_arr_full(qi,qo,chn_3S1,rel_corr,inc_reg_cut_and_rel,&V_arr[0]);
+    pot->calc_element_V_arr_full(qo,qi,chn_3S1,rel_corr,inc_reg_cut_and_rel,&V_arr[0]);
     std::cout << "V_arr = [";
     for (int i=0; i<6; i++)
     {
@@ -229,7 +236,7 @@ void check_potentials(int ang_int_points_, double* p_grid_,
     qi = 100.0;
     qo = 100.0;
     
-    pot2->calc_element_V_arr_full(qi,qo,chn_1S0,rel_corr,inc_reg_cut_and_rel,&V_arr[0]);
+    pot2->calc_element_V_arr_full(qo,qi,chn_1S0,rel_corr,inc_reg_cut_and_rel,&V_arr[0]);
     std::cout << "V_arr (1S0) = [";
     std::cout << std::setprecision(10);
     for (int i=0; i<6; i++)
@@ -243,7 +250,7 @@ void check_potentials(int ang_int_points_, double* p_grid_,
     double diff_1S0 = std::abs(V_arr[0]+4.4866673483505186e-6);
     std::cout << diff_1S0 << std::endl;
     
-    pot2->calc_element_V_arr_full(qi,qo,chn_3S1,rel_corr,inc_reg_cut_and_rel,&V_arr[0]);
+    pot2->calc_element_V_arr_full(qo,qi,chn_3S1,rel_corr,inc_reg_cut_and_rel,&V_arr[0]);
     std::cout << "V_arr (3S1) = [";
     std::cout << std::setprecision(10);
     for (int i=0; i<6; i++)

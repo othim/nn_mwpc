@@ -112,7 +112,7 @@ int main(int argc, char** argv)
     pot->LECs_["C3S1"] = C3S1;
     
     // Save HO me
-    pot->save_ho_me("tmp/LO_WPC.txt",20,24);
+    //pot->save_ho_me("tmp/LO_WPC.txt",20,24);
 
     //Potential_ext<gsl_matrix> cdbonn = Potential_ext<gsl_matrix>(
     //        p_grid, number_of_p_points, Lambda, &cdbonn_correct_arg);
@@ -164,11 +164,11 @@ int main(int argc, char** argv)
             if (bra.S == ket.S && bra.J == ket.J && bra.T == ket.T && 
                     bra.Tz==ket.Tz)
             {
-                //double el = idaho_n3lo.compute_HO_matrix_el(bra.n, bra.L, ket.n, 
-                //    ket.L, bra.S, bra.J, bra.T, bra.Tz, p_grid, w_grid, number_of_p_points, mN, Omega);
-                
-                double el = pot->compute_HO_matrix_el(bra.n, bra.L, ket.n, 
+                double el = idaho_n3lo.compute_HO_matrix_el(bra.n, bra.L, ket.n, 
                     ket.L, bra.S, bra.J, bra.T, bra.Tz, p_grid, w_grid, number_of_p_points, mN, Omega);
+                
+                //double el = pot->compute_HO_matrix_el(bra.n, bra.L, ket.n, 
+                //    ket.L, bra.S, bra.J, bra.T, bra.Tz, p_grid, w_grid, number_of_p_points, mN, Omega);
                 
                 // n l n’ l’ S J Tz ME
                 std::cout << std::setprecision(16);
