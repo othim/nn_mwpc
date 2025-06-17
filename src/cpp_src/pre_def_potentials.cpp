@@ -398,6 +398,40 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
                 cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
         return pot_complex_weights;
+    } else if (pre_def_name == "WPC_NLO_SFR_CIB")
+    {
+        std::vector<std::string> terms;
+        // Pion terms
+        terms.push_back("W_T_1pi_nu_0_CIB");
+        
+        terms.push_back("V_T_2pi_nu_2");
+        terms.push_back("V_S_2pi_nu_2");
+        terms.push_back("W_C_2pi_nu_2");
+         
+        // Contact terms
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        terms.push_back("D1P1");
+        terms.push_back("D3P1");
+        terms.push_back("D1S0");
+        terms.push_back("D3S1");
+        terms.push_back("D_SD");
+        terms.push_back("D_DS");
+        
+        bool inc_weights_in_pot = true; // This is always true
+        loop_reg    = "SFR";
+        lam_SFR = 700.0;
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg,lam_SFR,program_const_);
+    
+        return pot_complex_weights;
     } else if (pre_def_name == "WPC_N2LO_DR")
     {
         std::vector<std::string> terms;
@@ -536,11 +570,101 @@ Potential_mwpc<gsl_matrix_complex>* pre_def_pot::create_pre_def_pot(
                 cut_on_shell_,loop_reg, lam_SFR,program_const_);
     
         return pot_complex_weights;
+    } else if (pre_def_name == "WPC_N2LO_SFR_EM_CIB")
+    {
+        std::vector<std::string> terms;
+        // Pion terms
+        terms.push_back("W_T_1pi_nu_0_CIB");
+        
+        terms.push_back("V_T_2pi_nu_2");
+        terms.push_back("V_S_2pi_nu_2");
+        terms.push_back("W_C_2pi_nu_2");
+        
+        terms.push_back("V_C_2pi_nu_3");
+        terms.push_back("W_C_2pi_nu_3");
+        terms.push_back("V_T_2pi_nu_3");
+        terms.push_back("V_S_2pi_nu_3");
+        terms.push_back("W_T_2pi_nu_3");
+        terms.push_back("W_S_2pi_nu_3");
+        terms.push_back("V_LS_2pi_nu_3");
+        terms.push_back("W_LS_2pi_nu_3");
+        
+        // To convert to the EM convention for the subtrantion of the
+        // iterated 1PE
+        terms.push_back("V_C_2pi_nu_3_to_EM");
+        terms.push_back("W_C_2pi_nu_3_to_EM");
+        terms.push_back("V_T_2pi_nu_3_to_EM");
+        terms.push_back("V_S_2pi_nu_3_to_EM");
+        terms.push_back("W_T_2pi_nu_3_to_EM");
+        terms.push_back("W_S_2pi_nu_3_to_EM");
+         
+        // Contact terms
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        terms.push_back("D1P1");
+        terms.push_back("D3P1");
+        terms.push_back("D1S0");
+        terms.push_back("D3S1");
+        terms.push_back("D_SD");
+        terms.push_back("D_DS");
+        
+        bool inc_weights_in_pot = true; // This is always true
+        loop_reg    = "SFR";
+        lam_SFR = 700.0;
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg, lam_SFR,program_const_);
+    
+        return pot_complex_weights;
     } else if (pre_def_name == "WPC_N2LO_SFR_NO_REL")
     {
         std::vector<std::string> terms;
         // Pion terms
         terms.push_back("W_T_1pi_nu_0");
+        
+        terms.push_back("V_T_2pi_nu_2");
+        terms.push_back("V_S_2pi_nu_2");
+        terms.push_back("W_C_2pi_nu_2");
+        
+        terms.push_back("V_C_2pi_nu_3_no_rel");
+        terms.push_back("W_T_2pi_nu_3_no_rel");
+        terms.push_back("W_S_2pi_nu_3_no_rel");
+         
+        // Contact terms
+        terms.push_back("C1S0");
+        terms.push_back("C3S1");
+        terms.push_back("D3P0");
+        terms.push_back("D3P2");
+        terms.push_back("D1P1");
+        terms.push_back("D3P1");
+        terms.push_back("D1S0");
+        terms.push_back("D3S1");
+        terms.push_back("D_SD");
+        terms.push_back("D_DS");
+        
+        bool inc_weights_in_pot = true; // This is always true
+        loop_reg    = "SFR";
+        lam_SFR     = 700.0;
+
+        // Make the potential complex
+        Potential_mwpc<gsl_matrix_complex>* pot_complex_weights = 
+                new Potential_mwpc<gsl_matrix_complex>(terms,ang_int_points_,p_grid_,
+                w_grid_, number_of_p_points_,J_max_in_pot_,
+                cutoff_, cut_pow_, sharp_cutoff_, sharp_cutoff_add_, inc_weights_in_pot, 
+                cut_on_shell_,loop_reg, lam_SFR,program_const_);
+    
+        return pot_complex_weights;
+    } else if (pre_def_name == "WPC_N2LO_SFR_NO_REL_CIB")
+    {
+        std::vector<std::string> terms;
+        // Pion terms
+        terms.push_back("W_T_1pi_nu_0_CIB");
         
         terms.push_back("V_T_2pi_nu_2");
         terms.push_back("V_S_2pi_nu_2");
