@@ -28,6 +28,8 @@ typedef struct
     double mpi;           // Average pion mass (MeV)
     double Mp;            // Proton mass (MeV)
     double Mn;            // Neutron mass (MeV)
+    double mpip;            // pi+ mass (MeV)
+    double mpi0;            // pi0 (MeV)
     double inv_fm_to_MeV; // hbarc in units MeV*fm
    
     double MeVm2_to_mbarn; // Conversion factor from MeV^{-2} to mbarn

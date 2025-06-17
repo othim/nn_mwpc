@@ -21,6 +21,8 @@ void ph::print_constants_struct(ph::constants_struct* pc)
     std::cout << "mpi            = " << pc->mpi << " MeV" << std::endl;
     std::cout << "Mp             = " << pc->Mp  << " MeV" << std::endl;
     std::cout << "Mn             = " << pc->Mn  << " MeV" << std::endl;
+    std::cout << "mpip           = " << pc->mpip  << " MeV" << std::endl;
+    std::cout << "mpi0           = " << pc->mpi0  << " MeV" << std::endl;
     std::cout << "inv_fm_to_MeV  = " << pc->inv_fm_to_MeV  << " MeV*fm" << std::endl;
     std::cout << "MeVm2_to_mbarn = " << pc->MeVm2_to_mbarn  << " MeV^2*mb" << std::endl;
 }
