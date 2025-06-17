@@ -97,7 +97,9 @@ public:
             double cutoff, int cut_pow, bool sharp_cutoff, bool pre_comp_pot, 
             bool rel_corr, int number_of_p_points, bool finite_grid,
             bool inc_weights_in_pot_, bool cut_on_shell,
-            double fpi, double mpi, double Mp, double  Mn, double inv_fm_to_MeV);
+            double fpi, double mpi, double Mp, double  Mn, 
+            double mpip, double mpi0,
+            double inv_fm_to_MeV);
     ~nn_mwpc_interface();
     
     /*

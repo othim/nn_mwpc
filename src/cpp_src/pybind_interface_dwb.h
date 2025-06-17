@@ -351,6 +351,13 @@ public:
      */
     std::complex<double> observable_from_saved_T_vec(const std::string& obs_name, 
             double theta);
+    
+    /*
+     * Computes M-matrix elements in units MeV^{-1}
+     * M_pp, M_00, M_pm, M_s, M_p0, M_0p
+     */
+    std::vector<std::complex<double>> Melements_from_saved_T_vec( 
+            double theta);
     /*
      * Compute the same as above but for a vector or angles.
      * This makes the computations more efficient since they can be 

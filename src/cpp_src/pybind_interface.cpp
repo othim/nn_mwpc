@@ -13,7 +13,7 @@ PYBIND11_MODULE(nn_mwpc, m)
 {
     py::class_<nn_mwpc_interface>(m,"nn_mwpc_interface")
         .def(py::init<const std::string&,int,double,int,bool,bool,bool,double,
-                bool,bool,bool,double,double,double,double,double>())
+                bool,bool,bool,double,double,double,double,double,double,double>())
         .def("solve_LS", &nn_mwpc_interface::solve_LS,
                 py::return_value_policy::copy)
         .def("solve_LS_ext_pot", &nn_mwpc_interface::solve_LS_ext_pot,
@@ -93,6 +93,9 @@ PYBIND11_MODULE(nn_mwpc, m)
                 &nn_mwpc_dwb_interface::save_DWBA_T_chn_PC,
                 py::return_value_policy::copy)
         
+        .def("Melements_from_saved_T_vec", 
+                &nn_mwpc_dwb_interface::Melements_from_saved_T_vec,
+                py::return_value_policy::copy)
         .def("observable_from_saved_T_vec", 
                 &nn_mwpc_dwb_interface::observable_from_saved_T_vec,
                 py::return_value_policy::copy)
@@ -182,6 +185,7 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         bool sharp_cutoff, bool pre_comp_pot, bool rel_corr,
         int number_of_p_points,bool finite_grid,bool inc_weights_in_pot,
         bool cut_on_shell, double fpi, double mpi, double Mp, double Mn,
+        double mpip, double mpi0,
         double inv_fm_to_MeV)
 {
 
@@ -209,6 +213,8 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
     program_const_->mpi            = mpi; // Average of +,-,0 
     program_const_->Mp             = Mp; 
     program_const_->Mn             = Mn;
+    program_const_->mpip           = mpip; // mass of pi^+
+    program_const_->mpi0           = mpi0; // mass of pi^0
     program_const_->inv_fm_to_MeV  = inv_fm_to_MeV;
 
     program_const_->MeVm2_to_mbarn = (program_const_->inv_fm_to_MeV)

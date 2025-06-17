@@ -66,7 +66,7 @@ def observables(obs):
     # Just some test values
     C1S0 = -0.10768e-2                                                          
     C3S1 = -0.07172e-2  
-    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.276*1.276; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0#1.3e-8;
     C3P2 = 0#0.1e-8;
         
@@ -124,7 +124,7 @@ def observables_list(obs):
     # Just some test values
     C1S0 = -0.10768e-2                                                          
     C3S1 = -0.07172e-2  
-    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.276*1.276; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0#1.3e-8;
     C3P2 = 0#0.1e-8;
         
@@ -185,7 +185,7 @@ def diagonalization(obj):
 
     C1S0 = -0.10768e-2                                                          
     C3S1 = -0.07172e-2  
-    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.276*1.276; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0;
     C3P2 = 0;
 
@@ -233,7 +233,7 @@ def M_matrix(obj,E,ang,S,Mo,Mi):
     # Just some test values
     C1S0 = -0.10768e-2                                                          
     C3S1 = -0.07172e-2  
-    gA2  = 1.275*1.275; # Note that gA2 = (gA)^2 and are treated as a LEC.
+    gA2  = 1.276*1.276; # Note that gA2 = (gA)^2 and are treated as a LEC.
     C3P0 = 0#1.3e-8;
     C3P2 = 0#0.1e-8;
         
@@ -271,7 +271,7 @@ print("Constructing object and saving potential")
 # Settings
 # ------------------------------
 potential          = "MWPC_LO_1"
-Jmax               = 20
+Jmax               = 10
 cutoff             = 500.0     # MeV
 cut_pow            = 6          # This is the power, n,  in the e^(-p/Lambda)^n regularization
 sharp_cutoff       = False     # If true the potential is zer to zero for p>Lambda + 300
@@ -288,6 +288,8 @@ mpi = 138.039
 Mp  = 938.2720880259
 Mn  = 939.5654203856
 inv_fm_to_MeV = 197.3269804
+mpip = 0
+mpi0 = 0
 
 print(f'fpi={fpi}')                                                             
 print(f'mpi={mpi}')                                                             
@@ -303,7 +305,7 @@ print(f'Np={num_grid_points}')
 
 obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
         precompute_pot,rel_correction,num_grid_points,finite_grid,\
-        inc_weights_in_pot,cut_on_shell,fpi,mpi,Mp,Mn,inv_fm_to_MeV)
+        inc_weights_in_pot,cut_on_shell,fpi,mpi,Mp,Mn,mpip,mpi0,inv_fm_to_MeV)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 phase_shifts(obj)

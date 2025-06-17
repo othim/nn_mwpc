@@ -66,6 +66,8 @@ nn_mwpc_dwb_interface::nn_mwpc_dwb_interface(double scale,
     program_const_->mpi            = mpi; // Average of +,-,0 
     program_const_->Mp             = Mp; 
     program_const_->Mn             = Mn;
+    program_const_->mpip           = 139.57039; // mass of pi^+ 
+    program_const_->mpi0           = 134.9768; // mass of pi^0 
     program_const_->inv_fm_to_MeV  = inv_fm_to_MeV;
 
     program_const_->MeVm2_to_mbarn = (program_const_->inv_fm_to_MeV)
@@ -723,7 +725,7 @@ void nn_mwpc_dwb_interface::solve_save_T_chn_PC(double T_lab,
             for (int chn_index = 0; chn_index < chns_.size(); chn_index++)
             {
                 //int tid = omp_get_thread_num();
-                // std::cout << "Hello from thread: " << tid << std::endl;
+                //std::cout << "Hello from thread: " << tid << std::endl;
                 // std::cout << "chn_index=" << chn_index << std::endl;
                 // If a LO channel
 
@@ -829,6 +831,85 @@ void nn_mwpc_dwb_interface::save_order(
     }
 }
 
+/*
+std::complex<double> nn_mwpc_dwb_interface::saclayamplitudes_from_saved_T_vec(
+        const std::string& obs_name, double theta)
+{
+    // Compute Saclay amplitudes as in eq 2.14 in 
+    // Formalism of nucleon-nucleon elastic scattering experiments. 
+    // Journal de Physique, 1978, 39 (1), pp.1-32.
+    // in units of mbarn^{0.5}
+    // Return a,b,c,d,e
+    double mu, q_on_shell;
+    LS_Solver_->get_mu_q_on_shell(saved_T_vec_T_lab_,chns_[0], &mu,&q_on_shell);
+
+    // Compute saclay amplitudes 
+    std::vector<std::complex<double> > saclay_amplitudes;
+
+    // S = 1-2*i*rho_T*T
+    double rho_T = M_PI*q_on_shell*mu; // In the convention used
+    
+    // Protect from the numerical instable situation that the 
+    // c.m. scattering angle is exactly 90 deg.
+    if (std::abs(theta-90.0) < 0.001) {
+        theta = 90.001;
+    }
+
+    //auto start_time = std::chrono::high_resolution_clock::now();
+    saclay_amplitudes = sc::compute_Saclay_amplitudes(chns_, saved_T_vec_, 
+            theta*M_PI/180.0, q_on_shell, rho_T, J_max_in_pot_,
+            program_const_);
+
+    return saclay_amplitudes;
+}*/
+
+std::vector<std::complex<double>> nn_mwpc_dwb_interface::Melements_from_saved_T_vec(
+        double theta)
+{
+    double mu, q_on_shell;
+    LS_Solver_->get_mu_q_on_shell(saved_T_vec_T_lab_,chns_[0], &mu,&q_on_shell);
+    
+    theta = theta*M_PI/180; // Convert theta to deg!!
+
+    // Protect from the numerical instable situation that the 
+    // c.m. scattering angle is exactly 90 deg.
+    if (std::abs(theta-90.0) < 0.001) {
+        theta = 90.001;
+    }
+    // Compute M-matrix elements
+    std::complex<double> M_pp = 
+        sc::get_M_matrix_T(chns_,saved_T_vec_,q_on_shell,(int)1,(int)1,(int)1,
+                std::cos(theta),J_max_in_pot_);
+    std::complex<double> M_00 = 
+        sc::get_M_matrix_T(chns_,saved_T_vec_,q_on_shell,(int)1,(int)0,(int)0,
+                std::cos(theta),J_max_in_pot_);
+    std::complex<double> M_pm = 
+        sc::get_M_matrix_T(chns_,saved_T_vec_,q_on_shell,(int)1,(int)1,(int)-1,
+                std::cos(theta),J_max_in_pot_);
+    std::complex<double> M_s =
+        sc::get_M_matrix_T(chns_,saved_T_vec_,q_on_shell,(int)0,(int)0,(int)0,
+                std::cos(theta),J_max_in_pot_);
+    std::complex<double> M_p0 = 
+        sc::get_M_matrix_T(chns_,saved_T_vec_,q_on_shell,(int)1,(int)1,(int)0,
+                std::cos(theta),J_max_in_pot_);
+    std::complex<double> M_0p = 
+        sc::get_M_matrix_T(chns_,saved_T_vec_,q_on_shell,(int)1,(int)0,(int)1,
+                std::cos(theta),J_max_in_pot_);
+    
+    std::vector<std::complex<double> > Melements;
+    Melements.push_back(M_pp);
+    Melements.push_back(M_00);
+    Melements.push_back(M_pm);
+    Melements.push_back(M_s);
+    Melements.push_back(M_p0);
+    Melements.push_back(M_0p);
+    
+    return Melements;
+}
+
+
+
+
 std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T_vec(
         const std::string& obs_name, double theta)
 {
@@ -860,7 +941,7 @@ std::complex<double> nn_mwpc_dwb_interface::observable_from_saved_T_vec(
     */
 
     // Print saclay amplitudes
-    /*
+    /* 
     std::cout << "Amplitudes:" << std::endl;
     for (auto s : saclay_amplitudes)
     {
