@@ -12,6 +12,14 @@ Term::Term(std::string name)
         my_v_alpha = &Term::v_alpha_OPEP; // Make my_v_alpha point to the correct function for OPEP
         params_in_term_.push_back("gA");
         isovector_ = true;
+    } else if (name == "W_T_1pi_nu_0_CIB")
+    {
+        term_name_ = name;
+        spin_structure_ = "T";
+        well_def_pw_ = false;
+        my_v_alpha = &Term::v_alpha_OPEP_CIB; // Make my_v_alpha point to the correct function for OPEP
+        params_in_term_.push_back("gA");
+        isovector_ = false; // Since the isospin effect is already included in v_alpha_OPEP_CIB !!!
     } else if (name == "W_T_1pi_nu_0_less_singular")
     {
         term_name_ = name;
@@ -558,7 +566,39 @@ std::vector<double> Term::v_alpha_OPEP(double qi, double qo, double* z, int z_le
 	return tmp;
 }
 
-// OPEP
+// OPE CIB. Note that this needs to considered isoscalar due to the isospin
+// factor already being treated.
+std::vector<double> Term::v_alpha_OPEP_CIB(double qi, double qo, double* z, int z_len, 
+        std::unordered_map<std::string,double>& LECs,
+        std::unordered_map<std::string,double>& params,
+        qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+        ph::constants_struct* program_const)
+{
+    // This code is specifically for when taking CIB pion masses
+    // into account. Note that this means that you have to turn
+    // off the isovector part to remove the \tau_1 \cdot \tau_2
+    // part of the OPE.
+    // double mpip = 139.57039; // mass of charged pions PDG
+    // double mpi0 = 134.9768;  // mass of neutral pion  PDG
+    double mpip = program_const->mpip;
+    double mpi0 = program_const->mpi0;
+
+
+    double lec = params["gA"];
+    std::vector<double> tmp(z_len);
+    double q2;
+    for (int i = 0; i < (int)z_len; i++)
+    {
+        q2 = qi*qi + qo*qo - 2*qi*qo*z[i];
+        tmp[i] = (lec*lec/(4.0*program_const->fpi*program_const->fpi))*(1.0/
+                (q2+mpi0*mpi0)); // -Vpi(mpi0)
+        int fac = -1*(1-chn.T) + chn.T; // -1 if T=0, 1 if T=1 
+        tmp[i] += -2.0*fac*(lec*lec/(4.0*program_const->fpi*program_const->fpi))*(1.0/
+                (q2+mpip*mpip)); // 2 (-1)^(T+1)*Vpi(mpip)
+    }
+	return tmp;
+}
+
 std::vector<double> Term::v_alpha_OPEP_less_singular(double qi, double qo, double* z, int z_len, 
         std::unordered_map<std::string,double>& LECs,
         std::unordered_map<std::string,double>& params,

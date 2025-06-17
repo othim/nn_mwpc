@@ -135,6 +135,12 @@ public:
             qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
             ph::constants_struct* program_const);
     
+    static std::vector<double> v_alpha_OPEP_CIB(double qi, double qo, double* z, int z_len, 
+            std::unordered_map<std::string,double>& LECs,
+            std::unordered_map<std::string,double>& params,
+            qs::quantum_channel chn, std::string loop_reg, double lam_SFR,
+            ph::constants_struct* program_const);
+    
     static std::vector<double> v_alpha_OPEP_less_singular(double qi, double qo, double* z, int z_len, 
             std::unordered_map<std::string,double>& LECs,
             std::unordered_map<std::string,double>& params,
