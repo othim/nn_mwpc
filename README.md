@@ -38,7 +38,9 @@ open an issue on git or contact me
 
 ## Written by
 Oliver Thim
+
 Copyright (C) 2026 Oliver Thim
+
 oliver.thim97@gmail.com
 
 ## License
@@ -51,6 +53,7 @@ to verify that the the code is installed and used correctly.
   where this code is presented:
 
 O. Thim, A. Ekström, and C. Forssén, Phys. Rev. C 109, 064001  (2024),
+
 O. Thim, Chiral Effective Field Theory with Partly Perturbative Pions
 Applied to the Few-Nucleon Sector, PhD Thesis, Chalmers, (2026).
 
