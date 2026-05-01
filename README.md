@@ -60,10 +60,9 @@ the software. It does not constitute a legally binding restriction and
 does not modify or supersede the terms of the GNU General Public License v3.0.
 
 ## Credit
-
-- If you use the code in a research project, appropriate credit should be given
-  to the author. This can be done by citing relevant publications
-  where this code is presented:
+If you use the code in a research project, appropriate credit should be given
+to the author. This can be done by citing relevant publications
+where this code is presented:
 
 O. Thim, A. Ekström, and C. Forssén, Phys. Rev. C 109, 064001  (2024),
 
