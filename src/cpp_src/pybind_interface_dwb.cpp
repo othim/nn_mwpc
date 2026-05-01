@@ -1463,11 +1463,16 @@ std::vector<double> nn_mwpc_dwb_interface::compute_binding_energy(int chn_number
  */
 void nn_mwpc_dwb_interface::create_new_potential(const std::string& potential_name, 
         std::string pre_def_name, std::string loop_reg, double lam_SFR)
-{
+{   
+    double cutoff = cutoff_;
+    /*if (pre_def_name == "MWPC_LO_SP") {
+        cutoff = 600;
+    }*/
+
     // Make a new potential of this type
     Potential_mwpc<gsl_matrix_complex>* pot = pre_def_pot::create_pre_def_pot(pre_def_name, 
             ang_int_points_,p_grid_,w_grid_,number_of_p_points_,J_max_in_pot_,
-            cutoff_,cut_pow_,sharp_cutoff_,sharp_cutoff_add_,
+            cutoff,cut_pow_,sharp_cutoff_,sharp_cutoff_add_,
             cut_on_shell_,loop_reg,lam_SFR,program_const_);
     
     //Potential_mwpc<gsl_matrix_complex>* pot =  load_pre_def_pot(pre_def_name, lam_SFR);

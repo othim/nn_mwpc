@@ -110,9 +110,16 @@ finite_grid        = False      # If finte momentum grid
 inc_weights_in_pot = False      # Include w and p in potential matrix
 cut_on_shell       = True       # Implement the cutoff also on on-shell elements
 # -----------------------------
+fpi = 92.4
+mpi = 138.039
+Mp  = 938.2720880259
+Mn  = 939.5654203856
+inv_fm_to_MeV = 197.3269804
+mpip = 0
+mpi0 = 0
 obj = nn_mwpc.nn_mwpc_interface(potential,Jmax,cutoff,cut_pow,sharp_cutoff,\
         precompute_pot,rel_correction,num_grid_points,finite_grid,\
-        inc_weights_in_pot,cut_on_shell)
+        inc_weights_in_pot,cut_on_shell,fpi,mpi,Mp,Mn,mpip,mpi0,inv_fm_to_MeV)
 num_chn = obj.get_chn_len()
 print(f'Number of channels: {num_chn}')
 #observables(obj)
