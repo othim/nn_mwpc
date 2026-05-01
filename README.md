@@ -4,10 +4,8 @@
 2. [Definitions](#definitions)
 3. [Conventions](#conventions)
 4. [Compiling the Code](#compiling-the-code)
-6. [Using the Python Module](#using-the-python-module)
+5. [Using the Python Module](#using-the-python-module)
 6. [Appendix](#appendix)
-
-
 
 # Description
 
@@ -38,7 +36,23 @@ bind the calls to python via the interface.
 If you have any questions or suggestions for improvement you are very welcome to
 open an issue on git or contact me
 
-(Oliver Thim, email: oliver.thim@chalmers.se).
+## Written by
+Oliver Thim
+Copyright (C) 2026 Oliver Thim
+oliver.thim97@gmail.com
+
+## License
+GNU GENERAL PUBLIC LICENCE Version 3, 29 June 2007, see LICENSE.txt.
+This program comes with ABSOLUTELY NO WARRANTY. It is the users responsibility
+to verify that the the code is installed and used correctly.
+
+- If you use the code in a research project, appropriate credit should be given
+  to the author. This can be done by citing the relevant publications
+  where this code is presented:
+
+O. Thim, A. Ekström, and C. Forssén, Phys. Rev. C 109, 064001  (2024),
+O. Thim, Chiral Effective Field Theory with Partly Perturbative Pions
+Applied to the Few-Nucleon Sector, PhD Thesis, Chalmers, (2026).
 
 # Definitions
 
@@ -123,8 +137,8 @@ nijmegen1 and cdbonn potential. This is done by running
 
 2.
 
-- Make a basic conda enviroment from the `conda_environments/env_test.yml` file.
-   Install pybind11 (in the same conda enviroment, it can be installed via both pip
+- Make a basic conda environment from the `conda_environments/env_test.yml` file.
+   Install pybind11 (in the same conda environment, it can be installed via both pip
    and conda I think.) Other python packages in the `conda_environments/envirnoment.yml`
    file are needed, but it is best to install them manually from your minimal
    environment env_test. I think that the python version needs to be 3.8.
@@ -138,7 +152,7 @@ might need to source a `setvars.sh` file e.g.: `$ source <install-path>/intel/on
 4. If everything is setup correctly you should be able to go to `src/cpp_src` and run:
 `$ make clean` and then `$ make` without errors. If you get errors, it is most likely
 related to the various included packages. You might need to add additional flags
-on your system etc. Somtimes you need to provide paths external libraires in the
+on your system etc. Sometimes you need to provide paths external libraries in the
 `LD_PRELOAD` and `LD_LIBRARY_PATH` variables.
 
 5. The program is parallelized using OpenMP.
@@ -213,7 +227,7 @@ $ export LD_LIBRARY_PATH=<conda_env_dir>/.conda/envs/nn-mwpc-env:<gsl_dir>/gsl/l
   the python interface, make sure that you run `$ export OMP_NUM_THREADS=1`
   before running.
 
-- If you excounter MKL-related errors when running the python module you might
+- If you encounter MKL-related errors when running the python module you might
   try the following.
   - Use intel compilers when using MKL.
   - Check that the python package versions are correct in the conda environement.
