@@ -27,14 +27,14 @@ The flow of the code is as follows.
 - The amplitudes can then be used to compute: NN phase shifts and
   NN scattering observables.
 
-The code is a C++ code. If you want to use all of its features, you have to
-write this code in C++. However, there is a python interface that is built for
+The code is a C++ code. If you want to use all of its features, you have to use 
+its C++ interface. However, there is a python interface that is built for
 easy access to certain key features that are pre-specified. To make more
 features available from python you have to write the code in C++ and then
 bind the calls to python via the interface.
 
 If you have any questions or suggestions for improvement you are very welcome to
-open an issue on git or contact me
+open an issue on git or contact me.
 
 ## Written by
 Oliver Thim
@@ -217,6 +217,9 @@ comments.
 
 - Example file for using the nn_mwpc_dwb_interface for perturbative computations
   is provided separately.
+
+- The github repository https://github.com/othim/guide-fit-ere provide 
+  an example of how to use the python interface to fit S-wave LECs.
 
 # Appendix
 ## Misc notes
