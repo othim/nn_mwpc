@@ -48,8 +48,21 @@ GNU GENERAL PUBLIC LICENCE Version 3, 29 June 2007, see LICENSE.txt.
 This program comes with ABSOLUTELY NO WARRANTY. It is the users responsibility
 to verify that the the code is installed and used correctly.
 
+
+## Ethical Use Notice:
+The author does not consent to the use of this software, or any derivatives
+of it, for the purpose of training or improving machine learning systems for 
+commercial use, including but not limited to large language models (LLMs), artificial
+intelligence, natural language processing, or data mining.
+
+This notice reflects the author’s explicit intent regarding the use of
+the software. It does not constitute a legally binding restriction and
+does not modify or supersede the terms of the GNU General Public License v3.0.
+
+## Credit
+
 - If you use the code in a research project, appropriate credit should be given
-  to the author. This can be done by citing the relevant publications
+  to the author. This can be done by citing relevant publications
   where this code is presented:
 
 O. Thim, A. Ekström, and C. Forssén, Phys. Rev. C 109, 064001  (2024),
