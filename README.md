@@ -9,32 +9,24 @@
 
 # Description
 
-nn_mwpc is a code for computing nucleon-nucleon observables from different
-potential models. The main purpose why the code was created was to make a
-potential class that can include arbitrary potential terms, which makes it easy
-to check different power countings. The code is also able to perturbatively
-include higher order potential contributions when solving for the NN T-matrix.
+nn-mwpc is a code for computing nucleon-nucleon (NN) observables perturbatively 
+using different potential models. The code was created to investigate perturbative 
+power counting schemes in chiral effective field theory.
 
 The flow of the code is as follows.
 
-- Build your potential by specifying what terms it should include
+- Build your potential by specifying what terms it should include.
 
-- Create a list of the possible quantum scattering channels
+- Create a list of the possible quantum scattering channels.
 
-- Pass this information to the Lippmann Schwinger solver to get T-amplitudes,
+- Pass this information to the Lippmann-Schwinger solver to get T-amplitudes,
   perturbatively or non-perturbatively.
 
 - The amplitudes can then be used to compute: NN phase shifts and
   NN scattering observables.
 
-The code is a C++ code. If you want to use all of its features, you have to use 
-its C++ interface. However, there is a python interface that is built for
-easy access to certain key features that are pre-specified. To make more
-features available from python you have to write the code in C++ and then
-bind the calls to python via the interface.
-
-If you have any questions or suggestions for improvement you are very welcome to
-open an issue on git or contact me.
+The code is a C++ code. However, there is a python interface that is built for
+easy access to certain key features.
 
 ## Written by
 Oliver Thim
