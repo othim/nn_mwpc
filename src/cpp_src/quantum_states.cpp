@@ -222,6 +222,15 @@ std::string quantum_channel_to_string(qs::quantum_channel chn)
     return s_s + s_LS + s_j;
 }
 
+std::string quantum_channel_to_string_2(qs::quantum_channel chn)
+{
+    std::stringstream s; 
+    s << "(J=" << chn.J << " S=" << chn.S 
+        << " T=" << chn.T << " Tz=" << chn.Tz << 
+        " coup=" << chn.coupled << ")" << std::endl;
+    return s.str();
+}
+
 bool chn_in_chns(qs::quantum_channel chn, std::vector<qs::quantum_channel> chns)
 {
     for (int i = 0; i < chns.size(); i++)

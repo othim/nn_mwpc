@@ -1718,6 +1718,12 @@ std::string nn_mwpc_dwb_interface::get_chn_LS_term(int chn_number)
 }
 
 
+std::string nn_mwpc_dwb_interface::get_chn_string(int chn_number)
+{
+    return quantum_channel_to_string_2(chns_[chn_number]);
+}
+
+
 std::vector<double> nn_mwpc_dwb_interface::get_p_points()
 {
     std::vector<double> p_vec;

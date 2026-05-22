@@ -17,6 +17,8 @@
 #include <utility>
 #include <cstdlib>
 #include <string>
+#include <sstream>
+
 // This is the possible quantum channels if [T,H]=0.
 namespace qs 
 {
@@ -92,6 +94,7 @@ std::vector<qs::quantum_channel> get_channels(
         std::vector<qs::quantum_NN_state> states,bool print);
 
 std::string quantum_channel_to_string(qs::quantum_channel chn); 
+std::string quantum_channel_to_string_2(qs::quantum_channel chn); 
 
 bool chn_in_chns(qs::quantum_channel chn, std::vector<qs::quantum_channel> chns);
 

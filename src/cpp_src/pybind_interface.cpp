@@ -165,6 +165,8 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("get_chn_LS_term", &nn_mwpc_dwb_interface::get_chn_LS_term, 
                 py::return_value_policy::copy)
+        .def("get_chn_string", &nn_mwpc_dwb_interface::get_chn_string, 
+                py::return_value_policy::copy)
         .def("get_chn_coupled", &nn_mwpc_dwb_interface::get_chn_coupled, 
                 py::return_value_policy::copy)
         .def("get_p_points", &nn_mwpc_dwb_interface::get_p_points, 
