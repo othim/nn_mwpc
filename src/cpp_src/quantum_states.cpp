@@ -225,9 +225,9 @@ std::string quantum_channel_to_string(qs::quantum_channel chn)
 std::string quantum_channel_to_string_2(qs::quantum_channel chn)
 {
     std::stringstream s; 
-    s << "(J=" << chn.J << " S=" << chn.S 
-        << " T=" << chn.T << " Tz=" << chn.Tz << 
-        " coup=" << chn.coupled << ")" << std::endl;
+    s << "J=" << chn.J << "_S=" << chn.S 
+        << "_T=" << chn.T << "_Tz=" << chn.Tz << 
+        "_coup=" << chn.coupled;
     return s.str();
 }
 
