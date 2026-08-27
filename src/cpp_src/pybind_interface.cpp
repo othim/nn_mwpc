@@ -444,6 +444,21 @@ nn_mwpc_interface::nn_mwpc_interface(const std::string& model_name,
         // Construct the LS_Solver
         LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
                 finite_grid_,finite_grid_max_,program_const_);
+    } else if ("idaho_n3lo"==model_name)
+    {
+        // Construct the quantum states and quantum channels
+        std::vector<qs::quantum_NN_state> states = get_states_NN(J_max, J_min, 
+                Tz_min, Tz_max, print);
+     
+        // Construct the quantum scattering channels from the states
+        chns_ = get_channels(states, print);   
+        Pot_ = nullptr;
+        Pot_ext_ = new Potential_ext<gsl_matrix>(p_grid_, number_of_p_points_, cutoff_, &idaho_n3lo_correct_arg);
+        
+        // Can't precompute this potential (which is kind of stupid...)
+        // Construct the LS_Solver
+        LS_Solver_ = new LS_Solver(number_of_p_points_,p_grid_,w_grid_,
+                finite_grid_,finite_grid_max_,program_const_);
     } else if ("Yamaguchi_1S0" == model_name)
     {
 
