@@ -245,6 +245,13 @@ std::vector<std::complex<double>>
 std::vector<std::complex<double>> 
     get_complex_vector_from_matrix(gsl_matrix_complex* M);
 
+/*
+ * Returns the matrix M as a vector of complex double of length 
+ * number_of_p_points^2. Row major format.
+ */
+std::vector<std::complex<double>> 
+    get_vector_from_matrix(gsl_matrix* M);
+
 
 
 /*

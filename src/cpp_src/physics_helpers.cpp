@@ -688,6 +688,23 @@ std::vector<std::complex<double>>
     return return_vec;
 }
 
+std::vector<std::complex<double>> 
+            ph::get_vector_from_matrix(gsl_matrix* M)
+{
+    // Allocate vector
+    std::vector<std::complex<double>> return_vec;
+
+    for (int i=0; i < M->size1; i++)
+    {
+        for (int j=0; j < M->size2; j++)
+        {
+            double el = gsl_matrix_get(M,i,j);
+            return_vec.push_back(std::complex<double>(el,0));
+        }
+    }
+    return return_vec;
+}
+
 
 double* ph::get_mom_HO_R(double* p_grid, int num_grid_points, int n, int l, 
         double mN, double Omega)

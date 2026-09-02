@@ -32,6 +32,9 @@ PYBIND11_MODULE(nn_mwpc, m)
                 py::return_value_policy::copy)
         .def("compute_binding_energy",&nn_mwpc_interface::compute_binding_energy,
                 py::return_value_policy::copy)
+        .def("get_V_matrix", 
+                &nn_mwpc_interface::get_V_matrix,
+                py::return_value_policy::copy)
         .def("print_LECs_in_use", &nn_mwpc_interface::print_LECs_in_use,
                 py::return_value_policy::copy)
         .def("print_LEC_values", &nn_mwpc_interface::print_LEC_values, 
@@ -895,6 +898,30 @@ gsl_matrix* nn_mwpc_interface::get_my_potential_matrix(double q_on_shell,
     }
     return pot_V_mtx;
 }
+
+
+std::vector<std::complex<double>> nn_mwpc_interface::get_V_matrix(double T_lab,
+        int chn_index)
+{   
+    // Get the correct on-shell q
+    qs::quantum_channel chn = chns_[chn_index];
+    double q_on_shell,mu;
+    LS_Solver_->get_mu_q_on_shell(T_lab, chn, &mu, &q_on_shell);
+    
+    // Get the saved matrix
+    
+    gsl_matrix* pot_V_mtx =  get_my_potential_matrix(q_on_shell, chn);
+    
+
+    // Make it into a row-major std::vector
+    std::vector<std::complex<double>> vec = 
+        ph::get_vector_from_matrix(pot_V_mtx);
+    
+    gsl_matrix_free(pot_V_mtx);
+
+    return vec;
+}
+
 
 
 std::vector<std::complex<double>> nn_mwpc_interface::compute_T_on_shell(

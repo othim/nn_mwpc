@@ -203,7 +203,14 @@ public:
      */
     gsl_matrix* get_my_potential_matrix(double q_on_shell,qs::quantum_channel chn);
     
-        
+    /*
+     *
+     * Calls get_my_potential_matrix and returns it as a vector (row major).
+     *
+     */
+    std::vector<std::complex<double>> get_V_matrix(double T_lab,
+            int chn_index);
+
     void print_LEC_values();
     void print_LECs_in_use();
 
