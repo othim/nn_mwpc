@@ -205,7 +205,11 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix(double q_on_shell,
          //std::cout << " LECS: " << LECs_["gA2"] << " " << LECs_["C1S0"] << " " << LECs_["C3S1"] << std::endl;
          
          //std::cout << chn.coupled << " " << chn.J << " " <<  chn.S << " " << chn.T << std::endl << " ------- " << std::endl;
-         my_element_V_arr(p_out,p_in,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
+         bool coup_tmp = chn.coupled;
+         if (chn.S==1 && chn.T == 1 && chn.coupled==false && chn.J==0) {
+             coup_tmp = true;
+         }
+         my_element_V_arr(p_out,p_in,coup_tmp,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
          //std::cout << "-----" << std::endl;
          //---------------------------------------------------
          //std::cout << "Rel fac: " << rel_fac << std::endl;
@@ -297,6 +301,10 @@ gsl_matrix* Potential_ext<gsl_m>::get_matrix_no_onshell(qs::quantum_channel chn,
          double cutoff_regulator = exp(-gsl_pow_uint(p_in/cutoff_Lambda_,6))
              *exp(-gsl_pow_uint(p_out/cutoff_Lambda_,6));
          
+         bool coup_tmp = chn.coupled;
+         if (chn.S==1 && chn.T == 1 && chn.coupled==false && chn.J==0) {
+             coup_tmp = true;
+         }
          my_element_V_arr(p_out,p_in,chn.coupled,chn.S, chn.J, chn.T, chn.Tz, &V_arr[0]);
         
          // This is the same as in pot_nn_mwpc

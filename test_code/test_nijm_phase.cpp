@@ -64,7 +64,7 @@ int main(int argc, char** argv)
     // Create new log-file
     new_log();
 
-    bool print_all = false;
+    bool print_all = true;
     if (ar.arg_value[2] == "true")
     {
         print_all = true;
@@ -152,6 +152,8 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns,
 
     Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
             p_grid, number_of_p_points, Lambda, &nijm_correct_arg);
+    //Potential_ext<gsl_matrix> nijmegen = Potential_ext<gsl_matrix>(
+    //        p_grid, number_of_p_points, Lambda, &idaho_n3lo_correct_arg);
 
     LS_Solver solver = LS_Solver(number_of_p_points,p_grid,w_grid, FINITE_GRID,
             finite_grid_max, program_const);
@@ -232,6 +234,8 @@ void check_phase_shifts(std::vector<qs::quantum_channel> chns,
                 std::cout << std::setprecision(10);
                 std::cout <<"R: " <<  phases.delta_uncoupled << ",   T:";
                 std::cout << phases_T.delta_uncoupled << std::endl;
+
+                std::cout << "coupled: "<< phases.delta_m << "," << phases.delta_p << std::endl;
             }
 
             gsl_matrix_free(pot_V_mtx);
